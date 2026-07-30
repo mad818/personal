@@ -3,8 +3,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import {
+  applyAuthNoStoreHeaders,
   getConfiguredNexusToken,
-  hasAuthenticatedNexusSession,
+  getNexusSessionState,
   isTrustedInternalHost,
   matchesConfiguredNexusToken,
   NEXUS_INTERNAL_AUTH_HEADER,
@@ -25,6 +26,18 @@ import {
   findConnectorKeyForPath,
   readConnectorPolicy,
 } from '@/lib/security/connectorPolicy'
+import { resolvePhoneSessionRequestPolicy } from '@/lib/security/phoneSessionPolicy'
+import {
+  buildContentSecurityPolicy,
+  CONTENT_SECURITY_POLICY_HEADER,
+  CONTENT_SECURITY_POLICY_NONCE_HEADER,
+  createContentSecurityPolicyNonce,
+} from '@/lib/security/contentSecurityPolicy'
+
+function applyContentSecurityPolicy(response: NextResponse, policy: string) {
+  response.headers.set(CONTENT_SECURITY_POLICY_HEADER, policy)
+  return response
+}
 
 /**
  * Nexus Gateway Middleware
@@ -40,12 +53,38 @@ import {
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
+  const nonce = createContentSecurityPolicyNonce()
+  const contentSecurityPolicy = buildContentSecurityPolicy(nonce, {
+    development: process.env.NODE_ENV !== 'production',
+    devPort: process.env.PORT,
+    tradingViewEmbed: pathname === '/embeds/tradingview',
+  })
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set(CONTENT_SECURITY_POLICY_NONCE_HEADER, nonce)
+  requestHeaders.set(CONTENT_SECURITY_POLICY_HEADER, contentSecurityPolicy)
+
+  function nextResponse() {
+    return applyContentSecurityPolicy(
+      NextResponse.next({ request: { headers: requestHeaders } }),
+      contentSecurityPolicy,
+    )
+  }
+
+  function jsonResponse<T>(body: T, init?: ResponseInit) {
+    return applyContentSecurityPolicy(
+      NextResponse.json(body, init),
+      contentSecurityPolicy,
+    )
+  }
 
   // Only protect /api/* routes
-  if (!pathname.startsWith('/api/')) return NextResponse.next()
+  if (!pathname.startsWith('/api/')) return nextResponse()
   const policy = getRoutePolicy(pathname)
   if (!policy) {
-    return NextResponse.json({ error: 'Unknown API route', route: pathname }, { status: 403 })
+    return jsonResponse(
+      { error: 'Unknown API route', route: pathname },
+      { status: 403 },
+    )
   }
   const mode =
     parseNetworkModeCookie(req.cookies.get(NEXUS_NETWORK_MODE_COOKIE)?.value) ??
@@ -54,7 +93,7 @@ export async function middleware(req: NextRequest) {
     parseBooleanPolicyCookie(req.cookies.get(NEXUS_HIGH_RISK_COOKIE)?.value) ??
     (process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS === 'true')
   if (!isRouteAllowedInMode(policy.routeClass, mode, highRiskEnabled)) {
-    return NextResponse.json(
+    return jsonResponse(
       {
         error: 'Blocked by network policy',
         route: pathname,
@@ -69,7 +108,7 @@ export async function middleware(req: NextRequest) {
     if (connectorKey) {
       const connectorPolicy = readConnectorPolicy()
       if (!connectorPolicy[connectorKey]) {
-        return NextResponse.json(
+        return jsonResponse(
           {
             error: 'Blocked by connector policy',
             route: pathname,
@@ -80,15 +119,16 @@ export async function middleware(req: NextRequest) {
       }
     }
   }
-  if (policy.public) return NextResponse.next()
+  if (policy.public) return nextResponse()
 
   if (!getConfiguredNexusToken()) {
-    return NextResponse.next()
+    return nextResponse()
   }
 
   const sessionCookie = req.cookies.get(NEXUS_SESSION_COOKIE)?.value ?? ''
   const internalAuth = req.headers.get(NEXUS_INTERNAL_AUTH_HEADER) ?? ''
-  const sessionAuthorized = await hasAuthenticatedNexusSession(sessionCookie)
+  const session = await getNexusSessionState(sessionCookie)
+  const sessionAuthorized = Boolean(session)
   const internalAuthorized =
     matchesConfiguredNexusToken(internalAuth) &&
     isTrustedInternalHost(
@@ -99,12 +139,43 @@ export async function middleware(req: NextRequest) {
   const authorized = sessionAuthorized || internalAuthorized
 
   if (!authorized) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return jsonResponse({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  return NextResponse.next()
+  if (session?.authTier === 'phone' && !internalAuthorized) {
+    const phonePolicy = resolvePhoneSessionRequestPolicy(pathname, req.method)
+    if (!phonePolicy.allowed) {
+      const response = jsonResponse(
+        {
+          error:
+            'This action needs the desktop NEXUS_TOKEN. Phone token sessions can read Nexus and use local assistant workflows, but cannot perform this mutation.',
+          code: 'phone_token_limited',
+          route: pathname,
+          method: phonePolicy.method,
+          recoveryAction:
+            'Use the master token from the desktop for operator-state changes.',
+        },
+        { status: 403 },
+      )
+      response.headers.set('X-Nexus-Phone-Policy', 'blocked_mutation')
+      applyAuthNoStoreHeaders(response.headers)
+      return response
+    }
+  }
+
+  return nextResponse()
 }
 
 export const config = {
-  matcher: ['/api/:path*'],
+  matcher: [
+    '/api/:path*',
+    {
+      source:
+        '/((?!api|_next/static|_next/image|favicon.ico|icon.svg|manifest.json|robots.txt|sitemap.xml).*)',
+      missing: [
+        { type: 'header', key: 'next-router-prefetch' },
+        { type: 'header', key: 'purpose', value: 'prefetch' },
+      ],
+    },
+  ],
 }

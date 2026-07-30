@@ -3,11 +3,12 @@
 import { useMemo } from "react";
 import { useStore } from "@/store/useStore";
 import { CHART } from "@/lib/chartTheme";
+import { useFearGreed } from "@/hooks/useFearGreed";
 
 // ── Ring segment data ─────────────────────────────────────────────────────────
 interface RingSegment {
   label: string;
-  value: number; // 0–100
+  value: number | null; // 0–100, null when evidence is unavailable
   color: string;
 }
 
@@ -42,8 +43,10 @@ function segmentArc(
 export default function SystemStatusRing() {
   const cves = useStore((s) => s.cves);
   const threatIntel = useStore((s) => s.threatIntel);
-  const fearGreed = useStore((s) => s.fearGreed);
+  const fearGreed = useStore((s) => s.signals.fg);
+  const sentimentStatus = useStore((s) => s.feedStatus.fearGreed);
   const prices = useStore((s) => s.prices);
+  const { fetchFearGreed, loading: sentimentLoading } = useFearGreed();
 
   // Derive 0–100 scores for each segment
   const segments: RingSegment[] = useMemo(() => {
@@ -74,9 +77,7 @@ export default function SystemStatusRing() {
     const threatLevel = Math.min(100, Math.round((highConf / totalIocs) * 150));
 
     // Market Sentiment: 0 = extreme fear (bad), 100 = extreme greed (good)
-    const fgVal =
-      fearGreed?.current?.value != null ? Number(fearGreed.current.value) : 50;
-    const marketSentiment = fgVal;
+    const marketSentiment = fearGreed?.value ?? null;
 
     return [
       { label: "API Health", value: apiHealth, color: CHART.teal },
@@ -86,8 +87,13 @@ export default function SystemStatusRing() {
     ];
   }, [cves, threatIntel, fearGreed, prices]);
 
+  const scoredSegments = segments.filter(
+    (segment): segment is RingSegment & { value: number } =>
+      segment.value !== null,
+  );
   const overall = Math.round(
-    segments.reduce((sum, s) => sum + s.value, 0) / segments.length,
+    scoredSegments.reduce((sum, segment) => sum + segment.value, 0) /
+      scoredSegments.length,
   );
 
   // Build 4 equal segments (each 90°) with a small gap
@@ -123,6 +129,59 @@ export default function SystemStatusRing() {
       >
         <span style={{ color: CHART.violet }}>◉</span> System Health
       </div>
+
+      {sentimentStatus.lastError ? (
+        <div
+          role="alert"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "10px",
+            padding: "8px 10px",
+            marginBottom: "10px",
+            border: `1px solid ${CHART.border}`,
+            borderRadius: "7px",
+            background: CHART.surf2,
+            color: CHART.amber,
+            fontSize: "10px",
+          }}
+        >
+          <span>
+            {fearGreed
+              ? "Sentiment refresh failed; the last verified value remains in the score."
+              : sentimentStatus.lastError}
+          </span>
+          <button
+            type="button"
+            onClick={() => void fetchFearGreed()}
+            disabled={sentimentLoading}
+            style={{
+              border: `1px solid ${CHART.border}`,
+              borderRadius: "6px",
+              background: CHART.surf3,
+              color: CHART.text2,
+              padding: "4px 8px",
+              cursor: sentimentLoading ? "wait" : "pointer",
+              fontSize: "9px",
+              fontWeight: 700,
+            }}
+          >
+            {sentimentLoading ? "Retrying…" : "Retry sentiment"}
+          </button>
+        </div>
+      ) : !fearGreed ? (
+        <div
+          role="status"
+          style={{
+            color: CHART.text3,
+            fontSize: "10px",
+            marginBottom: "10px",
+          }}
+        >
+          Market sentiment is awaiting verified data.
+        </div>
+      ) : null}
 
       <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
         {/* SVG Ring */}
@@ -165,7 +224,8 @@ export default function SystemStatusRing() {
               const start = startAngles[i];
               const { d } = segmentArc(start, sweepPerSeg);
               // Opacity scales with value
-              const opacity = 0.3 + (seg.value / 100) * 0.7;
+              const opacity =
+                seg.value === null ? 0.12 : 0.3 + (seg.value / 100) * 0.7;
               return (
                 <path
                   key={seg.label}
@@ -245,7 +305,7 @@ export default function SystemStatusRing() {
                     fontFamily: "monospace",
                   }}
                 >
-                  {seg.value}
+                  {seg.value ?? "—"}
                 </span>
               </div>
               <div
@@ -258,7 +318,7 @@ export default function SystemStatusRing() {
               >
                 <div
                   style={{
-                    width: `${seg.value}%`,
+                    width: `${seg.value ?? 0}%`,
                     height: "100%",
                     background: seg.color,
                     borderRadius: "2px",

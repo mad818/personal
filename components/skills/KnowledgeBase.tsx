@@ -7,6 +7,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
 import { DEFAULT_KNOWLEDGE, type KnowledgeEntry } from "@/lib/skillEngine";
 import {
   remember,
@@ -132,9 +133,17 @@ function KnowledgeCard({
     entry.content.slice(0, 140) + (entry.content.length > 140 ? "…" : "");
 
   return (
-    <motion.div
+    <motion.button
+      type="button"
       layout
+      aria-expanded={isExpanded}
+      aria-label={`${isExpanded ? "Collapse" : "Expand"} ${entry.title} knowledge entry`}
       style={{
+        width: "100%",
+        padding: 0,
+        color: "inherit",
+        font: "inherit",
+        textAlign: "left",
         background: "var(--surf)",
         border: `1px solid ${isExpanded ? "var(--border2)" : "var(--border)"}`,
         borderRadius: "10px",
@@ -277,7 +286,7 @@ function KnowledgeCard({
           <RelevanceBar score={entry.relevanceScore} />
         </div>
       </div>
-    </motion.div>
+    </motion.button>
   );
 }
 
@@ -409,6 +418,7 @@ function AddModal({
               Title
             </div>
             <input
+              aria-label="Knowledge title"
               style={inputStyle}
               value={form.title}
               onChange={(e) =>
@@ -431,6 +441,7 @@ function AddModal({
               Category
             </div>
             <select
+              aria-label="Knowledge category"
               style={{ ...inputStyle, appearance: "none" }}
               value={form.category}
               onChange={(e) =>
@@ -458,6 +469,7 @@ function AddModal({
               Content
             </div>
             <textarea
+              aria-label="Knowledge content"
               style={{ ...inputStyle, minHeight: "100px", resize: "vertical" }}
               value={form.content}
               onChange={(e) =>
@@ -480,6 +492,7 @@ function AddModal({
               Tags (comma-separated)
             </div>
             <input
+              aria-label="Knowledge tags"
               style={inputStyle}
               value={form.tags}
               onChange={(e) => setForm((p) => ({ ...p, tags: e.target.value }))}
@@ -719,13 +732,16 @@ export default function KnowledgeBase() {
   const handleExport = useCallback(async () => {
     try {
       const json = await exportMemories();
-      const blob = new Blob([json], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `nexus-memories-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const requested = requestTextDownload({
+        filename: `nexus-memories-${new Date().toISOString().slice(0, 10)}.json`,
+        content: json,
+        label: "Knowledge memory export",
+        mimeType: "application/json",
+        announce: false,
+      });
+      if (!requested) throw new Error("Download request failed.");
+      setImportStatus("Memory download requested");
+      setTimeout(() => setImportStatus(null), 3000);
     } catch {
       setImportStatus("Error exporting memories");
       setTimeout(() => setImportStatus(null), 3000);
@@ -886,6 +902,7 @@ export default function KnowledgeBase() {
       <AnimatePresence>
         {importStatus && (
           <motion.div
+            role="status"
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
@@ -925,6 +942,7 @@ export default function KnowledgeBase() {
               }}
             >
               <textarea
+                aria-label="New persistent memory"
                 value={newMemoryText}
                 onChange={(e) => setNewMemoryText(e.target.value)}
                 placeholder="Enter a fact to remember permanently (stored in IndexedDB)…"
@@ -992,6 +1010,7 @@ export default function KnowledgeBase() {
         </div>
         <div style={{ display: "flex", gap: "6px" }}>
           <input
+            aria-label="Search persistent memories"
             value={memorySearch}
             onChange={(e) => setMemorySearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleMemorySearch()}
@@ -1053,6 +1072,7 @@ export default function KnowledgeBase() {
           ⌕
         </span>
         <input
+          aria-label="Search knowledge base"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search titles, content, tags…"
@@ -1079,6 +1099,7 @@ export default function KnowledgeBase() {
         {search && (
           <button
             onClick={() => setSearch("")}
+            aria-label="Clear knowledge search"
             style={{
               position: "absolute",
               right: "8px",

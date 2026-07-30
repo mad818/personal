@@ -6,6 +6,7 @@
 import { useStore } from "@/store/useStore";
 import type { OTXPulse } from "@/store/useStore";
 import { timeAgo } from "@/lib/helpers";
+import { SurfaceEmpty } from "@/components/ui/surfacePrimitives";
 
 // TLP colour coding (Traffic Light Protocol)
 const TLP_COLOR: Record<string, string> = {
@@ -217,23 +218,34 @@ function PulseCard({ pulse }: { pulse: OTXPulse }) {
 
 export default function OTXFeed() {
   const pulses = useStore((s) => s.otxPulses);
+  const feedStatus = useStore((s) => s.feedStatus.otx);
 
-  // No pulses yet (or no server key configured)
   if (!pulses.length) {
     return (
-      <div
-        style={{
-          padding: "30px",
-          textAlign: "center",
-          color: "var(--text3)",
-          fontSize: "12px",
-          lineHeight: 1.5,
-        }}
-      >
-        <div style={{ fontSize: "24px", marginBottom: "8px" }}>🛡️</div>
-        No OTX pulses yet. If this persists, set `OTX_KEY` in Settings and
-        restart dev server.
-      </div>
+      <SurfaceEmpty
+        tone={feedStatus.lastError ? "muted" : "info"}
+        icon="OTX"
+        title={
+          feedStatus.lastError
+            ? "OTX is unavailable"
+            : feedStatus.lastSuccessAt
+              ? "OTX returned no pulses"
+              : "OTX is awaiting its first sweep"
+        }
+        description={
+          feedStatus.lastError ??
+          (feedStatus.lastSuccessAt
+            ? "The configured provider completed successfully with a verified empty result."
+            : "Configure OTX_KEY in Settings to activate subscribed pulse intelligence.")
+        }
+        data-feed-state={
+          feedStatus.lastError
+            ? "unavailable"
+            : feedStatus.lastSuccessAt
+              ? "verified-empty"
+              : "awaiting"
+        }
+      />
     );
   }
 

@@ -71,7 +71,9 @@ export default function EfficiencyOpsCard() {
 
       {expanded ? (
         <div className="mt-3 flex flex-col gap-3">
-          {loading && !latest ? <SurfaceSkeletonRows rows={3} height={44} /> : null}
+          {loading && !latest ? (
+            <SurfaceSkeletonRows rows={3} height={44} />
+          ) : null}
 
           <SurfaceCallout
             tone={toneForQuality(summary?.quality, stale)}
@@ -89,8 +91,12 @@ export default function EfficiencyOpsCard() {
             }
           >
             <div className="flex flex-wrap gap-1.5">
-              <ShellBadge tone="success">{workflowOps.activeCount} live</ShellBadge>
-              <ShellBadge tone="accent">{workflowOps.queuedCount} queued</ShellBadge>
+              <ShellBadge tone="success">
+                {workflowOps.activeCount} live
+              </ShellBadge>
+              <ShellBadge tone="accent">
+                {workflowOps.queuedCount} queued
+              </ShellBadge>
               <ShellBadge tone="muted">
                 {summary?.measuredRuns ?? 0} measured
               </ShellBadge>
@@ -108,6 +114,7 @@ export default function EfficiencyOpsCard() {
 
           {loadError && !loading ? (
             <SurfaceCallout
+              role="alert"
               tone="warning"
               compact
               icon="↺"
@@ -149,7 +156,10 @@ export default function EfficiencyOpsCard() {
                 <div className="rounded-md border border-[var(--border)] bg-[var(--surf)] px-3 py-2">
                   <div className="text-[var(--text3)]">Single lane</div>
                   <div className="mt-1 font-mono text-[var(--text)]">
-                    {laneLabel(latest.lanes?.single?.count, latest.lanes?.single?.label)}
+                    {laneLabel(
+                      latest.lanes?.single?.count,
+                      latest.lanes?.single?.label,
+                    )}
                   </div>
                 </div>
                 <div className="rounded-md border border-[var(--border)] bg-[var(--surf)] px-3 py-2">
@@ -216,15 +226,16 @@ export default function EfficiencyOpsCard() {
                             </div>
                             <div className="flex flex-wrap gap-1.5">
                               <ShellBadge
-                                tone={entry.status === "error" ? "accent" : "muted"}
+                                tone={
+                                  entry.status === "error" ? "accent" : "muted"
+                                }
                               >
                                 {entry.status}
                               </ShellBadge>
                               <ShellBadge tone="muted">
-                                {(entry.executionOrigin ?? "scheduled_job").replaceAll(
-                                  "_",
-                                  " ",
-                                )}
+                                {(
+                                  entry.executionOrigin ?? "scheduled_job"
+                                ).replaceAll("_", " ")}
                               </ShellBadge>
                             </div>
                           </div>

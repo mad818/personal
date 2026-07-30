@@ -18,7 +18,8 @@ const path = require('path')
 
 const ROOT     = path.join(__dirname, '..')
 const CI       = process.env.CI === 'true'
-const SCAN_DIRS = ['app/api', 'lib']
+const SCAN_DIRS = ['app/api', 'lib', 'scripts']
+const SECRET_ONLY_DIRS = new Set(['scripts'])
 const SCAN_EXTS = new Set(['.ts', '.tsx', '.js', '.mjs'])
 
 // ── Secret patterns ───────────────────────────────────────────────────────────
@@ -96,6 +97,7 @@ function walk(dir) {
 function scanFile(filePath) {
   const findings = []
   const rel = path.relative(ROOT, filePath)
+  const secretOnly = rel.startsWith(`scripts${path.sep}`) || SECRET_ONLY_DIRS.has(path.dirname(rel))
   let src
   try { src = fs.readFileSync(filePath, 'utf-8') } catch { return findings }
 
@@ -119,7 +121,9 @@ function scanFile(filePath) {
     }
   }
 
-  // OWASP scan
+  // OWASP scan (lib + app/api only — scripts are secret-scan only)
+  if (secretOnly) return findings
+
   for (const rule of OWASP_PATTERNS) {
     rule.re.lastIndex = 0
     let m

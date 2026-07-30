@@ -151,7 +151,7 @@ async function expectCinematicIA(page: Page, surface: string) {
       page.getByTestId("homefront-live-vision-strip").getByText("Image plane"),
     ).toBeVisible();
     await expect(
-      page.getByTestId("homefront-live-vision-strip").getByText("RPG separate"),
+      page.getByTestId("homefront-live-vision-strip").getByText("Local first"),
     ).toBeVisible();
     if (WORKPLANE_SUMMARY_SURFACES.has(surface)) {
       await expect(page.getByTestId("homefront-workplane-summary")).toBeVisible();
@@ -352,7 +352,7 @@ test("resources exposes source intelligence as a native intake lane", async ({
     "hackingtool",
   );
   await expect(page.getByTestId("resources-source-ledger")).toContainText(
-    "Private lane",
+    "Blocked",
   );
 });
 
@@ -368,18 +368,18 @@ test("resources exposes massive win planning as a native command lane", async ({
     page.getByRole("heading", { name: "Massive Win Console" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "MW6 full-game production completion" }),
+    page.getByRole("heading", { name: "Post-UXA3 release confidence" }),
   ).toBeVisible();
   await expect(
-    page.getByText("Production readiness foundation", { exact: true }),
+    page.getByText("Accepted shell density", { exact: true }),
   ).toBeVisible();
   await page
     .locator(".nexus-massive-win-card", {
       has: page.getByRole("heading", {
-        name: "MW6 full-game production completion",
+        name: "Post-UXA3 release confidence",
       }),
     })
     .locator("summary", { hasText: "Verification gates" })
     .click();
-  await expect(page.getByText("npm run arpg:production:check")).toBeVisible();
+  await expect(page.getByText("npm run verify")).toBeVisible();
 });

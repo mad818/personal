@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "graphify",
+  "name": "Graphify-Labs/graphify",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/Graphify-Labs/graphify",
+    "version": "v8-1291-commits-2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "Apache-2.0 OR MIT",
+    "primaryEvidence": [
+      "https://github.com/Graphify-Labs/graphify/blob/v8/README.md",
+      "https://github.com/Graphify-Labs/graphify/blob/v8/pyproject.toml",
+      "https://github.com/Graphify-Labs/graphify/blob/v8/ARCHITECTURE.md",
+      "https://github.com/Graphify-Labs/graphify/blob/v8/LICENSE"
+    ]
+  },
+  "capabilities": [
+    { "id": "multi-language-ast-extraction", "title": "Extract code structure and cross-file relationships locally with tree-sitter across many languages", "sourceEvidence": "README What it does and supported language inventory", "disposition": "excluded", "conflict": "product_purpose", "reason": "Nexus is a TypeScript and JavaScript product and its project graph is deliberately scoped to active source roots. Vendoring dozens of language parsers would add a general code-indexing platform unrelated to the current repository." },
+    { "id": "document-schema-and-media-graph", "title": "Combine code, documents, SQL schemas, office files, images, audio, and video in one graph", "sourceEvidence": "README overview, optional extras, and supported input sections", "disposition": "excluded", "conflict": "security", "reason": "Automatically ingesting private documents and media, then optionally sending semantic content to a model, conflicts with Nexus's explicit local-source and retention boundaries." },
+    { "id": "extracted-and-inferred-edge-provenance", "title": "Label every graph relationship as extracted or inferred", "sourceEvidence": "README confidence-tag and explain examples", "disposition": "implemented", "proof": ["lib/projectArchitecture.ts", "scripts/check-codegraph-source-closure-runtime.mjs"] },
+    { "id": "community-and-centrality-analysis", "title": "Detect communities and highly connected concepts without requiring an LLM", "sourceEvidence": "README God nodes and Communities capability rows", "disposition": "adapted", "proof": ["lib/projectArchitecture.ts", "scripts/check-codegraph-source-closure-runtime.mjs"], "adaptationNotes": "Nexus deterministically reports connected import communities and coupling-based central files for its bounded local dependency graph." },
+    { "id": "query-explain-and-shortest-path", "title": "Query the saved graph, explain a concept, and trace paths between concepts", "sourceEvidence": "README query, explain, and path command examples", "disposition": "implemented", "proof": ["lib/projectArchitecture.ts", "app/api/project/route.ts", "scripts/check-codegraph-source-closure-runtime.mjs"] },
+    { "id": "portable-graph-artifacts", "title": "Write graph.json, GRAPH_REPORT.md, and interactive graph.html artifacts", "sourceEvidence": "README quickstart output tree", "disposition": "implemented", "proof": ["scripts/build-codegraph.mjs", ".gitignore"] },
+    { "id": "assistant-skill-installers", "title": "Install host-specific assistant skills for Codex and many other coding tools", "sourceEvidence": "README Install and supported platform table", "disposition": "excluded", "conflict": "product_purpose", "reason": "Nexus does not modify external assistant profiles. Its project graph is available through native protected routes and checked repository scripts." },
+    { "id": "query-first-always-on-guidance", "title": "Install hooks or instruction files that direct assistants to query the graph before broad source searches", "sourceEvidence": "README Make your assistant always use the graph", "disposition": "excluded", "conflict": "security", "reason": "An optional graph tool must not rewrite AGENTS.md, hooks, or operator instructions. Repository instructions remain human-governed." },
+    { "id": "mcp-graph-server", "title": "Expose graph queries through an optional MCP server", "sourceEvidence": "README optional mcp extra and pyproject.toml graphify-mcp entry point", "disposition": "excluded", "conflict": "product_purpose", "reason": "Nexus already exposes bounded graph, explanation, and path operations through its authenticated project API. A second MCP process would duplicate the native route and add another authentication surface." },
+    { "id": "external-graph-database-export", "title": "Push graph data to optional Neo4j or FalkorDB backends", "sourceEvidence": "README optional extras and pyproject.toml exporter dependencies", "disposition": "excluded", "conflict": "product_purpose", "reason": "The current Nexus slice is local-first and does not need a second graph database service for the department map." },
+    { "id": "optional-semantic-backends", "title": "Use Ollama, OpenAI-compatible, Anthropic, Gemini, Bedrock, or Azure backends for semantic passes", "sourceEvidence": "README backend extras and optional semantic processing", "disposition": "excluded", "conflict": "product_purpose", "reason": "The Nexus project graph is deterministic and model-free. Any general AI call belongs behind lib/ai.ts, but adding a semantic document and media graph pass is outside this bounded code-relationship feature." }
+  ]
+}

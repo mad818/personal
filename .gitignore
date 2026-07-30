@@ -17,6 +17,8 @@ data/subscription-escape*.json
 data/subscription-escape*.json.enc
 data/subscription-escape-assets/
 data/phone-acceptance-receipts*.json
+data/second-brain/
+data/exports/
 docs/metrics/dependabot-alerts-source*.json
 docs/metrics/dependabot-security-audit-2026-05-24T22-43-47-493Z.json
 agent-workspace/feynman/sessions/
@@ -47,6 +49,7 @@ __pycache__/
 .env.local
 temp-*.html
 desktop/src-tauri/target/
+desktop/packaged-runtime/
 playwright-report/
 test-results/
 *.pem
@@ -67,7 +70,3 @@ git-path.txt
 kill-git.bat
 kill-log.txt
 push.sh
-
-# Aether Reliquary raw asset intake stays local until optimized and manifest-tracked
-assets/arpg/intake/raw/
-assets/arpg/intake/work/

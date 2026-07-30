@@ -20,12 +20,11 @@
       "sourceEvidence": "APTS governance domains for autonomous testing platforms",
       "disposition": "adapted",
       "proof": [
-        "lib/agentAutonomyGovernance.ts",
-        "components/cyber/CyberGovernanceCards.tsx",
         "lib/homefrontSourceIntelligence.ts",
-        "scripts/validate-ai-exposure-assimilation.mjs"
+        "lib/security/toolIsolationPolicy.ts",
+        "components/ui/TrustOperationsRail.tsx"
       ],
-      "adaptationNotes": "Review language only; Nexus does not claim APTS conformance."
+      "adaptationNotes": "Live source-intelligence and trust/isolation surfaces carry the review vocabulary; Nexus does not claim APTS conformance."
     },
     {
       "id": "conformance-certification",

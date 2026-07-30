@@ -1,8 +1,14 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { SectionLabel, ShellBadge } from "@/components/ui/shell";
-import type { AssetKit, RegistryCostTier, RegistryItem } from "@/lib/assimilation/types";
+import DataLoadingState from "@/components/ui/DataLoadingState";
+import { SectionLabel, ShellBadge, ShellButton } from "@/components/ui/shell";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import type {
+  AssetKit,
+  RegistryCostTier,
+  RegistryItem,
+} from "@/lib/assimilation/types";
 
 interface Props {
   compact?: boolean;
@@ -18,33 +24,65 @@ const COST_LABELS: Record<RegistryCostTier, string> = {
   license_check: "License check",
 };
 
-export default function RegistryConsole({ compact = false, view = "all" }: Props) {
+export default function RegistryConsole({
+  compact = false,
+  view = "all",
+}: Props) {
   const [items, setItems] = useState<RegistryItem[]>([]);
   const [kits, setKits] = useState<AssetKit[]>([]);
   const [search, setSearch] = useState("");
   const [costFilter, setCostFilter] = useState<RegistryCostTier | "all">("all");
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [retryToken, setRetryToken] = useState(0);
   const deferredSearch = useDeferredValue(search);
 
   useEffect(() => {
     let active = true;
-    void fetch("/api/registry", { cache: "no-store" })
-      .then((response) => response.json() as Promise<{ items: RegistryItem[]; kits: AssetKit[] }>)
-      .then((payload) => {
+
+    const load = async () => {
+      setLoadState("loading");
+      setItems([]);
+      setKits([]);
+      try {
+        const response = await fetch("/api/registry", { cache: "no-store" });
+        if (!response.ok) throw new Error("Registry load failed");
+        const payload = (await response.json()) as {
+          items: RegistryItem[];
+          kits: AssetKit[];
+        };
+        if (!Array.isArray(payload.items) || !Array.isArray(payload.kits)) {
+          throw new Error("Registry payload is invalid");
+        }
         if (!active) return;
         setItems(payload.items);
         setKits(payload.kits);
-      });
+        setLoadState("ready");
+      } catch {
+        if (!active) return;
+        setLoadState("error");
+      }
+    };
+
+    void load();
     return () => {
       active = false;
     };
-  }, []);
+  }, [retryToken]);
 
   const visibleItems = useMemo(() => {
     const term = deferredSearch.trim().toLowerCase();
     return items.filter((item) => {
       const matchesTerm =
         !term ||
-        [item.title, item.summary, item.tags.join(" "), item.owner, item.custody]
+        [
+          item.title,
+          item.summary,
+          item.tags.join(" "),
+          item.owner,
+          item.custody,
+        ]
           .join(" ")
           .toLowerCase()
           .includes(term);
@@ -58,9 +96,37 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
     return kits.filter((kit) =>
       !term
         ? true
-        : [kit.title, kit.summary, kit.owner].join(" ").toLowerCase().includes(term),
+        : [kit.title, kit.summary, kit.owner]
+            .join(" ")
+            .toLowerCase()
+            .includes(term),
     );
   }, [deferredSearch, kits]);
+
+  if (loadState === "loading") {
+    return (
+      <DataLoadingState
+        dataName="registry inventory"
+        height={compact ? 150 : 220}
+      />
+    );
+  }
+
+  if (loadState === "error") {
+    return (
+      <SurfaceCallout
+        tone="warning"
+        compact={compact}
+        role="alert"
+        title="Registry unavailable"
+        description="The local registry inventory could not be loaded. Retry without leaving RESOURCES."
+      >
+        <ShellButton onClick={() => setRetryToken((current) => current + 1)}>
+          Retry registry
+        </ShellButton>
+      </SurfaceCallout>
+    );
+  }
 
   return (
     <div style={{ display: "grid", gap: compact ? "12px" : "16px" }}>
@@ -74,7 +140,14 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
           }}
         >
           <label style={{ display: "grid", gap: "6px" }}>
-            <span style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            <span
+              style={{
+                fontSize: "10px",
+                color: "var(--text3)",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+              }}
+            >
               Search registry
             </span>
             <input
@@ -91,7 +164,14 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
             />
           </label>
           <label style={{ display: "grid", gap: "6px", minWidth: "180px" }}>
-            <span style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            <span
+              style={{
+                fontSize: "10px",
+                color: "var(--text3)",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+              }}
+            >
               Cost posture
             </span>
             <select
@@ -120,7 +200,9 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
 
       {view !== "kits" && (
         <div style={{ display: "grid", gap: "10px" }}>
-          <SectionLabel detail={`${visibleItems.length} assets`}>Registry items</SectionLabel>
+          <SectionLabel detail={`${visibleItems.length} assets`}>
+            Registry items
+          </SectionLabel>
           <div
             style={{
               display: "grid",
@@ -140,21 +222,59 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
                   background: "rgba(10, 15, 30, 0.62)",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "8px",
+                    alignItems: "center",
+                  }}
+                >
                   <strong style={{ fontSize: "13px" }}>{item.title}</strong>
-                  <ShellBadge tone={item.status === "ready" ? "success" : item.status === "watch" ? "accent" : "muted"}>
+                  <ShellBadge
+                    tone={
+                      item.status === "ready"
+                        ? "success"
+                        : item.status === "watch"
+                          ? "accent"
+                          : "muted"
+                    }
+                  >
                     {item.status}
                   </ShellBadge>
                 </div>
-                <p style={{ margin: "8px 0 0", fontSize: "11px", color: "var(--text2)", lineHeight: 1.55 }}>
+                <p
+                  style={{
+                    margin: "8px 0 0",
+                    fontSize: "11px",
+                    color: "var(--text2)",
+                    lineHeight: 1.55,
+                  }}
+                >
                   {item.summary}
                 </p>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "10px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "8px",
+                    flexWrap: "wrap",
+                    marginTop: "10px",
+                  }}
+                >
                   <ShellBadge tone="muted">{item.type}</ShellBadge>
-                  <ShellBadge tone="accent">{COST_LABELS[item.costTier]}</ShellBadge>
+                  <ShellBadge tone="accent">
+                    {COST_LABELS[item.costTier]}
+                  </ShellBadge>
                   <ShellBadge tone="muted">{item.custody}</ShellBadge>
                 </div>
-                <div style={{ marginTop: "10px", fontSize: "10px", color: "var(--text3)", lineHeight: 1.55 }}>
+                <div
+                  style={{
+                    marginTop: "10px",
+                    fontSize: "10px",
+                    color: "var(--text3)",
+                    lineHeight: 1.55,
+                  }}
+                >
                   Owner: {item.owner}
                   <br />
                   License: {item.license}
@@ -188,7 +308,9 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
 
       {view !== "items" && (
         <div style={{ display: "grid", gap: "10px" }}>
-          <SectionLabel detail={`${visibleKits.length} bundles`}>Registry kits</SectionLabel>
+          <SectionLabel detail={`${visibleKits.length} bundles`}>
+            Registry kits
+          </SectionLabel>
           <div
             style={{
               display: "grid",
@@ -208,16 +330,39 @@ export default function RegistryConsole({ compact = false, view = "all" }: Props
                   background: "rgba(214, 165, 109, 0.08)",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "8px",
+                    alignItems: "center",
+                  }}
+                >
                   <strong style={{ fontSize: "13px" }}>{kit.title}</strong>
-                  <ShellBadge tone={kit.status === "ready" ? "success" : "accent"}>
+                  <ShellBadge
+                    tone={kit.status === "ready" ? "success" : "accent"}
+                  >
                     {kit.status}
                   </ShellBadge>
                 </div>
-                <p style={{ margin: "8px 0 0", fontSize: "11px", color: "var(--text2)", lineHeight: 1.55 }}>
+                <p
+                  style={{
+                    margin: "8px 0 0",
+                    fontSize: "11px",
+                    color: "var(--text2)",
+                    lineHeight: 1.55,
+                  }}
+                >
                   {kit.summary}
                 </p>
-                <div style={{ marginTop: "10px", fontSize: "10px", color: "var(--text3)", lineHeight: 1.55 }}>
+                <div
+                  style={{
+                    marginTop: "10px",
+                    fontSize: "10px",
+                    color: "var(--text3)",
+                    lineHeight: 1.55,
+                  }}
+                >
                   Owner: {kit.owner}
                   <br />
                   Items: {kit.itemIds.length}

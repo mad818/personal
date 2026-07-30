@@ -15,10 +15,7 @@ export default function AssistantGuidanceStack({
   if (items.length === 0) return null;
 
   return (
-    <div
-      className="nexus-assistant-guidance"
-      style={{ maxWidth }}
-    >
+    <div className="nexus-assistant-guidance" style={{ maxWidth }}>
       {items.map((guidance, index) => (
         <CompactOperatorNote
           key={`${guidance.kind}-${guidance.title}-${index}`}

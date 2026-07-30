@@ -7,12 +7,13 @@ import { CHART } from "@/lib/chartTheme";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface HeatCell {
-  value: number; // 0–100
+  value: number | null; // 0–100, null when evidence is unavailable
   label: string;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-function cellColor(v: number): string {
+function cellColor(v: number | null): string {
+  if (v === null) return CHART.surf3;
   if (v >= 80) return CHART.red;
   if (v >= 60) return CHART.orange;
   if (v >= 40) return CHART.amber;
@@ -20,14 +21,15 @@ function cellColor(v: number): string {
   return CHART.surf3;
 }
 
-function cellBg(v: number): string {
+function cellBg(v: number | null): string {
   const base = cellColor(v);
   return `${base}33`;
 }
 
-const HOURS = ["-6h", "-5h", "-4h", "-3h", "-2h", "-1h"];
+const HOURS = ["-5h", "-4h", "-3h", "-2h", "-1h", "Now"];
 
 const CATEGORY_LABELS = ["Cyber", "Seismic", "Market", "Weather"];
+const MARKET_ROW_INDEX = 2;
 
 // Generate synthetic trending data toward a current value
 function syntheticRow(current: number, variance = 12): number[] {
@@ -42,10 +44,20 @@ function syntheticRow(current: number, variance = 12): number[] {
   });
 }
 
+function currentOnlyRow(current: number): HeatCell[] {
+  return [
+    ...Array.from({ length: HOURS.length - 1 }, () => ({
+      value: null,
+      label: "Unknown",
+    })),
+    { value: current, label: `${current}` },
+  ];
+}
+
 export default function ThreatHeatmap() {
   const earthquakes = useStore((s) => s.earthquakes);
   const threatIntel = useStore((s) => s.threatIntel);
-  const fearGreed = useStore((s) => s.fearGreed);
+  const fearGreed = useStore((s) => s.signals.fg);
   const weather = useStore((s) => s.weather as any);
 
   // Derive current threat scores (0–100)
@@ -69,17 +81,14 @@ export default function ThreatHeatmap() {
   }, [earthquakes]);
 
   const marketScore = useMemo(() => {
-    const fgVal =
-      fearGreed?.current?.value != null ? Number(fearGreed.current.value) : 50;
+    if (!fearGreed) return null;
     // Market threat is inverse of greed (extreme fear = high threat)
-    return Math.round(100 - fgVal);
+    return Math.round(100 - fearGreed.value);
   }, [fearGreed]);
 
   const weatherScore = useMemo(() => {
     const code =
-      weather?.current?.weather_code ??
-      weather?.current?.weathercode ??
-      0;
+      weather?.current?.weather_code ?? weather?.current?.weathercode ?? 0;
     // WMO codes: 0=clear, 45+=fog, 80+=heavy rain, 95+=thunderstorm
     if (code >= 95) return 85;
     if (code >= 80) return 65;
@@ -87,12 +96,27 @@ export default function ThreatHeatmap() {
     return 15;
   }, [weather]);
 
-  const scores = [cyberScore, seismicScore, marketScore, weatherScore];
+  const scores: Array<number | null> = [
+    cyberScore,
+    seismicScore,
+    marketScore,
+    weatherScore,
+  ];
 
   const rows: HeatCell[][] = useMemo(
     () =>
-      scores.map((score) =>
-        syntheticRow(score).map((value) => ({ value, label: `${value}` })),
+      scores.map((score, rowIndex) =>
+        score === null
+          ? Array.from({ length: HOURS.length }, () => ({
+              value: null,
+              label: "Unknown",
+            }))
+          : rowIndex === MARKET_ROW_INDEX
+            ? currentOnlyRow(score)
+            : syntheticRow(score).map((value) => ({
+                value,
+                label: `${value}`,
+              })),
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [cyberScore, seismicScore, marketScore, weatherScore],
@@ -196,7 +220,7 @@ export default function ThreatHeatmap() {
               {rows[rowIdx]?.map((cell, colIdx) => {
                 const col = cellColor(cell.value);
                 const bg = cellBg(cell.value);
-                const isHigh = cell.value >= 60;
+                const isHigh = cell.value !== null && cell.value >= 60;
                 return (
                   <motion.div
                     key={colIdx}
@@ -207,7 +231,7 @@ export default function ThreatHeatmap() {
                       duration: 0.35,
                       ease: "easeOut",
                     }}
-                    title={`${cat} at ${HOURS[colIdx]}: ${cell.value}`}
+                    title={`${cat} at ${HOURS[colIdx]}: ${cell.label}`}
                     style={{
                       height: "28px",
                       borderRadius: "4px",
@@ -227,7 +251,7 @@ export default function ThreatHeatmap() {
                         : "none",
                     }}
                   >
-                    {cell.value}
+                    {cell.value ?? "—"}
                   </motion.div>
                 );
               })}

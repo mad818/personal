@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review External Agent Skill"
+  short_description: "Vet external skills before project adoption"
+  default_prompt: "Use $review-external-agent-skill to review this skill repository before installation."

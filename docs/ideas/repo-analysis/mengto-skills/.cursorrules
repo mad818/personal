@@ -1,0 +1,6 @@
+Use docs/ideas/source-parity/mengto-skills.json for exhaustive source accounting.
+Use lib/designSkillAtlas.ts for the active project-owned non-game capability registry.
+Never register game-development or implement-fog-of-war capabilities.
+Do not vendor the upstream pack or auto-install a dependency.
+Preserve Nexus design, security, provider, licensing, reduced-motion, and protected-action boundaries.
+Label connector, host, and dependency prerequisites instead of claiming unavailable execution.

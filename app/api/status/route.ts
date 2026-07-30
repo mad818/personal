@@ -9,12 +9,14 @@ import {
 import { readTimesfmSpikeStatus } from "@/lib/experiments";
 import { gradeFromEvalScore } from "@/lib/helpers";
 import { readLatestRuntimeExperimentSummary } from "@/lib/runtimeExperimentLedger";
+import { readAgentPlatformReadiness } from "@/lib/agentPlatformReadiness";
 import { resolveRuntimeProjectRoot } from "@/lib/serverEnvRuntime";
 import { summarizeSkillGovernance } from "@/lib/skillMetadata";
 import { readNetworkMode } from "@/lib/security/routePolicy";
 import { readConnectorPolicy } from "@/lib/security/connectorPolicy";
 import { readLocalDataPolicySummary } from "@/lib/security/localDataPolicy";
 import { readToolIsolationSummary } from "@/lib/security/toolIsolationPolicy";
+import { readRateLimitStoreStatus } from "@/lib/security/rateLimit";
 import {
   getDefaultEntrypoint,
   listSurfaceAliases,
@@ -31,6 +33,7 @@ import { readExternalToolBridgeSummary } from "@/lib/externalToolBridge";
 import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
+import { isAzureOpenAIConfigured } from "@/lib/azureOpenAI";
 
 export const dynamic = "force-dynamic";
 const PROJECT_ROOT = resolveRuntimeProjectRoot();
@@ -151,6 +154,7 @@ export async function GET() {
 
   const providers = {
     anthropic: present(process.env.ANTHROPIC_API_KEY),
+    azure: isAzureOpenAIConfigured(),
     openai: present(process.env.OPENAI_API_KEY),
     minimax: present(process.env.MINIMAX_API_KEY),
     groq: present(process.env.GROQ_API_KEY),
@@ -226,7 +230,9 @@ export async function GET() {
         href: surface.href,
         aliases: surface.aliases ?? [],
       })),
-      nav: PRODUCT_SURFACES.filter((surface) => surface.inNav).map((surface) => surface.href),
+      nav: PRODUCT_SURFACES.filter((surface) => surface.inNav).map(
+        (surface) => surface.href,
+      ),
       aliases: listSurfaceAliases(),
     },
     connectorReadiness,
@@ -322,6 +328,8 @@ export async function GET() {
     },
   };
   const localData = readLocalDataPolicySummary();
+  const rateLimitStore = readRateLimitStoreStatus();
+  const agentPlatform = readAgentPlatformReadiness();
 
   return protectedJson({
     status: "ok",
@@ -338,6 +346,7 @@ export async function GET() {
       highRiskRoutesEnabled: policies.highRiskRoutesEnabled,
       allowPaidApis: policies.allowPaidApis,
       tokenConfigured: auth.nexusTokenConfigured,
+      rateLimitStore: rateLimitStore.mode,
       localData,
       release: {
         buildChannel: readBuildChannel(),
@@ -356,6 +365,7 @@ export async function GET() {
       arch: runtimeIdentity.arch,
     },
     readiness: {
+      agentPlatform,
       aiProviders: providers,
       dataSources,
       auth,
@@ -367,6 +377,7 @@ export async function GET() {
       skillGovernance,
       toolIsolation,
       externalTools,
+      rateLimitStore,
       experiments,
     },
   });

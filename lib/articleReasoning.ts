@@ -18,7 +18,9 @@ export interface ArticleReasoningSource {
   index?: ArticleReasoningIndex | null;
 }
 
-export interface ArticleReasoningMatch<TArticle extends ArticleReasoningSource> {
+export interface ArticleReasoningMatch<
+  TArticle extends ArticleReasoningSource,
+> {
   article: TArticle;
   score: number;
   cue: string;
@@ -79,19 +81,35 @@ function inferDomainHints(article: ArticleReasoningSource) {
   const hints = new Set<string>();
   const category = article.cat?.trim().toLowerCase();
   if (category) hints.add(category);
-  if (/\b(bitcoin|btc|ethereum|eth|crypto|token|defi|market|stocks?|trading)\b/.test(signal)) {
+  if (
+    /\b(bitcoin|btc|ethereum|eth|crypto|token|defi|market|stocks?|trading)\b/.test(
+      signal,
+    )
+  ) {
     hints.add("markets");
   }
   if (/\b(bitcoin|btc|ethereum|eth|crypto|token|defi)\b/.test(signal)) {
     hints.add("crypto");
   }
-  if (/\b(cve|vulnerability|threat|ransomware|malware|exploit|apt|security)\b/.test(signal)) {
+  if (
+    /\b(cve|vulnerability|threat|ransomware|malware|exploit|apt|security)\b/.test(
+      signal,
+    )
+  ) {
     hints.add("cyber");
   }
-  if (/\b(ai|llm|model|chip|cloud|software|tech|developer|github|open source)\b/.test(signal)) {
+  if (
+    /\b(ai|llm|model|chip|cloud|software|tech|developer|github|open source)\b/.test(
+      signal,
+    )
+  ) {
     hints.add("tech");
   }
-  if (/\b(conflict|war|diplomacy|sanctions|election|policy|geopolit)\b/.test(signal)) {
+  if (
+    /\b(conflict|war|diplomacy|sanctions|election|policy|geopolit)\b/.test(
+      signal,
+    )
+  ) {
     hints.add("world");
   }
   if (/\b(research|paper|study|findings|report)\b/.test(signal)) {
@@ -143,11 +161,14 @@ function normalizeIndex(
   return {
     summary: trimText(input?.summary ?? fallback.summary, 200),
     claim: trimText(input?.claim ?? fallback.claim, 180),
-    entities: uniqueStrings(input?.entities ?? fallback.entities, 6).map((value) =>
-      trimText(value, 32),
+    entities: uniqueStrings(input?.entities ?? fallback.entities, 6).map(
+      (value) => trimText(value, 32),
     ),
-    domainHints: uniqueStrings(input?.domainHints ?? fallback.domainHints, 4).filter(
-      (value) => (KNOWN_DOMAIN_HINTS as readonly string[]).includes(value),
+    domainHints: uniqueStrings(
+      input?.domainHints ?? fallback.domainHints,
+      4,
+    ).filter((value) =>
+      (KNOWN_DOMAIN_HINTS as readonly string[]).includes(value),
     ),
   };
 }
@@ -223,14 +244,19 @@ export function getArticleReasoningSummary(article: ArticleReasoningSource) {
 }
 
 export function getArticleReasoningClaim(article: ArticleReasoningSource) {
-  return trimText(article.index?.claim || firstSentence(article.desc ?? "") || "", 180);
+  return trimText(
+    article.index?.claim || firstSentence(article.desc ?? "") || "",
+    180,
+  );
 }
 
 export function getArticleReasoningEntities(article: ArticleReasoningSource) {
   return uniqueStrings(article.index?.entities ?? [], 6);
 }
 
-export function getArticleReasoningDomainHints(article: ArticleReasoningSource) {
+export function getArticleReasoningDomainHints(
+  article: ArticleReasoningSource,
+) {
   const hints = article.index?.domainHints;
   if (Array.isArray(hints) && hints.length > 0) {
     return uniqueStrings(hints, 4);
@@ -238,7 +264,9 @@ export function getArticleReasoningDomainHints(article: ArticleReasoningSource) 
   return inferDomainHints(article);
 }
 
-export function buildArticleReasoningSearchText(article: ArticleReasoningSource) {
+export function buildArticleReasoningSearchText(
+  article: ArticleReasoningSource,
+) {
   return [
     article.title,
     article.desc ?? "",
@@ -255,7 +283,9 @@ export function buildArticleReasoningSearchText(article: ArticleReasoningSource)
     .toLowerCase();
 }
 
-export function buildArticleReasoningGraphText(article: ArticleReasoningSource) {
+export function buildArticleReasoningGraphText(
+  article: ArticleReasoningSource,
+) {
   return [
     article.title,
     article.desc ?? "",
@@ -286,11 +316,14 @@ export function scoreArticleReasoningMatch(
   const summary = (article.index?.summary ?? "").toLowerCase();
   const claim = (article.index?.claim ?? "").toLowerCase();
   const entities = (article.index?.entities ?? []).join(" ").toLowerCase();
-  const domainHints = (article.index?.domainHints ?? []).join(" ").toLowerCase();
+  const domainHints = (article.index?.domainHints ?? [])
+    .join(" ")
+    .toLowerCase();
 
   let score = 0;
   if (title.includes(normalizedQuery)) score += 12;
-  if (summary.includes(normalizedQuery) || claim.includes(normalizedQuery)) score += 9;
+  if (summary.includes(normalizedQuery) || claim.includes(normalizedQuery))
+    score += 9;
   if (tags.includes(normalizedQuery)) score += 7;
   if (desc.includes(normalizedQuery)) score += 6;
 
@@ -307,7 +340,9 @@ export function scoreArticleReasoningMatch(
   return score;
 }
 
-export function findArticleReasoningMatches<TArticle extends ArticleReasoningSource>(
+export function findArticleReasoningMatches<
+  TArticle extends ArticleReasoningSource,
+>(
   query: string,
   articles: TArticle[],
   limit = 2,
@@ -321,7 +356,9 @@ export function findArticleReasoningMatches<TArticle extends ArticleReasoningSou
       return {
         article,
         score,
-        cue: getArticleReasoningClaim(article) || getArticleReasoningSummary(article),
+        cue:
+          getArticleReasoningClaim(article) ||
+          getArticleReasoningSummary(article),
       };
     })
     .filter((match) => match.score > 0)

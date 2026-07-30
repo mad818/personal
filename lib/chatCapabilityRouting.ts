@@ -164,6 +164,24 @@ const KEYWORD_ROUTE_HINTS: Array<{ route: NexusRoute; keywords: string[] }> = [
   {
     route: "/internal/skills",
     keywords: [
+      "lyra",
+      "prompt optimizer",
+      "prompt optimization",
+      "optimize prompt",
+      "optimize this prompt",
+      "improve prompt",
+      "improve my prompt",
+      "rewrite prompt",
+      "prompt forge",
+      "human editor",
+      "natural thought flow",
+      "ai pattern breaker",
+      "ban the fluff",
+      "reader-first rewrite",
+      "mega prompt",
+      "humanize this",
+      "rewrite this post",
+      "rewrite this text",
       "skill",
       "learning",
       "knowledge graph",
@@ -229,10 +247,15 @@ const TOOL_TO_ROUTE: Record<string, NexusRoute | null> = {
   list_files: "/vault",
   read_project_file: "/internal/skills",
   list_project_files: "/internal/skills",
+  list_design_skills: "/internal/skills",
+  resolve_design_skill: "/internal/skills",
+  list_go_to_market_skills: "/internal/skills",
+  resolve_go_to_market_skill: "/internal/skills",
   patch_project_file: "/internal/skills",
   create_project_file: "/internal/skills",
   propose_project_edit: "/internal/skills",
   ask_max: "/hq",
+  delegate_specialist: "/hq",
   navigate_to: "/hq",
   read_current_tab: "/hq",
   click_element: "/hq",
@@ -244,10 +267,13 @@ const TOOL_TO_ROUTE: Record<string, NexusRoute | null> = {
 
 export function detectRouteFromPrompt(prompt: string): NexusRoute | null {
   const lower = prompt.toLowerCase();
-  let best: { route: NexusRoute; score: number; specificity: number } | null = null;
+  let best: { route: NexusRoute; score: number; specificity: number } | null =
+    null;
 
   for (const item of KEYWORD_ROUTE_HINTS) {
-    const matchedKeywords = item.keywords.filter((keyword) => lower.includes(keyword));
+    const matchedKeywords = item.keywords.filter((keyword) =>
+      lower.includes(keyword),
+    );
     const score = matchedKeywords.length;
     const specificity = matchedKeywords.reduce(
       (max, keyword) => Math.max(max, keyword.length),

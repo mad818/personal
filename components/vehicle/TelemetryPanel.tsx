@@ -59,8 +59,12 @@ function headingToLabel(h: number): string {
   return "NW";
 }
 
-function motorStatusFromFrame(frame: VehicleTelemetryFrame, motorId: "FL" | "FR" | "RL" | "RR") {
-  const health = frame.motors.find((motor) => motor.id === motorId)?.health ?? "warning";
+function motorStatusFromFrame(
+  frame: VehicleTelemetryFrame,
+  motorId: "FL" | "FR" | "RL" | "RR",
+) {
+  const health =
+    frame.motors.find((motor) => motor.id === motorId)?.health ?? "warning";
   return health === "ok" ? "OK" : health === "offline" ? "OFF" : "WARN";
 }
 
@@ -91,8 +95,9 @@ export default function TelemetryPanel() {
   );
   const [scenarioFrameIndex, setScenarioFrameIndex] = useState(0);
   const activeScenario =
-    VEHICLE_REPLAY_SCENARIOS.find((scenario) => scenario.id === activeScenarioId) ??
-    DEFAULT_VEHICLE_REPLAY_SCENARIO;
+    VEHICLE_REPLAY_SCENARIOS.find(
+      (scenario) => scenario.id === activeScenarioId,
+    ) ?? DEFAULT_VEHICLE_REPLAY_SCENARIO;
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -151,7 +156,9 @@ export default function TelemetryPanel() {
   }, [activeScenario.id, activeScenario.frames.length]);
 
   const scenarioFrame =
-    activeScenario.frames[scenarioFrameIndex % Math.max(1, activeScenario.frames.length)];
+    activeScenario.frames[
+      scenarioFrameIndex % Math.max(1, activeScenario.frames.length)
+    ];
   const t = scenarioFrame ? frameToTelemetry(scenarioFrame) : liveTelemetry;
 
   const batteryColor =
@@ -273,8 +280,15 @@ export default function TelemetryPanel() {
             >
               Scenario replay
             </div>
-            <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "3px" }}>
-              Simulation only. Nexus does not arm, steer, or mode-switch an aircraft.
+            <div
+              style={{
+                fontSize: "10px",
+                color: "var(--text3)",
+                marginTop: "3px",
+              }}
+            >
+              Simulation only. Nexus does not arm, steer, or mode-switch an
+              aircraft.
             </div>
           </div>
           <span
@@ -306,8 +320,12 @@ export default function TelemetryPanel() {
                 aria-pressed={active}
                 onClick={() => setActiveScenarioId(scenario.id)}
                 style={{
-                  border: active ? "1px solid rgba(147,197,253,0.56)" : "1px solid var(--border)",
-                  background: active ? "rgba(147,197,253,0.16)" : "rgba(255,255,255,0.03)",
+                  border: active
+                    ? "1px solid rgba(147,197,253,0.56)"
+                    : "1px solid var(--border)",
+                  background: active
+                    ? "rgba(147,197,253,0.16)"
+                    : "rgba(255,255,255,0.03)",
                   color: active ? "#dbeafe" : "var(--text2)",
                   borderRadius: "999px",
                   padding: "7px 9px",
@@ -323,10 +341,15 @@ export default function TelemetryPanel() {
             );
           })}
         </div>
-        <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.55 }}>
+        <div
+          style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.55 }}
+        >
           {activeScenario.summary}
           {scenarioFrame?.recentEvents[0]?.message ? (
-            <span style={{ color: "#bfdbfe" }}> Current: {scenarioFrame.recentEvents[0].message}</span>
+            <span style={{ color: "#bfdbfe" }}>
+              {" "}
+              Current: {scenarioFrame.recentEvents[0].message}
+            </span>
           ) : null}
         </div>
       </section>

@@ -2,15 +2,15 @@
   "schemaVersion": 1,
   "id": "aidc-ai-pixelle-video",
   "name": "Pixelle Video",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
-    "url": "https://github.com/AIDC-AI/Pixelle-Video",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "url": "https://github.com/ATH-MaaS/Pixelle-Video",
+    "version": "main-377-commits-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "Apache-2.0",
     "primaryEvidence": [
-      "https://github.com/AIDC-AI/Pixelle-Video",
-      "https://github.com/AIDC-AI/Pixelle-Video/blob/main/README.md"
+      "https://github.com/ATH-MaaS/Pixelle-Video",
+      "https://github.com/ATH-MaaS/Pixelle-Video/blob/main/README_EN.md"
     ]
   },
   "capabilities": [
@@ -19,22 +19,24 @@
       "title": "Video generation from text prompts or image inputs",
       "sourceEvidence": "Pixelle Video: text-to-video and image-to-video generation model",
       "disposition": "excluded",
-      "conflict": "free_local",
-      "reason": "Pixelle Video requires substantial GPU compute; Nexus is free/local and does not have a video generation lane. Cloud video generation APIs would also require paid subscriptions."
+      "conflict": "product_purpose",
+      "reason": "Pixelle's script, image/video generation, TTS, music, and FFmpeg composition pipeline is a full media-authoring product. Nexus has no governed video-authoring lane or artifact lifecycle."
     },
     {
       "id": "video-understanding-pipeline",
       "title": "Video understanding: frame analysis, caption generation, and scene segmentation",
       "sourceEvidence": "Pixelle Video multimodal understanding capabilities",
-      "disposition": "pending",
-      "reason": "If Nexus adds a video intelligence lane, Pixelle Video patterns for frame analysis and caption generation could be adapted. Deferred pending a video lane decision."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus has no governed video-file intake, decoder, scene-artifact retention, or vision-model lane. The current upstream is primarily an automated video creation engine, not a drop-in Nexus analysis boundary."
     },
     {
       "id": "multimodal-context-integration",
       "title": "Integrate video context into LLM prompts alongside text and images",
       "sourceEvidence": "Pixelle Video multimodal context: video frames as LLM input",
-      "disposition": "pending",
-      "reason": "Nexus supports text and image context; video frame context integration is a future multimodal capability."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Injecting decoded frames into prompts requires explicit media consent, file limits, frame provenance, retention, and provider-policy controls that the current text/image context contract does not provide."
     }
   ]
 }

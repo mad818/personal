@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prototype"
+  short_description: "Build and retire a bounded experiment that answers one question."
+  default_prompt: "Use $prototype to answer this design question with disposable isolated evidence."

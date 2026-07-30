@@ -41,25 +41,31 @@ export function buildStepUpRequiredResponse(
   options: {
     action?: ProtectedActionKind;
     capability?: ToolCapabilityClass;
+    phoneTokenLimited?: boolean;
   } = {},
 ) {
   const protectedAction: ProtectedActionMeta = {
     action: options.action ?? "verification",
     capability: options.capability,
     status: "revalidate",
-    blockedReason: "step_up_required",
+    blockedReason: options.phoneTokenLimited
+      ? "phone_token_limited"
+      : "step_up_required",
   };
   const response = protectedJson(
     {
       ok: false,
-      code: "step_up_required",
-      error:
-        "Sensitive action requires a fresh local revalidation before it can proceed.",
+      code: options.phoneTokenLimited
+        ? "phone_token_limited"
+        : "step_up_required",
+      error: options.phoneTokenLimited
+        ? "This action needs the desktop NEXUS_TOKEN. Phone token sessions are limited to HQ chat and local AI."
+        : "Sensitive action requires a fresh local revalidation before it can proceed.",
       sessionAuthenticated,
       stepUpActive: false,
       protectedAction,
     },
-    { status: 428 },
+    { status: options.phoneTokenLimited ? 403 : 428 },
   );
   applyProtectedActionHeaders(response, protectedAction);
   return response;
@@ -73,6 +79,12 @@ export async function requireStepUpForAction(
   },
 ) {
   const state = await readStepUpAuthState(req);
+  if (state.session?.authTier === "phone") {
+    return buildStepUpRequiredResponse(state.sessionAuthenticated, {
+      ...options,
+      phoneTokenLimited: true,
+    });
+  }
   if (state.stepUpActive) return null;
   return buildStepUpRequiredResponse(state.sessionAuthenticated, options);
 }

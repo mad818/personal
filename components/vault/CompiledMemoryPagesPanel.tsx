@@ -28,7 +28,10 @@ import {
   findExistingPromotionTarget,
   getArtifactPromotionEvaluation,
 } from "@/lib/artifactPromotion";
-import { buildMissionHref, type MissionContinuationTarget } from "@/lib/missionHandoff";
+import {
+  buildMissionHref,
+  type MissionContinuationTarget,
+} from "@/lib/missionHandoff";
 import {
   buildCompiledPageHref,
   parseMarketReviewMarkdown,
@@ -173,14 +176,14 @@ function buildCompiledPageMeta(page: CompiledMemoryPage) {
       ? "document metadata withheld"
       : page.documentMetadata?.pageCount
         ? `${page.documentMetadata.pageCount} page${page.documentMetadata.pageCount === 1 ? "" : "s"}`
-        : page.documentMetadata?.mimeType ?? null,
+        : (page.documentMetadata?.mimeType ?? null),
     page.continuity.promotionKind === "research_brief"
       ? "promotable research"
       : page.continuity.promotionKind === "study_brief"
         ? "promotable study"
-      : page.continuity.promotionKind === "reverse_engineering_brief"
-        ? "promotable brief"
-        : null,
+        : page.continuity.promotionKind === "reverse_engineering_brief"
+          ? "promotable brief"
+          : null,
   ].filter(Boolean);
   return parts.join(" · ");
 }
@@ -219,7 +222,8 @@ function getCompiledPageEvidenceStrength(page: CompiledMemoryPage) {
 
 function extractTagValue(page: CompiledMemoryPage, prefix: string) {
   return (
-    page.tags.find((tag) => tag.startsWith(prefix))?.slice(prefix.length) ?? null
+    page.tags.find((tag) => tag.startsWith(prefix))?.slice(prefix.length) ??
+    null
   );
 }
 
@@ -230,7 +234,9 @@ function extractNumericTagValue(page: CompiledMemoryPage, prefix: string) {
   return Number.isFinite(value) ? value : null;
 }
 
-function detectCompiledPageArtifactKind(page: CompiledMemoryPage): CompiledPageArtifactKind {
+function detectCompiledPageArtifactKind(
+  page: CompiledMemoryPage,
+): CompiledPageArtifactKind {
   if (page.workflowId === "market-review") {
     return "market_review";
   }
@@ -287,7 +293,8 @@ function detectCompiledPageArtifactKind(page: CompiledMemoryPage): CompiledPageA
 function getMarketReviewLessons(page: CompiledMemoryPage) {
   if (page.workflowId !== "market-review" || !page.content) return null;
   const review = parseMarketReviewMarkdown(page.content);
-  if (!review.whatToRepeat && !review.whatToAvoid && !review.nextRule) return null;
+  if (!review.whatToRepeat && !review.whatToAvoid && !review.nextRule)
+    return null;
   return review;
 }
 
@@ -309,7 +316,10 @@ function getAiExposureReviewInsights(page: CompiledMemoryPage) {
     packIds: page.tags
       .filter((tag) => tag.startsWith("pack:"))
       .map((tag) => tag.slice("pack:".length))
-      .filter((value): value is keyof typeof AI_EXPOSURE_PACK_LOOKUP => value in AI_EXPOSURE_PACK_LOOKUP),
+      .filter(
+        (value): value is keyof typeof AI_EXPOSURE_PACK_LOOKUP =>
+          value in AI_EXPOSURE_PACK_LOOKUP,
+      ),
   };
 }
 
@@ -329,7 +339,11 @@ function getVaultWeeklyInsights(page: CompiledMemoryPage) {
 }
 
 function getVehicleRenderTargetLabel(page: CompiledMemoryPage) {
-  return Object.entries(VEHICLE_RENDER_TARGET_LABELS).find(([tag]) => page.tags.includes(tag))?.[1] ?? null;
+  return (
+    Object.entries(VEHICLE_RENDER_TARGET_LABELS).find(([tag]) =>
+      page.tags.includes(tag),
+    )?.[1] ?? null
+  );
 }
 
 function getBinaryTriageFormatLabel(page: CompiledMemoryPage) {
@@ -355,11 +369,16 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       eyebrow: "Market review",
       accentBadges: [
         { label: "Decision support only", tone: "accent" as const },
-        ...(assetLabel ? [{ label: assetLabel.replace(/-/g, " "), tone: "muted" as const }] : []),
+        ...(assetLabel
+          ? [{ label: assetLabel.replace(/-/g, " "), tone: "muted" as const }]
+          : []),
         ...(marketReviewLessons?.nextRule
           ? [{ label: "Rule captured", tone: "muted" as const }]
           : []),
-        { label: getCompiledPageEvidenceStrength(page), tone: "muted" as const },
+        {
+          label: getCompiledPageEvidenceStrength(page),
+          tone: "muted" as const,
+        },
       ],
       cue: marketReviewLessons?.nextRule
         ? `Next rule: ${truncateInline(marketReviewLessons.nextRule, 132)}`
@@ -381,9 +400,17 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       accentBadges: [
         { label: "Defensive only", tone: "accent" as const },
         ...(topFinding
-          ? [{ label: `${topFinding.severity} severity`, tone: "muted" as const }]
+          ? [
+              {
+                label: `${topFinding.severity} severity`,
+                tone: "muted" as const,
+              },
+            ]
           : []),
-        { label: getCompiledPageEvidenceStrength(page), tone: "muted" as const },
+        {
+          label: getCompiledPageEvidenceStrength(page),
+          tone: "muted" as const,
+        },
       ],
       cue: topFinding
         ? `${topFinding.issue} · ${truncateInline(topFinding.evidence, 128)}`
@@ -409,7 +436,10 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       accentBadges: [
         { label: "Advisory only", tone: "accent" as const },
         ...packLabels.map((label) => ({ label, tone: "muted" as const })),
-        { label: getCompiledPageEvidenceStrength(page), tone: "muted" as const },
+        {
+          label: getCompiledPageEvidenceStrength(page),
+          tone: "muted" as const,
+        },
       ],
       cue: reviewInsights?.nextReviewedMove
         ? `Next move: ${truncateInline(reviewInsights.nextReviewedMove, 132)}`
@@ -419,13 +449,16 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
 
   if (artifactKind === "repo_assimilation") {
     const assimilation = getRepoAssimilationInsights(page);
-    const repoLabel = page.continuity.repoMemoryBinding ?? extractTagValue(page, "repo:");
+    const repoLabel =
+      page.continuity.repoMemoryBinding ?? extractTagValue(page, "repo:");
     const stackTags = page.tags
       .filter((tag) => tag.startsWith("stack:"))
       .slice(0, 3)
       .map((tag) => tag.slice("stack:".length).replace(/-/g, " "));
     const decisionLabel = assimilation
-      ? formatRepoAssimilationDecisionLabel(getRepoAssimilationDecision(assimilation))
+      ? formatRepoAssimilationDecisionLabel(
+          getRepoAssimilationDecision(assimilation),
+        )
       : null;
     return {
       artifactKind,
@@ -437,10 +470,17 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       eyebrow: "Repo assimilation",
       accentBadges: [
         { label: "Public-safe", tone: "accent" as const },
-        ...(decisionLabel ? [{ label: decisionLabel, tone: "muted" as const }] : []),
-        ...(repoLabel ? [{ label: repoLabel.replace(/-/g, " "), tone: "muted" as const }] : []),
+        ...(decisionLabel
+          ? [{ label: decisionLabel, tone: "muted" as const }]
+          : []),
+        ...(repoLabel
+          ? [{ label: repoLabel.replace(/-/g, " "), tone: "muted" as const }]
+          : []),
         ...stackTags.map((tag) => ({ label: tag, tone: "muted" as const })),
-        { label: getCompiledPageEvidenceStrength(page), tone: "muted" as const },
+        {
+          label: getCompiledPageEvidenceStrength(page),
+          tone: "muted" as const,
+        },
       ],
       cue: assimilation?.extensionPointsAndSmallestSlice
         ? `Smallest slice: ${truncateInline(assimilation.extensionPointsAndSmallestSlice, 148)}`
@@ -465,25 +505,42 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       accentBadges: [
         { label: "Archive audit", tone: "accent" as const },
         ...(orphanCount
-          ? [{ label: `${orphanCount} orphan${orphanCount === 1 ? "" : "s"}`, tone: "muted" as const }]
+          ? [
+              {
+                label: `${orphanCount} orphan${orphanCount === 1 ? "" : "s"}`,
+                tone: "muted" as const,
+              },
+            ]
           : page.tags.includes("orphans")
             ? [{ label: "Orphan repair", tone: "muted" as const }]
-          : []),
+            : []),
         ...(gapTopicCount
-          ? [{ label: `${gapTopicCount} gap topic${gapTopicCount === 1 ? "" : "s"}`, tone: "muted" as const }]
+          ? [
+              {
+                label: `${gapTopicCount} gap topic${gapTopicCount === 1 ? "" : "s"}`,
+                tone: "muted" as const,
+              },
+            ]
           : page.tags.includes("gap-topics")
             ? [{ label: "Gap topics", tone: "muted" as const }]
-          : []),
-        { label: getCompiledPageEvidenceStrength(page), tone: "muted" as const },
+            : []),
+        {
+          label: getCompiledPageEvidenceStrength(page),
+          tone: "muted" as const,
+        },
       ],
       cue: audit?.strongestNextSession
         ? `Strongest next session: ${truncateInline(
-            audit.strongestNextSession.replace(/^- /gm, "").replace(/\s+/g, " "),
+            audit.strongestNextSession
+              .replace(/^- /gm, "")
+              .replace(/\s+/g, " "),
             148,
           )}`
         : audit?.highestPriorityRepairs
           ? `Repair cue: ${truncateInline(
-              audit.highestPriorityRepairs.replace(/^- /gm, "").replace(/\s+/g, " "),
+              audit.highestPriorityRepairs
+                .replace(/^- /gm, "")
+                .replace(/\s+/g, " "),
               148,
             )}`
           : "This durable audit brief preserves archive posture, repair priorities, and the strongest next graph-focused maintenance lane.",
@@ -502,7 +559,10 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       eyebrow: "Vault weekly",
       accentBadges: [
         { label: "Second brain", tone: "accent" as const },
-        { label: getCompiledPageEvidenceStrength(page), tone: "muted" as const },
+        {
+          label: getCompiledPageEvidenceStrength(page),
+          tone: "muted" as const,
+        },
       ],
       cue: weekly?.strongestNextSession
         ? `Next session: ${truncateInline(weekly.strongestNextSession, 148)}`
@@ -527,7 +587,10 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       accentBadges: [
         { label: "Public-safe", tone: "accent" as const },
         ...repoTags.map((tag) => ({ label: tag, tone: "muted" as const })),
-        { label: getCompiledPageEvidenceStrength(page), tone: "muted" as const },
+        {
+          label: getCompiledPageEvidenceStrength(page),
+          tone: "muted" as const,
+        },
       ],
       cue: comparison?.recommendedPick
         ? `Recommended pick: ${truncateInline(comparison.recommendedPick, 148)}`
@@ -566,12 +629,18 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
         { label: "Passive-first", tone: "accent" as const },
         { label: routeOriginLabel, tone: "muted" as const },
         ...pivotTags.map((tag) => ({ label: tag, tone: "muted" as const })),
-        { label: getCompiledPageEvidenceStrength(page), tone: "muted" as const },
-        ...(sourceCountLabel ? [{ label: sourceCountLabel, tone: "muted" as const }] : []),
-        ...(citationCountLabel ? [{ label: citationCountLabel, tone: "muted" as const }] : []),
+        {
+          label: getCompiledPageEvidenceStrength(page),
+          tone: "muted" as const,
+        },
+        ...(sourceCountLabel
+          ? [{ label: sourceCountLabel, tone: "muted" as const }]
+          : []),
+        ...(citationCountLabel
+          ? [{ label: citationCountLabel, tone: "muted" as const }]
+          : []),
       ],
-      cue:
-        "This casefile captures subject, passive findings, pivot opportunities, and the next reviewed move so RECON or CYBER follow-through stays evidence-led and compact.",
+      cue: "This casefile captures subject, passive findings, pivot opportunities, and the next reviewed move so RECON or CYBER follow-through stays evidence-led and compact.",
     };
   }
 
@@ -587,11 +656,12 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       eyebrow: "Future hardware render brief",
       accentBadges: [
         { label: "Vehicle render brief", tone: "accent" as const },
-        ...(renderTargetLabel ? [{ label: renderTargetLabel, tone: "muted" as const }] : []),
+        ...(renderTargetLabel
+          ? [{ label: renderTargetLabel, tone: "muted" as const }]
+          : []),
         { label: "Non-flight-critical", tone: "muted" as const },
       ],
-      cue:
-        "Prepared for later CAD/render iteration before hardware arrival. Treat this as a planning artifact, not a live authority surface.",
+      cue: "Prepared for later CAD/render iteration before hardware arrival. Treat this as a planning artifact, not a live authority surface.",
     };
   }
 
@@ -607,11 +677,12 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       eyebrow: "Reverse-engineering prep",
       accentBadges: [
         { label: "Binary triage", tone: "accent" as const },
-        ...(formatLabel ? [{ label: formatLabel, tone: "muted" as const }] : []),
+        ...(formatLabel
+          ? [{ label: formatLabel, tone: "muted" as const }]
+          : []),
         { label: "Local sample stayed local", tone: "muted" as const },
       ],
-      cue:
-        "This artifact preserves hashes, entropy, strings, and IOC hints for follow-up analysis. The raw sample itself was not uploaded into Nexus.",
+      cue: "This artifact preserves hashes, entropy, strings, and IOC hints for follow-up analysis. The raw sample itself was not uploaded into Nexus.",
     };
   }
 
@@ -627,11 +698,12 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       eyebrow: "Promoted analyst brief",
       accentBadges: [
         { label: "RE brief", tone: "accent" as const },
-        ...(formatLabel ? [{ label: formatLabel, tone: "muted" as const }] : []),
+        ...(formatLabel
+          ? [{ label: formatLabel, tone: "muted" as const }]
+          : []),
         { label: "Derived from triage", tone: "muted" as const },
       ],
-      cue:
-        "This note is the higher-order analyst layer above raw reverse-engineering prep. Keep it scoped to triage-backed evidence and concrete next steps.",
+      cue: "This note is the higher-order analyst layer above raw reverse-engineering prep. Keep it scoped to triage-backed evidence and concrete next steps.",
     };
   }
 
@@ -647,14 +719,23 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
       accentBadges: [
         { label: "Learning note", tone: "accent" as const },
         ...(page.continuity.learningMissionMode
-          ? [{ label: page.continuity.learningMissionMode, tone: "muted" as const }]
+          ? [
+              {
+                label: page.continuity.learningMissionMode,
+                tone: "muted" as const,
+              },
+            ]
           : []),
         ...(page.continuity.memoryCompartment
-          ? [{ label: page.continuity.memoryCompartment, tone: "muted" as const }]
+          ? [
+              {
+                label: page.continuity.memoryCompartment,
+                tone: "muted" as const,
+              },
+            ]
           : []),
       ],
-      cue:
-        "This note preserves the lower-order teaching or explanation lane so future study can compound without repeating the full setup.",
+      cue: "This note preserves the lower-order teaching or explanation lane so future study can compound without repeating the full setup.",
     };
   }
 
@@ -671,8 +752,7 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
         { label: "Study brief", tone: "accent" as const },
         { label: "Higher-order study layer", tone: "muted" as const },
       ],
-      cue:
-        "This note is the higher-order study layer above a lower-order learning note. Reopen it when continuity matches instead of creating a duplicate.",
+      cue: "This note is the higher-order study layer above a lower-order learning note. Reopen it when continuity matches instead of creating a duplicate.",
     };
   }
 
@@ -685,11 +765,8 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
           "linear-gradient(180deg, rgba(10, 18, 31, 0.94), rgba(14, 24, 43, 0.74))",
       },
       eyebrow: "Review sheet",
-      accentBadges: [
-        { label: "Review sheet", tone: "accent" as const },
-      ],
-      cue:
-        "This artifact captures a compact review state so the assistant can resume what was already learned without rebuilding context from scratch.",
+      accentBadges: [{ label: "Review sheet", tone: "accent" as const }],
+      cue: "This artifact captures a compact review state so the assistant can resume what was already learned without rebuilding context from scratch.",
     };
   }
 
@@ -702,11 +779,8 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
           "linear-gradient(180deg, rgba(34, 10, 28, 0.94), rgba(44, 11, 31, 0.74))",
       },
       eyebrow: "Quiz set",
-      accentBadges: [
-        { label: "Quiz set", tone: "accent" as const },
-      ],
-      cue:
-        "This artifact preserves compact practice prompts so the next study pass can resume from the same checkpoint instead of starting over.",
+      accentBadges: [{ label: "Quiz set", tone: "accent" as const }],
+      cue: "This artifact preserves compact practice prompts so the next study pass can resume from the same checkpoint instead of starting over.",
     };
   }
 
@@ -723,7 +797,9 @@ function getCompiledPagePresentation(page: CompiledMemoryPage) {
   };
 }
 
-function getCompiledPageRepairFilter(value: string | null): CompiledPageRepairFilter {
+function getCompiledPageRepairFilter(
+  value: string | null,
+): CompiledPageRepairFilter {
   return value === "route-less" ||
     value === "untagged" ||
     value === "reverse-engineering"
@@ -774,17 +850,20 @@ function getCompiledPageRepairActions(filter: CompiledPageRepairFilter) {
       {
         href: "/vault?focus=vault-stewardship",
         label: "Open stewardship",
-        detail: "Review archive health and route continuity posture before editing individual compiled pages.",
+        detail:
+          "Review archive health and route continuity posture before editing individual compiled pages.",
       },
       {
         href: "/vault?focus=vault-graph-focus&graphAudit=orphans",
         label: "Recover orphans",
-        detail: "Check whether disconnected graph artifacts are also missing route continuity.",
+        detail:
+          "Check whether disconnected graph artifacts are also missing route continuity.",
       },
       {
         href: "/vault?focus=vault-compiled-pages",
         label: "Open all compiled pages",
-        detail: "Return to the full compiled-page lane once route continuity repair is complete.",
+        detail:
+          "Return to the full compiled-page lane once route continuity repair is complete.",
       },
     ];
   }
@@ -794,17 +873,20 @@ function getCompiledPageRepairActions(filter: CompiledPageRepairFilter) {
       {
         href: "/vault?focus=vault-stewardship",
         label: "Open stewardship",
-        detail: "Review archive health and tag-coverage posture before fixing individual compiled pages.",
+        detail:
+          "Review archive health and tag-coverage posture before fixing individual compiled pages.",
       },
       {
         href: "/vault?focus=vault-compiled-pages&compiledFilter=route-less",
         label: "Open route-less pages",
-        detail: "Check the adjacent repair lane for compiled pages that still lack route continuity.",
+        detail:
+          "Check the adjacent repair lane for compiled pages that still lack route continuity.",
       },
       {
         href: "/vault?focus=vault-compiled-pages",
         label: "Open all compiled pages",
-        detail: "Return to the full compiled-page lane once tag coverage repair is complete.",
+        detail:
+          "Return to the full compiled-page lane once tag coverage repair is complete.",
       },
     ];
   }
@@ -814,17 +896,20 @@ function getCompiledPageRepairActions(filter: CompiledPageRepairFilter) {
       {
         href: "/vault?focus=vault-stewardship",
         label: "Open stewardship",
-        detail: "Review reverse-engineering archive posture before fixing individual prep notes or promoted briefs.",
+        detail:
+          "Review reverse-engineering archive posture before fixing individual prep notes or promoted briefs.",
       },
       {
         href: "/vault?focus=vault-compiled-pages&compiledFilter=route-less",
         label: "Open route-less pages",
-        detail: "Check adjacent compiled pages that still lack route continuity.",
+        detail:
+          "Check adjacent compiled pages that still lack route continuity.",
       },
       {
         href: "/recon?view=binary&focus=recon-binary",
         label: "Open binary triage",
-        detail: "Return to the local reverse-engineering prep lane after reviewing the durable notes and promoted briefs.",
+        detail:
+          "Return to the local reverse-engineering prep lane after reviewing the durable notes and promoted briefs.",
       },
     ];
   }
@@ -833,7 +918,11 @@ function getCompiledPageRepairActions(filter: CompiledPageRepairFilter) {
 }
 
 function getPromotionActionLabel(
-  targetClass: "study_brief" | "reverse_engineering_brief" | "research_brief" | null,
+  targetClass:
+    | "study_brief"
+    | "reverse_engineering_brief"
+    | "research_brief"
+    | null,
 ) {
   if (targetClass === "study_brief") return "Promote study brief";
   if (targetClass === "research_brief") return "Promote research brief";
@@ -842,7 +931,11 @@ function getPromotionActionLabel(
 }
 
 function getPromotionReadyLabel(
-  targetClass: "study_brief" | "reverse_engineering_brief" | "research_brief" | null,
+  targetClass:
+    | "study_brief"
+    | "reverse_engineering_brief"
+    | "research_brief"
+    | null,
 ) {
   if (targetClass === "study_brief") return "Study brief ready";
   if (targetClass === "research_brief") return "Research brief ready";
@@ -851,11 +944,17 @@ function getPromotionReadyLabel(
 }
 
 function getPromotionFailureLabel(
-  targetClass: "study_brief" | "reverse_engineering_brief" | "research_brief" | null,
+  targetClass:
+    | "study_brief"
+    | "reverse_engineering_brief"
+    | "research_brief"
+    | null,
 ) {
   if (targetClass === "study_brief") return "Study brief promotion failed.";
-  if (targetClass === "research_brief") return "Research brief promotion failed.";
-  if (targetClass === "reverse_engineering_brief") return "Brief promotion failed.";
+  if (targetClass === "research_brief")
+    return "Research brief promotion failed.";
+  if (targetClass === "reverse_engineering_brief")
+    return "Brief promotion failed.";
   return "Promotion failed.";
 }
 
@@ -915,7 +1014,8 @@ export default function CompiledMemoryPagesPanel() {
         pages.filter((page) => page.workflowId === "ai-exposure-review"),
         activePage?.title ?? null,
         activePage?.continuity?.continuityId,
-        activePage?.route ?? pages.find((page) => page.workflowId === "ai-exposure-review")?.route,
+        activePage?.route ??
+          pages.find((page) => page.workflowId === "ai-exposure-review")?.route,
       ).slice(0, 3);
     }
 
@@ -924,7 +1024,8 @@ export default function CompiledMemoryPagesPanel() {
         pages.filter((page) => page.workflowId === "osint-casefile"),
         activePage?.title ?? null,
         activePage?.continuity?.continuityId,
-        activePage?.route ?? pages.find((page) => page.workflowId === "osint-casefile")?.route,
+        activePage?.route ??
+          pages.find((page) => page.workflowId === "osint-casefile")?.route,
       ).slice(0, 3);
     }
 
@@ -1011,7 +1112,8 @@ export default function CompiledMemoryPagesPanel() {
         pages.filter((page) => page.workflowId === "ai-exposure-review"),
         activePage?.title ?? null,
         activePage?.continuity?.continuityId,
-        activePage?.route ?? pages.find((page) => page.workflowId === "ai-exposure-review")?.route,
+        activePage?.route ??
+          pages.find((page) => page.workflowId === "ai-exposure-review")?.route,
       )[0] ?? null
     );
   }, [activePage, pages, workflowId]);
@@ -1074,8 +1176,7 @@ export default function CompiledMemoryPagesPanel() {
   const briefOrbitFromAssimilation = useCallback(
     (page: CompiledMemoryPage | null) => {
       if (!page?.content) return;
-      const normalizedRepoId =
-        page.continuity.repoMemoryBinding ?? page.title;
+      const normalizedRepoId = page.continuity.repoMemoryBinding ?? page.title;
       queueHQPrompt(
         `@orbit: ${buildRepoAssimilationOrbitPrompt({
           normalizedRepoId,
@@ -1106,8 +1207,12 @@ export default function CompiledMemoryPagesPanel() {
     setLoading(true);
     try {
       const limit = compiledFilter === "all" ? (workflowId ? 12 : 8) : 24;
-      const workflowQuery = workflowId ? `&workflowId=${encodeURIComponent(workflowId)}` : "";
-      const res = await apiFetch(`/api/memory/pages?limit=${limit}${workflowQuery}`);
+      const workflowQuery = workflowId
+        ? `&workflowId=${encodeURIComponent(workflowId)}`
+        : "";
+      const res = await apiFetch(
+        `/api/memory/pages?limit=${limit}${workflowQuery}`,
+      );
       if (!res.ok) return;
       const data = (await res.json()) as { pages?: CompiledMemoryPage[] };
       setPages(data.pages ?? []);
@@ -1138,7 +1243,9 @@ export default function CompiledMemoryPagesPanel() {
   useEffect(() => {
     if (!requestedPageId) return;
 
-    const matchingLoadedPage = pages.find((page) => page.id === requestedPageId);
+    const matchingLoadedPage = pages.find(
+      (page) => page.id === requestedPageId,
+    );
     if (matchingLoadedPage) {
       if (
         matchesCurrentCompiledPageSession(
@@ -1148,7 +1255,10 @@ export default function CompiledMemoryPagesPanel() {
         )
       ) {
         setActivePageId(matchingLoadedPage.id);
-        if (!matchingLoadedPage.content && !matchingLoadedPage.contentWithheld) {
+        if (
+          !matchingLoadedPage.content &&
+          !matchingLoadedPage.contentWithheld
+        ) {
           void loadPageDetail(matchingLoadedPage);
         }
       }
@@ -1163,7 +1273,9 @@ export default function CompiledMemoryPagesPanel() {
           `/api/memory/pages?id=${encodeURIComponent(requestedPageId)}`,
         );
         if (!response.ok) return;
-        const payload = (await response.json()) as { page?: CompiledMemoryPage };
+        const payload = (await response.json()) as {
+          page?: CompiledMemoryPage;
+        };
         if (!payload.page || cancelled) return;
         if (
           !matchesCurrentCompiledPageSession(
@@ -1211,7 +1323,9 @@ export default function CompiledMemoryPagesPanel() {
         }
         let promotionCandidates = pages;
         try {
-          const candidateResponse = await apiFetch("/api/memory/pages?limit=100");
+          const candidateResponse = await apiFetch(
+            "/api/memory/pages?limit=100",
+          );
           if (candidateResponse.ok) {
             const candidatePayload = (await candidateResponse.json()) as {
               pages?: CompiledMemoryPage[];
@@ -1266,7 +1380,10 @@ export default function CompiledMemoryPagesPanel() {
         }
         const data = (await response.json()) as { page?: CompiledMemoryPage };
         if (data.page) {
-          setPages((current) => [data.page!, ...current.filter((candidate) => candidate.id !== data.page?.id)]);
+          setPages((current) => [
+            data.page!,
+            ...current.filter((candidate) => candidate.id !== data.page?.id),
+          ]);
           setActivePageId(data.page.id);
         }
         window.dispatchEvent(new Event("nexus-memory-pages-updated"));
@@ -1309,46 +1426,46 @@ export default function CompiledMemoryPagesPanel() {
             ? "No market reviews yet"
             : workflowId === "vuln-review"
               ? "No vulnerability reviews yet"
-            : workflowId === "ai-exposure-review"
-              ? "No AI exposure reviews yet"
-            : workflowId === "osint-casefile"
-              ? "No OSINT casefiles yet"
-              : workflowId === "repo-assimilation"
-                ? "No repo assimilations yet"
-              : workflowId === "vault-librarian"
-                ? "No vault audits yet"
-              : workflowId === "vault-weekly"
-                ? "No weekly archive briefs yet"
-              : compiledFilter === "route-less"
-            ? "No route-less compiled pages"
-            : compiledFilter === "untagged"
-              ? "No untagged compiled pages"
-              : compiledFilter === "reverse-engineering"
-                ? "No reverse-engineering memory yet"
-              : "No compiled pages yet"
+              : workflowId === "ai-exposure-review"
+                ? "No AI exposure reviews yet"
+                : workflowId === "osint-casefile"
+                  ? "No OSINT casefiles yet"
+                  : workflowId === "repo-assimilation"
+                    ? "No repo assimilations yet"
+                    : workflowId === "vault-librarian"
+                      ? "No vault audits yet"
+                      : workflowId === "vault-weekly"
+                        ? "No weekly archive briefs yet"
+                        : compiledFilter === "route-less"
+                          ? "No route-less compiled pages"
+                          : compiledFilter === "untagged"
+                            ? "No untagged compiled pages"
+                            : compiledFilter === "reverse-engineering"
+                              ? "No reverse-engineering memory yet"
+                              : "No compiled pages yet"
         }
         description={
           workflowId === "market-review"
             ? "File a market review from ALPHA and the durable thesis lane will show up here with market-specific continuity cues."
             : workflowId === "vuln-review"
               ? "Run a defensive review from CYBER and the durable vuln-review brief will reopen here with exact repair continuity."
-            : workflowId === "ai-exposure-review"
-              ? "File a passive AI exposure review from RECON or CYBER and the durable advisory thread will reopen here with exact continuity."
-            : workflowId === "osint-casefile"
-              ? "File an OSINT casefile from RECON or CYBER and the passive-first durable thread will show up here."
-              : workflowId === "repo-assimilation"
-                ? "Assess a public repo in RECON, then run explicit repo assimilation so the durable fit brief can reopen here with exact continuity."
-              : workflowId === "vault-librarian"
-                ? "Run Audit VAULT from the relations chamber and the durable archive-health brief will reopen here with graph-focused continuity."
-              : workflowId === "vault-weekly"
-                ? "Run /weekly from HQ and the durable seven-day archive synthesis will reopen here with exact continuity."
-              : compiledFilter === "route-less"
-            ? "Every loaded compiled page already carries route context, so continuation can reopen the right working lane."
-            : compiledFilter === "untagged"
-              ? "Every loaded compiled page already carries tags, so retrieval and graph edges stay stronger."
-              : compiledFilter === "reverse-engineering"
-                ? "File a binary triage report from RECON or promote one into an analyst brief and it will show up here as durable reverse-engineering memory."
-              : "Run /deepresearch, /compare, /brief, /threat-hunt, or /evidence-pack in HQ and the durable workflow pages will appear here."
+              : workflowId === "ai-exposure-review"
+                ? "File a passive AI exposure review from RECON or CYBER and the durable advisory thread will reopen here with exact continuity."
+                : workflowId === "osint-casefile"
+                  ? "File an OSINT casefile from RECON or CYBER and the passive-first durable thread will show up here."
+                  : workflowId === "repo-assimilation"
+                    ? "Assess a public repo in RECON, then run explicit repo assimilation so the durable fit brief can reopen here with exact continuity."
+                    : workflowId === "vault-librarian"
+                      ? "Run Audit VAULT from the relations chamber and the durable archive-health brief will reopen here with graph-focused continuity."
+                      : workflowId === "vault-weekly"
+                        ? "Run /weekly from HQ and the durable seven-day archive synthesis will reopen here with exact continuity."
+                        : compiledFilter === "route-less"
+                          ? "Every loaded compiled page already carries route context, so continuation can reopen the right working lane."
+                          : compiledFilter === "untagged"
+                            ? "Every loaded compiled page already carries tags, so retrieval and graph edges stay stronger."
+                            : compiledFilter === "reverse-engineering"
+                              ? "File a binary triage report from RECON or promote one into an analyst brief and it will show up here as durable reverse-engineering memory."
+                              : "Run /deepresearch, /compare, /brief, /threat-hunt, or /evidence-pack in HQ and the durable workflow pages will appear here."
         }
       />
     );
@@ -1367,7 +1484,14 @@ export default function CompiledMemoryPagesPanel() {
             background: "rgba(10, 15, 30, 0.62)",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: "10px",
+              flexWrap: "wrap",
+            }}
+          >
             <div>
               <div
                 style={{
@@ -1380,22 +1504,29 @@ export default function CompiledMemoryPagesPanel() {
               >
                 Recent durable threads
               </div>
-              <div style={{ fontSize: "11px", color: "var(--text3)", marginTop: "4px", lineHeight: 1.5 }}>
+              <div
+                style={{
+                  fontSize: "11px",
+                  color: "var(--text3)",
+                  marginTop: "4px",
+                  lineHeight: 1.5,
+                }}
+              >
                 {workflowId === "market-review"
                   ? "Reopen thesis continuity, the strongest next rule, or file the next market review from the same lane."
                   : workflowId === "vuln-review"
                     ? "Reopen the latest defensive review, jump back into CYBER, or widen into the saved archive only after the repair lane is explicit."
                     : workflowId === "ai-exposure-review"
                       ? "Reopen the latest advisory pack, jump back into RECON or CYBER, and keep AI exposure review passive-first before widening follow-through."
-                    : workflowId === "osint-casefile"
-                      ? "Reopen passive-first case progression before widening collection or packaging."
-                    : workflowId === "repo-assimilation"
-                      ? "Reopen the latest repo-fit brief, send the saved assimilation to ORBIT, or return to RECON before widening local implementation."
-                    : workflowId === "vault-librarian"
-                      ? "Reopen the latest archive audit, jump back into exact graph focus, or widen into the saved audit archive only when maintenance posture is clear."
-                    : workflowId === "vault-weekly"
-                      ? "Reopen the latest weekly brief, jump back into the weekly archive lane, or widen into the saved weekly archive only when compounding posture is clear."
-                    : "Recent XR1 and durable archive threads stay visible here as the compact hot-cache layer."}
+                      : workflowId === "osint-casefile"
+                        ? "Reopen passive-first case progression before widening collection or packaging."
+                        : workflowId === "repo-assimilation"
+                          ? "Reopen the latest repo-fit brief, send the saved assimilation to ORBIT, or return to RECON before widening local implementation."
+                          : workflowId === "vault-librarian"
+                            ? "Reopen the latest archive audit, jump back into exact graph focus, or widen into the saved audit archive only when maintenance posture is clear."
+                            : workflowId === "vault-weekly"
+                              ? "Reopen the latest weekly brief, jump back into the weekly archive lane, or widen into the saved weekly archive only when compounding posture is clear."
+                              : "Recent XR1 and durable archive threads stay visible here as the compact hot-cache layer."}
               </div>
             </div>
             {workflowId ? (
@@ -1403,7 +1534,11 @@ export default function CompiledMemoryPagesPanel() {
                 type="button"
                 onClick={() => router.push("/vault?focus=vault-compiled-pages")}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               >
                 Open all compiled pages
               </button>
@@ -1415,7 +1550,11 @@ export default function CompiledMemoryPagesPanel() {
                 type="button"
                 onClick={() => openExactCompiledPage(strongestMarketReview)}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
                 title={strongestMarketReview.summary}
               >
                 Strongest prior
@@ -1426,7 +1565,11 @@ export default function CompiledMemoryPagesPanel() {
                 type="button"
                 onClick={() => openExactCompiledPage(newestMarketReview)}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
                 title={newestMarketReview.title}
               >
                 Newest review
@@ -1435,9 +1578,15 @@ export default function CompiledMemoryPagesPanel() {
             {workflowId === "market-review" ? (
               <button
                 type="button"
-                onClick={() => router.push("/alpha?view=watchlist&focus=alpha-market-review")}
+                onClick={() =>
+                  router.push("/alpha?view=watchlist&focus=alpha-market-review")
+                }
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               >
                 Reopen in ALPHA
               </button>
@@ -1447,7 +1596,11 @@ export default function CompiledMemoryPagesPanel() {
                 type="button"
                 onClick={() => openExactCompiledPage(latestVulnerabilityReview)}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
                 title={latestVulnerabilityReview.title}
               >
                 Latest review
@@ -1458,7 +1611,11 @@ export default function CompiledMemoryPagesPanel() {
                 type="button"
                 onClick={() => openExactCompiledPage(latestAiExposureReview)}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
                 title={latestAiExposureReview.title}
               >
                 Latest advisory
@@ -1467,9 +1624,15 @@ export default function CompiledMemoryPagesPanel() {
             {workflowId === "ai-exposure-review" ? (
               <button
                 type="button"
-                onClick={() => router.push("/recon?view=osint&focus=recon-lookup")}
+                onClick={() =>
+                  router.push("/recon?view=osint&focus=recon-lookup")
+                }
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               >
                 Reopen in RECON
               </button>
@@ -1477,9 +1640,15 @@ export default function CompiledMemoryPagesPanel() {
             {workflowId === "ai-exposure-review" ? (
               <button
                 type="button"
-                onClick={() => router.push("/cyber?view=triage&focus=cyber-triage")}
+                onClick={() =>
+                  router.push("/cyber?view=triage&focus=cyber-triage")
+                }
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               >
                 Reopen in CYBER
               </button>
@@ -1487,9 +1656,15 @@ export default function CompiledMemoryPagesPanel() {
             {workflowId === "vuln-review" ? (
               <button
                 type="button"
-                onClick={() => router.push("/cyber?view=vuln-review&focus=cyber-vuln-review")}
+                onClick={() =>
+                  router.push("/cyber?view=vuln-review&focus=cyber-vuln-review")
+                }
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               >
                 Reopen in CYBER
               </button>
@@ -1497,9 +1672,17 @@ export default function CompiledMemoryPagesPanel() {
             {workflowId === "vuln-review" ? (
               <button
                 type="button"
-                onClick={() => router.push("/vault?focus=vault-compiled-pages&workflowId=vuln-review")}
+                onClick={() =>
+                  router.push(
+                    "/vault?focus=vault-compiled-pages&workflowId=vuln-review",
+                  )
+                }
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               >
                 Open review archive
               </button>
@@ -1509,7 +1692,11 @@ export default function CompiledMemoryPagesPanel() {
                 type="button"
                 onClick={() => openExactCompiledPage(latestRepoAssimilation)}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
                 title={latestRepoAssimilation.title}
               >
                 Latest assimilation
@@ -1518,9 +1705,15 @@ export default function CompiledMemoryPagesPanel() {
             {workflowId === "repo-assimilation" && latestRepoAssimilation ? (
               <button
                 type="button"
-                onClick={() => briefOrbitFromAssimilation(latestRepoAssimilation)}
+                onClick={() =>
+                  briefOrbitFromAssimilation(latestRepoAssimilation)
+                }
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               >
                 Brief ORBIT
               </button>
@@ -1528,9 +1721,15 @@ export default function CompiledMemoryPagesPanel() {
             {workflowId === "repo-assimilation" ? (
               <button
                 type="button"
-                onClick={() => router.push("/recon?view=osint&focus=recon-repo-intel")}
+                onClick={() =>
+                  router.push("/recon?view=osint&focus=recon-repo-intel")
+                }
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               >
                 Reopen in RECON
               </button>
@@ -1540,7 +1739,11 @@ export default function CompiledMemoryPagesPanel() {
                 type="button"
                 onClick={() => openExactCompiledPage(latestVaultLibrarian)}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
                 title={latestVaultLibrarian.title}
               >
                 Latest audit
@@ -1551,7 +1754,11 @@ export default function CompiledMemoryPagesPanel() {
                 type="button"
                 onClick={() => openExactCompiledPage(latestVaultWeekly)}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
                 title={latestVaultWeekly.title}
               >
                 Latest weekly brief
@@ -1562,7 +1769,11 @@ export default function CompiledMemoryPagesPanel() {
                 type="button"
                 onClick={() => router.push("/hq?focus=hq-chronicle")}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               >
                 Reopen in HQ
               </button>
@@ -1570,9 +1781,17 @@ export default function CompiledMemoryPagesPanel() {
             {workflowId === "vault-weekly" ? (
               <button
                 type="button"
-                onClick={() => router.push("/vault?focus=vault-compiled-pages&workflowId=vault-weekly")}
+                onClick={() =>
+                  router.push(
+                    "/vault?focus=vault-compiled-pages&workflowId=vault-weekly",
+                  )
+                }
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               >
                 Open weekly archive
               </button>
@@ -1582,7 +1801,11 @@ export default function CompiledMemoryPagesPanel() {
                 type="button"
                 onClick={() => router.push("/vault?focus=vault-graph-focus")}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               >
                 Reopen graph focus
               </button>
@@ -1590,9 +1813,17 @@ export default function CompiledMemoryPagesPanel() {
             {workflowId === "vault-librarian" ? (
               <button
                 type="button"
-                onClick={() => router.push("/vault?focus=vault-compiled-pages&workflowId=vault-librarian")}
+                onClick={() =>
+                  router.push(
+                    "/vault?focus=vault-compiled-pages&workflowId=vault-librarian",
+                  )
+                }
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               >
                 Open audit archive
               </button>
@@ -1602,7 +1833,11 @@ export default function CompiledMemoryPagesPanel() {
                 type="button"
                 onClick={() => openExactCompiledPage(latestRepoCompare)}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
                 title={latestRepoCompare.title}
               >
                 Latest comparison
@@ -1613,7 +1848,11 @@ export default function CompiledMemoryPagesPanel() {
                 type="button"
                 onClick={() => briefOrbitFromRepoCompare(latestRepoCompare)}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               >
                 Brief ORBIT
               </button>
@@ -1621,9 +1860,15 @@ export default function CompiledMemoryPagesPanel() {
             {workflowId === "repo-compare" ? (
               <button
                 type="button"
-                onClick={() => router.push("/recon?view=osint&focus=recon-repo-intel")}
+                onClick={() =>
+                  router.push("/recon?view=osint&focus=recon-repo-intel")
+                }
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
               >
                 Reopen in RECON
               </button>
@@ -1634,7 +1879,11 @@ export default function CompiledMemoryPagesPanel() {
                 type="button"
                 onClick={() => openExactCompiledPage(page)}
                 className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+                style={{
+                  minHeight: "32px",
+                  padding: "0 12px",
+                  fontSize: "11px",
+                }}
                 title={page.summary}
               >
                 {truncateInline(page.title, 42)}
@@ -1669,7 +1918,11 @@ export default function CompiledMemoryPagesPanel() {
               items={repairActions}
               onOpen={(href) => router.push(href)}
               buttonClassName="nexus-shell-button"
-              buttonStyle={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+              buttonStyle={{
+                minHeight: "32px",
+                padding: "0 12px",
+                fontSize: "11px",
+              }}
               maxPrimaryItems={1}
               showPrimaryCards={false}
             />
@@ -1686,541 +1939,694 @@ export default function CompiledMemoryPagesPanel() {
         const pagePromotionState = promotionState[page.id];
         const promotionEvaluation = getArtifactPromotionEvaluation(page);
         const relatedPages =
-          activePageId === page.id ? rankRelatedArtifacts(page, filteredPages, 3) : [];
+          activePageId === page.id
+            ? rankRelatedArtifacts(page, filteredPages, 3)
+            : [];
         return (
           <article
-          key={page.id}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "8px",
-            padding: "12px",
-            borderRadius: "14px",
-            ...presentation.articleStyle,
-          }}
-        >
-          {presentation.eyebrow ? (
-            <div
-              style={{
-                fontSize: "10px",
-                fontWeight: 700,
-                color: "#93c5fd",
-                textTransform: "uppercase",
-                letterSpacing: "0.8px",
-              }}
-            >
-              {presentation.eyebrow}
-            </div>
-          ) : null}
-          <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", flexWrap: "wrap" }}>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text)" }}>
-              {page.title}
-            </div>
-            <div style={{ fontSize: "11px", color: "var(--text2)" }}>
-              {new Date(page.updatedAt).toLocaleDateString()}
-            </div>
-          </div>
-
-          <div style={{ fontSize: "12px", lineHeight: 1.45, color: "var(--text2)" }}>
-            {page.summary}
-          </div>
-
-          {presentation.cue ? (
-            <div style={{ fontSize: "11px", lineHeight: 1.45, color: "#bfdbfe" }}>
-              {presentation.cue}
-            </div>
-          ) : null}
-
-          {marketReviewLessons ? (
-            <div
-              style={{
-                display: "grid",
-                gap: "4px",
-                padding: "8px 10px",
-                borderRadius: "10px",
-                border: "1px solid rgba(250, 204, 21, 0.14)",
-                background: "rgba(31, 23, 7, 0.34)",
-                fontSize: "10px",
-                lineHeight: 1.45,
-                color: "var(--text3)",
-              }}
-            >
-              {marketReviewLessons.nextRule ? (
-                <div>
-                  <strong style={{ color: "#fde68a" }}>Next rule:</strong>{" "}
-                  {truncateInline(marketReviewLessons.nextRule, 156)}
-                </div>
-              ) : null}
-              {marketReviewLessons.whatToRepeat ? (
-                <div>
-                  <strong style={{ color: "var(--text)" }}>Repeat:</strong>{" "}
-                  {truncateInline(marketReviewLessons.whatToRepeat, 156)}
-                </div>
-              ) : null}
-              {marketReviewLessons.whatToAvoid ? (
-                <div>
-                  <strong style={{ color: "var(--text)" }}>Avoid:</strong>{" "}
-                  {truncateInline(marketReviewLessons.whatToAvoid, 156)}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-
-          {repoAssimilationInsights ? (
-            <div
-              style={{
-                display: "grid",
-                gap: "4px",
-                padding: "8px 10px",
-                borderRadius: "10px",
-                border: "1px solid rgba(110, 231, 183, 0.14)",
-                background: "rgba(8, 26, 22, 0.34)",
-                fontSize: "10px",
-                lineHeight: 1.45,
-                color: "var(--text3)",
-              }}
-            >
-              {repoAssimilationInsights.implementationDecision ? (
-                <div>
-                  <strong style={{ color: "#a7f3d0" }}>Decision:</strong>{" "}
-                  {truncateInline(repoAssimilationInsights.implementationDecision, 164)}
-                </div>
-              ) : null}
-              {repoAssimilationInsights.localFitAndWhyNow ? (
-                <div>
-                  <strong style={{ color: "var(--text)" }}>Local fit:</strong>{" "}
-                  {truncateInline(repoAssimilationInsights.localFitAndWhyNow, 164)}
-                </div>
-              ) : null}
-              {repoAssimilationInsights.extensionPointsAndSmallestSlice ? (
-                <div>
-                  <strong style={{ color: "var(--text)" }}>Smallest slice:</strong>{" "}
-                  {truncateInline(
-                    repoAssimilationInsights.extensionPointsAndSmallestSlice,
-                    164,
-                  )}
-                </div>
-              ) : null}
-              {repoAssimilationInsights.boundariesAndRisks ? (
-                <div>
-                  <strong style={{ color: "var(--text)" }}>Boundaries:</strong>{" "}
-                  {truncateInline(repoAssimilationInsights.boundariesAndRisks, 164)}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-
-          {repoCompareInsights ? (
-            <div
-              style={{
-                display: "grid",
-                gap: "4px",
-                padding: "8px 10px",
-                borderRadius: "10px",
-                border: "1px solid rgba(191, 219, 254, 0.14)",
-                background: "rgba(10, 18, 31, 0.34)",
-                fontSize: "10px",
-                lineHeight: 1.45,
-                color: "var(--text3)",
-              }}
-            >
-              {repoCompareInsights.recommendedPick ? (
-                <div>
-                  <strong style={{ color: "#bfdbfe" }}>Recommended:</strong>{" "}
-                  {truncateInline(repoCompareInsights.recommendedPick, 164)}
-                </div>
-              ) : null}
-              {repoCompareInsights.keyDifferences ? (
-                <div>
-                  <strong style={{ color: "var(--text)" }}>Differences:</strong>{" "}
-                  {truncateInline(repoCompareInsights.keyDifferences, 164)}
-                </div>
-              ) : null}
-              {repoCompareInsights.boundariesAndRisks ? (
-                <div>
-                  <strong style={{ color: "var(--text)" }}>Boundaries:</strong>{" "}
-                  {truncateInline(repoCompareInsights.boundariesAndRisks, 164)}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-
-          {vaultLibrarianInsights ? (
-            <div
-              style={{
-                display: "grid",
-                gap: "4px",
-                padding: "8px 10px",
-                borderRadius: "10px",
-                border: "1px solid rgba(125, 211, 252, 0.14)",
-                background: "rgba(9, 20, 34, 0.34)",
-                fontSize: "10px",
-                lineHeight: 1.45,
-                color: "var(--text3)",
-              }}
-            >
-              {vaultLibrarianInsights.highestPriorityRepairs ? (
-                <div>
-                  <strong style={{ color: "#bae6fd" }}>Repair cue:</strong>{" "}
-                  {truncateInline(
-                    vaultLibrarianInsights.highestPriorityRepairs
-                      .replace(/^- /gm, "")
-                      .replace(/\s+/g, " "),
-                    164,
-                  )}
-                </div>
-              ) : null}
-              {vaultLibrarianInsights.topGaps ? (
-                <div>
-                  <strong style={{ color: "var(--text)" }}>Gap topics:</strong>{" "}
-                  {truncateInline(
-                    vaultLibrarianInsights.topGaps
-                      .replace(/^- /gm, "")
-                      .replace(/\s+/g, " "),
-                    164,
-                  )}
-                </div>
-              ) : null}
-              {vaultLibrarianInsights.strongestNextSession ? (
-                <div>
-                  <strong style={{ color: "var(--text)" }}>Next session:</strong>{" "}
-                  {truncateInline(
-                    vaultLibrarianInsights.strongestNextSession
-                      .replace(/^- /gm, "")
-                      .replace(/\s+/g, " "),
-                    164,
-                  )}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-
-          {vaultWeeklyInsights ? (
-            <div
-              style={{
-                display: "grid",
-                gap: "4px",
-                padding: "8px 10px",
-                borderRadius: "10px",
-                border: "1px solid rgba(125, 211, 252, 0.14)",
-                background: "rgba(9, 20, 34, 0.34)",
-                fontSize: "10px",
-                lineHeight: 1.45,
-                color: "var(--text3)",
-              }}
-            >
-              {vaultWeeklyInsights.vaultPosture ? (
-                <div>
-                  <strong style={{ color: "#bae6fd" }}>Posture:</strong>{" "}
-                  {truncateInline(vaultWeeklyInsights.vaultPosture, 164)}
-                </div>
-              ) : null}
-              {vaultWeeklyInsights.topThemes ? (
-                <div>
-                  <strong style={{ color: "var(--text)" }}>Themes:</strong>{" "}
-                  {truncateInline(vaultWeeklyInsights.topThemes, 164)}
-                </div>
-              ) : null}
-              {vaultWeeklyInsights.repairLane ? (
-                <div>
-                  <strong style={{ color: "var(--text)" }}>Repair lane:</strong>{" "}
-                  {truncateInline(vaultWeeklyInsights.repairLane, 164)}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-
-          <div style={{ fontSize: "11px", lineHeight: 1.45, color: "var(--text3)" }}>
-            {buildCompiledPageMeta(page)}
-            {page.researchSignals.signalsWithheld
-              ? " · research signals withheld"
-              : page.researchSignals.referencedDomains.length > 0
-                ? ` · ${truncateInline(page.researchSignals.referencedDomains.join(", "), 72)}`
-                : ""}
-          </div>
-
-          <MissionContinuationActions
-            memoryQuery={[page.title, page.summary].filter(Boolean).join("\n")}
-            routeHint={page.route}
-            extraTargets={
-              page.layer !== "raw"
-                ? ([
-                    {
-                      href: buildMissionHref("/vault", "archive"),
-                      label: "Continue in VAULT",
-                      tab: "vault",
-                    },
-                  ] satisfies MissionContinuationTarget[])
-                : undefined
-            }
-            showReturnToHQ
-          />
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-            {presentation.accentBadges.map((badge) => (
-              <ShellBadge key={badge.label} tone={badge.tone}>
-                {badge.label}
-              </ShellBadge>
-            ))}
-            <ShellBadge tone={getClassificationTone(page)}>
-              {formatArtifactTypeLabel(page.artifactClassification.artifactType)}
-            </ShellBadge>
-            <ShellBadge tone="muted">
-              {formatArtifactParserHintLabel(page.artifactClassification.parserHint)}
-            </ShellBadge>
-            <ShellBadge tone="accent">{page.layer}</ShellBadge>
-            <ShellBadge tone="muted">{page.domain}</ShellBadge>
-            <ShellBadge tone={page.visibility === "safe" ? "success" : "muted"}>
-              {page.visibility}
-            </ShellBadge>
-            {page.workflowLabel ? (
-              <ShellBadge tone="muted">{page.workflowLabel}</ShellBadge>
-            ) : null}
-            {page.agentId ? (
-              <ShellBadge tone="muted">{page.agentId}</ShellBadge>
-            ) : null}
-          </div>
-
-          <div style={{ fontSize: "10px", lineHeight: 1.45, color: "var(--text3)" }}>
-            {truncateInline(page.sourceLabel, 96)}
-            {page.artifactClassification.reasons.length > 0
-              ? ` · ${truncateInline(page.artifactClassification.reasons.join(" · "), 84)}`
-              : ""}
-            {page.documentMetadata &&
-            !page.documentMetadata.metadataWithheld &&
-            page.documentMetadata.originLabel
-              ? ` · ${truncateInline(page.documentMetadata.originLabel, 72)}`
-              : ""}
-          </div>
-
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-            <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-              <button
-                type="button"
-                onClick={() => void togglePageDetail(page)}
-                disabled={detailLoading && activePageId !== page.id}
-                className="nexus-shell-button"
-                style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
+            key={page.id}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              padding: "12px",
+              borderRadius: "14px",
+              ...presentation.articleStyle,
+            }}
+          >
+            {presentation.eyebrow ? (
+              <div
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  color: "#93c5fd",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.8px",
+                }}
               >
-                {activePageId === page.id ? "Hide page" : "Read page"}
-              </button>
-              {page.workflowId === "market-review" ||
-              page.workflowId === "vuln-review" ||
-              page.workflowId === "ai-exposure-review" ||
-              page.workflowId === "osint-casefile" ||
-              page.workflowId === "repo-assimilation" ||
-              page.workflowId === "vault-librarian" ||
-              page.workflowId === "vault-weekly" ||
-              page.workflowId === "repo-compare" ? (
-                <button
-                  type="button"
-                  onClick={() => openExactCompiledPage(page)}
-                  className="nexus-shell-button"
-                  style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
-                >
-                  Exact reopen
-                </button>
-              ) : null}
-              {page.workflowId === "repo-assimilation" ? (
-                <button
-                  type="button"
-                  onClick={() => briefOrbitFromAssimilation(page)}
-                  className="nexus-shell-button"
-                  style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
-                  disabled={!page.content}
-                >
-                  Brief ORBIT
-                </button>
-              ) : null}
-              {page.workflowId === "repo-compare" ? (
-                <button
-                  type="button"
-                  onClick={() => briefOrbitFromRepoCompare(page)}
-                  className="nexus-shell-button"
-                  style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
-                  disabled={!page.content}
-                >
-                  Brief ORBIT
-                </button>
-              ) : null}
-              {page.workflowId === "vault-librarian" ? (
-                <button
-                  type="button"
-                  onClick={() => router.push("/vault?focus=vault-graph-focus")}
-                  className="nexus-shell-button"
-                  style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
-                >
-                  Reopen graph focus
-                </button>
-              ) : null}
-              {page.workflowId === "vault-weekly" ? (
-                <button
-                  type="button"
-                  onClick={() => router.push("/vault?focus=vault-compiled-pages&workflowId=vault-weekly")}
-                  className="nexus-shell-button"
-                  style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
-                >
-                  Weekly archive
-                </button>
-              ) : null}
-              {page.workflowId === "vuln-review" ? (
-                <button
-                  type="button"
-                  onClick={() => router.push("/cyber?view=vuln-review&focus=cyber-vuln-review")}
-                  className="nexus-shell-button"
-                  style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
-                >
-                  Reopen in CYBER
-                </button>
-              ) : null}
-              {page.workflowId === "ai-exposure-review" ? (
-                <button
-                  type="button"
-                  onClick={() =>
-                    router.push(
-                      page.route === "/cyber"
-                        ? "/cyber?view=triage&focus=cyber-triage"
-                        : "/recon?view=osint&focus=recon-lookup",
-                    )
-                  }
-                  className="nexus-shell-button"
-                  style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
-                >
-                  {page.route === "/cyber" ? "Reopen in CYBER" : "Reopen in RECON"}
-                </button>
-              ) : null}
-              {promotionEvaluation.targetClass ? (
-                <button
-                  type="button"
-                  onClick={() => void promoteToBrief(page)}
-                  disabled={
-                    pagePromotionState?.state === "saving" ||
-                    !promotionEvaluation.eligible
-                  }
-                  className="nexus-shell-button"
-                  style={{ minHeight: "32px", padding: "0 12px", fontSize: "11px" }}
-                  title={promotionEvaluation.reason}
-                >
-                  {pagePromotionState?.state === "saving"
-                    ? "Promoting…"
-                    : pagePromotionState?.state === "saved"
-                      ? getPromotionReadyLabel(promotionEvaluation.targetClass)
-                      : getPromotionActionLabel(promotionEvaluation.targetClass)}
-                </button>
-              ) : null}
-            </div>
-            <div style={{ display: "grid", justifyItems: "end", gap: "4px" }}>
-              {page.contentWithheld ? (
-                <span style={{ fontSize: "10px", color: "var(--text3)" }}>
-                  Restricted page content withheld
-                </span>
-              ) : null}
-              {pagePromotionState?.state === "saved" ? (
-                <span style={{ fontSize: "10px", color: "#bfdbfe" }}>
-                  Higher-order brief is durable in VAULT.
-                </span>
-              ) : null}
-              {pagePromotionState?.state === "error" ? (
-                <span style={{ fontSize: "10px", color: "var(--flo)" }}>
-                  {getPromotionFailureLabel(promotionEvaluation.targetClass)}
-                </span>
-              ) : null}
-            </div>
-          </div>
-
-          {activePageId === page.id ? (
+                {presentation.eyebrow}
+              </div>
+            ) : null}
             <div
               style={{
-                padding: "10px 12px",
-                borderRadius: "12px",
-                border: "1px solid rgba(123, 167, 212, 0.12)",
-                background: "rgba(9, 14, 28, 0.55)",
-                fontSize: "11px",
-                lineHeight: 1.55,
-                color: "var(--text2)",
-                whiteSpace: "pre-wrap",
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "8px",
+                flexWrap: "wrap",
               }}
             >
-              {!page.researchSignals.signalsWithheld &&
-              (page.researchSignals.sectionHeadings.length > 0 ||
-                page.researchSignals.referencedDomains.length > 0) ? (
-                <div
+              <div
+                style={{
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "var(--text)",
+                }}
+              >
+                {page.title}
+              </div>
+              <div style={{ fontSize: "11px", color: "var(--text2)" }}>
+                {new Date(page.updatedAt).toLocaleDateString()}
+              </div>
+            </div>
+
+            <div
+              style={{
+                fontSize: "12px",
+                lineHeight: 1.45,
+                color: "var(--text2)",
+              }}
+            >
+              {page.summary}
+            </div>
+
+            {presentation.cue ? (
+              <div
+                style={{ fontSize: "11px", lineHeight: 1.45, color: "#bfdbfe" }}
+              >
+                {presentation.cue}
+              </div>
+            ) : null}
+
+            {marketReviewLessons ? (
+              <div
+                style={{
+                  display: "grid",
+                  gap: "4px",
+                  padding: "8px 10px",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(250, 204, 21, 0.14)",
+                  background: "rgba(31, 23, 7, 0.34)",
+                  fontSize: "10px",
+                  lineHeight: 1.45,
+                  color: "var(--text3)",
+                }}
+              >
+                {marketReviewLessons.nextRule ? (
+                  <div>
+                    <strong style={{ color: "#fde68a" }}>Next rule:</strong>{" "}
+                    {truncateInline(marketReviewLessons.nextRule, 156)}
+                  </div>
+                ) : null}
+                {marketReviewLessons.whatToRepeat ? (
+                  <div>
+                    <strong style={{ color: "var(--text)" }}>Repeat:</strong>{" "}
+                    {truncateInline(marketReviewLessons.whatToRepeat, 156)}
+                  </div>
+                ) : null}
+                {marketReviewLessons.whatToAvoid ? (
+                  <div>
+                    <strong style={{ color: "var(--text)" }}>Avoid:</strong>{" "}
+                    {truncateInline(marketReviewLessons.whatToAvoid, 156)}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {repoAssimilationInsights ? (
+              <div
+                style={{
+                  display: "grid",
+                  gap: "4px",
+                  padding: "8px 10px",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(110, 231, 183, 0.14)",
+                  background: "rgba(8, 26, 22, 0.34)",
+                  fontSize: "10px",
+                  lineHeight: 1.45,
+                  color: "var(--text3)",
+                }}
+              >
+                {repoAssimilationInsights.implementationDecision ? (
+                  <div>
+                    <strong style={{ color: "#a7f3d0" }}>Decision:</strong>{" "}
+                    {truncateInline(
+                      repoAssimilationInsights.implementationDecision,
+                      164,
+                    )}
+                  </div>
+                ) : null}
+                {repoAssimilationInsights.localFitAndWhyNow ? (
+                  <div>
+                    <strong style={{ color: "var(--text)" }}>Local fit:</strong>{" "}
+                    {truncateInline(
+                      repoAssimilationInsights.localFitAndWhyNow,
+                      164,
+                    )}
+                  </div>
+                ) : null}
+                {repoAssimilationInsights.extensionPointsAndSmallestSlice ? (
+                  <div>
+                    <strong style={{ color: "var(--text)" }}>
+                      Smallest slice:
+                    </strong>{" "}
+                    {truncateInline(
+                      repoAssimilationInsights.extensionPointsAndSmallestSlice,
+                      164,
+                    )}
+                  </div>
+                ) : null}
+                {repoAssimilationInsights.boundariesAndRisks ? (
+                  <div>
+                    <strong style={{ color: "var(--text)" }}>
+                      Boundaries:
+                    </strong>{" "}
+                    {truncateInline(
+                      repoAssimilationInsights.boundariesAndRisks,
+                      164,
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {repoCompareInsights ? (
+              <div
+                style={{
+                  display: "grid",
+                  gap: "4px",
+                  padding: "8px 10px",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(191, 219, 254, 0.14)",
+                  background: "rgba(10, 18, 31, 0.34)",
+                  fontSize: "10px",
+                  lineHeight: 1.45,
+                  color: "var(--text3)",
+                }}
+              >
+                {repoCompareInsights.recommendedPick ? (
+                  <div>
+                    <strong style={{ color: "#bfdbfe" }}>Recommended:</strong>{" "}
+                    {truncateInline(repoCompareInsights.recommendedPick, 164)}
+                  </div>
+                ) : null}
+                {repoCompareInsights.keyDifferences ? (
+                  <div>
+                    <strong style={{ color: "var(--text)" }}>
+                      Differences:
+                    </strong>{" "}
+                    {truncateInline(repoCompareInsights.keyDifferences, 164)}
+                  </div>
+                ) : null}
+                {repoCompareInsights.boundariesAndRisks ? (
+                  <div>
+                    <strong style={{ color: "var(--text)" }}>
+                      Boundaries:
+                    </strong>{" "}
+                    {truncateInline(
+                      repoCompareInsights.boundariesAndRisks,
+                      164,
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {vaultLibrarianInsights ? (
+              <div
+                style={{
+                  display: "grid",
+                  gap: "4px",
+                  padding: "8px 10px",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(125, 211, 252, 0.14)",
+                  background: "rgba(9, 20, 34, 0.34)",
+                  fontSize: "10px",
+                  lineHeight: 1.45,
+                  color: "var(--text3)",
+                }}
+              >
+                {vaultLibrarianInsights.highestPriorityRepairs ? (
+                  <div>
+                    <strong style={{ color: "#bae6fd" }}>Repair cue:</strong>{" "}
+                    {truncateInline(
+                      vaultLibrarianInsights.highestPriorityRepairs
+                        .replace(/^- /gm, "")
+                        .replace(/\s+/g, " "),
+                      164,
+                    )}
+                  </div>
+                ) : null}
+                {vaultLibrarianInsights.topGaps ? (
+                  <div>
+                    <strong style={{ color: "var(--text)" }}>
+                      Gap topics:
+                    </strong>{" "}
+                    {truncateInline(
+                      vaultLibrarianInsights.topGaps
+                        .replace(/^- /gm, "")
+                        .replace(/\s+/g, " "),
+                      164,
+                    )}
+                  </div>
+                ) : null}
+                {vaultLibrarianInsights.strongestNextSession ? (
+                  <div>
+                    <strong style={{ color: "var(--text)" }}>
+                      Next session:
+                    </strong>{" "}
+                    {truncateInline(
+                      vaultLibrarianInsights.strongestNextSession
+                        .replace(/^- /gm, "")
+                        .replace(/\s+/g, " "),
+                      164,
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {vaultWeeklyInsights ? (
+              <div
+                style={{
+                  display: "grid",
+                  gap: "4px",
+                  padding: "8px 10px",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(125, 211, 252, 0.14)",
+                  background: "rgba(9, 20, 34, 0.34)",
+                  fontSize: "10px",
+                  lineHeight: 1.45,
+                  color: "var(--text3)",
+                }}
+              >
+                {vaultWeeklyInsights.vaultPosture ? (
+                  <div>
+                    <strong style={{ color: "#bae6fd" }}>Posture:</strong>{" "}
+                    {truncateInline(vaultWeeklyInsights.vaultPosture, 164)}
+                  </div>
+                ) : null}
+                {vaultWeeklyInsights.topThemes ? (
+                  <div>
+                    <strong style={{ color: "var(--text)" }}>Themes:</strong>{" "}
+                    {truncateInline(vaultWeeklyInsights.topThemes, 164)}
+                  </div>
+                ) : null}
+                {vaultWeeklyInsights.repairLane ? (
+                  <div>
+                    <strong style={{ color: "var(--text)" }}>
+                      Repair lane:
+                    </strong>{" "}
+                    {truncateInline(vaultWeeklyInsights.repairLane, 164)}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            <div
+              style={{
+                fontSize: "11px",
+                lineHeight: 1.45,
+                color: "var(--text3)",
+              }}
+            >
+              {buildCompiledPageMeta(page)}
+              {page.researchSignals.signalsWithheld
+                ? " · research signals withheld"
+                : page.researchSignals.referencedDomains.length > 0
+                  ? ` · ${truncateInline(page.researchSignals.referencedDomains.join(", "), 72)}`
+                  : ""}
+            </div>
+
+            <MissionContinuationActions
+              memoryQuery={[page.title, page.summary]
+                .filter(Boolean)
+                .join("\n")}
+              routeHint={page.route}
+              extraTargets={
+                page.layer !== "raw"
+                  ? ([
+                      {
+                        href: buildMissionHref("/vault", "archive"),
+                        label: "Continue in VAULT",
+                        tab: "vault",
+                      },
+                    ] satisfies MissionContinuationTarget[])
+                  : undefined
+              }
+              showReturnToHQ
+            />
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+              {presentation.accentBadges.map((badge) => (
+                <ShellBadge key={badge.label} tone={badge.tone}>
+                  {badge.label}
+                </ShellBadge>
+              ))}
+              <ShellBadge tone={getClassificationTone(page)}>
+                {formatArtifactTypeLabel(
+                  page.artifactClassification.artifactType,
+                )}
+              </ShellBadge>
+              <ShellBadge tone="muted">
+                {formatArtifactParserHintLabel(
+                  page.artifactClassification.parserHint,
+                )}
+              </ShellBadge>
+              <ShellBadge tone="accent">{page.layer}</ShellBadge>
+              <ShellBadge tone="muted">{page.domain}</ShellBadge>
+              <ShellBadge
+                tone={page.visibility === "safe" ? "success" : "muted"}
+              >
+                {page.visibility}
+              </ShellBadge>
+              {page.workflowLabel ? (
+                <ShellBadge tone="muted">{page.workflowLabel}</ShellBadge>
+              ) : null}
+              {page.agentId ? (
+                <ShellBadge tone="muted">{page.agentId}</ShellBadge>
+              ) : null}
+            </div>
+
+            <div
+              style={{
+                fontSize: "10px",
+                lineHeight: 1.45,
+                color: "var(--text3)",
+              }}
+            >
+              {truncateInline(page.sourceLabel, 96)}
+              {page.artifactClassification.reasons.length > 0
+                ? ` · ${truncateInline(page.artifactClassification.reasons.join(" · "), 84)}`
+                : ""}
+              {page.documentMetadata &&
+              !page.documentMetadata.metadataWithheld &&
+              page.documentMetadata.originLabel
+                ? ` · ${truncateInline(page.documentMetadata.originLabel, 72)}`
+                : ""}
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "8px",
+                flexWrap: "wrap",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => void togglePageDetail(page)}
+                  disabled={detailLoading && activePageId !== page.id}
+                  className="nexus-shell-button"
                   style={{
-                    display: "grid",
-                    gap: "6px",
-                    marginBottom: "10px",
-                    paddingBottom: "10px",
-                    borderBottom: "1px solid rgba(123, 167, 212, 0.12)",
+                    minHeight: "32px",
+                    padding: "0 12px",
+                    fontSize: "11px",
                   }}
                 >
-                  {page.contentPreview ? (
-                    <div>
-                      <strong style={{ color: "var(--text)" }}>Preview:</strong>{" "}
-                      {truncateInline(page.contentPreview, 220)}
+                  {activePageId === page.id ? "Hide page" : "Read page"}
+                </button>
+                {page.workflowId === "market-review" ||
+                page.workflowId === "vuln-review" ||
+                page.workflowId === "ai-exposure-review" ||
+                page.workflowId === "osint-casefile" ||
+                page.workflowId === "repo-assimilation" ||
+                page.workflowId === "vault-librarian" ||
+                page.workflowId === "vault-weekly" ||
+                page.workflowId === "repo-compare" ? (
+                  <button
+                    type="button"
+                    onClick={() => openExactCompiledPage(page)}
+                    className="nexus-shell-button"
+                    style={{
+                      minHeight: "32px",
+                      padding: "0 12px",
+                      fontSize: "11px",
+                    }}
+                  >
+                    Exact reopen
+                  </button>
+                ) : null}
+                {page.workflowId === "repo-assimilation" ? (
+                  <button
+                    type="button"
+                    onClick={() => briefOrbitFromAssimilation(page)}
+                    className="nexus-shell-button"
+                    style={{
+                      minHeight: "32px",
+                      padding: "0 12px",
+                      fontSize: "11px",
+                    }}
+                    disabled={!page.content}
+                  >
+                    Brief ORBIT
+                  </button>
+                ) : null}
+                {page.workflowId === "repo-compare" ? (
+                  <button
+                    type="button"
+                    onClick={() => briefOrbitFromRepoCompare(page)}
+                    className="nexus-shell-button"
+                    style={{
+                      minHeight: "32px",
+                      padding: "0 12px",
+                      fontSize: "11px",
+                    }}
+                    disabled={!page.content}
+                  >
+                    Brief ORBIT
+                  </button>
+                ) : null}
+                {page.workflowId === "vault-librarian" ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      router.push("/vault?focus=vault-graph-focus")
+                    }
+                    className="nexus-shell-button"
+                    style={{
+                      minHeight: "32px",
+                      padding: "0 12px",
+                      fontSize: "11px",
+                    }}
+                  >
+                    Reopen graph focus
+                  </button>
+                ) : null}
+                {page.workflowId === "vault-weekly" ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      router.push(
+                        "/vault?focus=vault-compiled-pages&workflowId=vault-weekly",
+                      )
+                    }
+                    className="nexus-shell-button"
+                    style={{
+                      minHeight: "32px",
+                      padding: "0 12px",
+                      fontSize: "11px",
+                    }}
+                  >
+                    Weekly archive
+                  </button>
+                ) : null}
+                {page.workflowId === "vuln-review" ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      router.push(
+                        "/cyber?view=vuln-review&focus=cyber-vuln-review",
+                      )
+                    }
+                    className="nexus-shell-button"
+                    style={{
+                      minHeight: "32px",
+                      padding: "0 12px",
+                      fontSize: "11px",
+                    }}
+                  >
+                    Reopen in CYBER
+                  </button>
+                ) : null}
+                {page.workflowId === "ai-exposure-review" ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      router.push(
+                        page.route === "/cyber"
+                          ? "/cyber?view=triage&focus=cyber-triage"
+                          : "/recon?view=osint&focus=recon-lookup",
+                      )
+                    }
+                    className="nexus-shell-button"
+                    style={{
+                      minHeight: "32px",
+                      padding: "0 12px",
+                      fontSize: "11px",
+                    }}
+                  >
+                    {page.route === "/cyber"
+                      ? "Reopen in CYBER"
+                      : "Reopen in RECON"}
+                  </button>
+                ) : null}
+                {promotionEvaluation.targetClass ? (
+                  <button
+                    type="button"
+                    onClick={() => void promoteToBrief(page)}
+                    disabled={
+                      pagePromotionState?.state === "saving" ||
+                      !promotionEvaluation.eligible
+                    }
+                    className="nexus-shell-button"
+                    style={{
+                      minHeight: "32px",
+                      padding: "0 12px",
+                      fontSize: "11px",
+                    }}
+                    title={promotionEvaluation.reason}
+                  >
+                    {pagePromotionState?.state === "saving"
+                      ? "Promoting…"
+                      : pagePromotionState?.state === "saved"
+                        ? getPromotionReadyLabel(
+                            promotionEvaluation.targetClass,
+                          )
+                        : getPromotionActionLabel(
+                            promotionEvaluation.targetClass,
+                          )}
+                  </button>
+                ) : null}
+              </div>
+              <div style={{ display: "grid", justifyItems: "end", gap: "4px" }}>
+                {page.contentWithheld ? (
+                  <span style={{ fontSize: "10px", color: "var(--text3)" }}>
+                    Restricted page content withheld
+                  </span>
+                ) : null}
+                {pagePromotionState?.state === "saved" ? (
+                  <span style={{ fontSize: "10px", color: "#bfdbfe" }}>
+                    Higher-order brief is durable in VAULT.
+                  </span>
+                ) : null}
+                {pagePromotionState?.state === "error" ? (
+                  <span style={{ fontSize: "10px", color: "var(--flo)" }}>
+                    {getPromotionFailureLabel(promotionEvaluation.targetClass)}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
+            {activePageId === page.id ? (
+              <div
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: "12px",
+                  border: "1px solid rgba(123, 167, 212, 0.12)",
+                  background: "rgba(9, 14, 28, 0.55)",
+                  fontSize: "11px",
+                  lineHeight: 1.55,
+                  color: "var(--text2)",
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {!page.researchSignals.signalsWithheld &&
+                (page.researchSignals.sectionHeadings.length > 0 ||
+                  page.researchSignals.referencedDomains.length > 0) ? (
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: "6px",
+                      marginBottom: "10px",
+                      paddingBottom: "10px",
+                      borderBottom: "1px solid rgba(123, 167, 212, 0.12)",
+                    }}
+                  >
+                    {page.contentPreview ? (
+                      <div>
+                        <strong style={{ color: "var(--text)" }}>
+                          Preview:
+                        </strong>{" "}
+                        {truncateInline(page.contentPreview, 220)}
+                      </div>
+                    ) : null}
+                    {page.researchSignals.sectionHeadings.length > 0 ? (
+                      <div>
+                        <strong style={{ color: "var(--text)" }}>
+                          Sections:
+                        </strong>{" "}
+                        {page.researchSignals.sectionHeadings.join(" · ")}
+                      </div>
+                    ) : null}
+                    {page.researchSignals.referencedDomains.length > 0 ? (
+                      <div>
+                        <strong style={{ color: "var(--text)" }}>
+                          Referenced domains:
+                        </strong>{" "}
+                        {page.researchSignals.referencedDomains.join(", ")}
+                      </div>
+                    ) : null}
+                    {page.continuity.sourceRefs.length > 0 ? (
+                      <div>
+                        <strong style={{ color: "var(--text)" }}>
+                          Source trail:
+                        </strong>{" "}
+                        {page.continuity.sourceRefs
+                          .slice(0, 4)
+                          .map((sourceRef) => sourceRef.title)
+                          .join(" · ")}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+                {relatedPages.length > 0 ? (
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: "6px",
+                      marginBottom: "10px",
+                      paddingBottom: "10px",
+                      borderBottom: "1px solid rgba(123, 167, 212, 0.12)",
+                    }}
+                  >
+                    <strong style={{ color: "var(--text)" }}>
+                      Related durable notes:
+                    </strong>
+                    <div
+                      style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}
+                    >
+                      {relatedPages.map((match) => (
+                        <button
+                          key={match.item.id}
+                          type="button"
+                          onClick={() => openExactCompiledPage(match.item)}
+                          className="nexus-shell-button"
+                          style={{
+                            minHeight: "30px",
+                            padding: "0 10px",
+                            fontSize: "10px",
+                          }}
+                          title={match.reasons.join(" · ")}
+                        >
+                          Read {truncateInline(match.item.title, 42)}
+                        </button>
+                      ))}
                     </div>
-                  ) : null}
-                  {page.researchSignals.sectionHeadings.length > 0 ? (
-                    <div>
-                      <strong style={{ color: "var(--text)" }}>Sections:</strong>{" "}
-                      {page.researchSignals.sectionHeadings.join(" · ")}
-                    </div>
-                  ) : null}
-                  {page.researchSignals.referencedDomains.length > 0 ? (
-                    <div>
-                      <strong style={{ color: "var(--text)" }}>Referenced domains:</strong>{" "}
-                      {page.researchSignals.referencedDomains.join(", ")}
-                    </div>
-                  ) : null}
-                  {page.continuity.sourceRefs.length > 0 ? (
-                    <div>
-                      <strong style={{ color: "var(--text)" }}>Source trail:</strong>{" "}
-                      {page.continuity.sourceRefs
-                        .slice(0, 4)
-                        .map((sourceRef) => sourceRef.title)
+                    <div style={{ fontSize: "10px", color: "var(--text3)" }}>
+                      {relatedPages
+                        .map((match) => match.reasons.slice(0, 2).join(" · "))
                         .join(" · ")}
                     </div>
-                  ) : null}
-                </div>
-              ) : null}
-              {relatedPages.length > 0 ? (
-                <div
-                  style={{
-                    display: "grid",
-                    gap: "6px",
-                    marginBottom: "10px",
-                    paddingBottom: "10px",
-                    borderBottom: "1px solid rgba(123, 167, 212, 0.12)",
-                  }}
-                >
-                  <strong style={{ color: "var(--text)" }}>Related durable notes:</strong>
-                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                    {relatedPages.map((match) => (
-                      <button
-                        key={match.item.id}
-                        type="button"
-                        onClick={() => openExactCompiledPage(match.item)}
-                        className="nexus-shell-button"
-                        style={{ minHeight: "30px", padding: "0 10px", fontSize: "10px" }}
-                        title={match.reasons.join(" · ")}
-                      >
-                        Read {truncateInline(match.item.title, 42)}
-                      </button>
-                    ))}
                   </div>
-                  <div style={{ fontSize: "10px", color: "var(--text3)" }}>
-                    {relatedPages
-                      .map((match) => match.reasons.slice(0, 2).join(" · "))
-                      .join(" · ")}
-                  </div>
-                </div>
-              ) : null}
-              {page.contentWithheld
-                ? "This page is restricted. Metadata and counts remain visible, but the compiled page body is intentionally withheld from the shared VAULT surface."
-                : page.content ?? page.contentPreview}
-            </div>
-          ) : null}
-        </article>
-      )})}
+                ) : null}
+                {page.contentWithheld
+                  ? "This page is restricted. Metadata and counts remain visible, but the compiled page body is intentionally withheld from the shared VAULT surface."
+                  : (page.content ?? page.contentPreview)}
+              </div>
+            ) : null}
+          </article>
+        );
+      })}
     </div>
   );
 }

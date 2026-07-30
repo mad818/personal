@@ -3,20 +3,20 @@
 
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/apiFetch";
-
-interface KEVEntry {
-  cveID: string;
-  vendorProject: string;
-  product: string;
-  vulnerabilityName: string;
-  dateAdded: string;
-  shortDescription: string;
-  requiredAction: string;
-  dueDate: string;
-  knownRansomwareCampaignUse: string;
-}
+import DataLoadingState from "@/components/ui/DataLoadingState";
+import { ShellButton } from "@/components/ui/shell";
+import {
+  SurfaceCallout,
+  SurfaceEmpty,
+} from "@/components/ui/surfacePrimitives";
+import { loadClientJsonResource } from "@/lib/clientJsonResource";
+import {
+  isCisaKevPayload,
+  type CisaKevEntry,
+  type CisaKevPayload,
+} from "@/lib/cisaKev";
 
 // ── Ransomware risk badge ──────────────────────────────────────────────────────
 const RANSOM_COLOR = {
@@ -126,31 +126,44 @@ function DueBar({ dueDate }: { dueDate: string }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function CISAFeed() {
-  const [entries, setEntries] = useState<KEVEntry[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [entries, setEntries] = useState<CisaKevEntry[]>([]);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [retryToken, setRetryToken] = useState(0);
   const [meta, setMeta] = useState({ version: "", released: "", total: 0 });
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const r = await apiFetch("/api/cisa-kev");
-      const d = await r.json();
-      setEntries(d.vulnerabilities ?? []);
-      setMeta({
-        version: d.catalogVersion ?? "",
-        released: d.dateReleased ?? "",
-        total: d.total ?? 0,
-      });
-    } catch {
-      // silent fail
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const loading = loadState === "loading";
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let active = true;
+
+    const load = async () => {
+      setLoadState("loading");
+      const result = await loadClientJsonResource<CisaKevPayload>(
+        () => apiFetch("/api/cisa-kev"),
+        isCisaKevPayload,
+      );
+      if (!active) return;
+      if (!result.ok) {
+        setLoadState("error");
+        return;
+      }
+
+      const payload = result.payload;
+      setEntries(payload.vulnerabilities);
+      setMeta({
+        version: payload.catalogVersion,
+        released: payload.dateReleased,
+        total: payload.total,
+      });
+      setLoadState("ready");
+    };
+
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [retryToken]);
 
   return (
     <div>
@@ -182,8 +195,12 @@ export default function CISAFeed() {
           </span>
         )}
         <button
-          onClick={load}
+          type="button"
+          onClick={() => setRetryToken((current) => current + 1)}
           disabled={loading}
+          aria-label={
+            loading ? "Refreshing CISA KEV feed" : "Refresh CISA KEV feed"
+          }
           style={{
             marginLeft: "auto",
             height: "24px",
@@ -201,17 +218,59 @@ export default function CISAFeed() {
         </button>
       </div>
 
-      {!entries.length && loading && (
+      {loading && entries.length > 0 && (
         <div
+          role="status"
           style={{
-            padding: "30px",
-            textAlign: "center",
+            marginBottom: "8px",
             color: "var(--text3)",
-            fontSize: "12px",
+            fontSize: "10px",
           }}
         >
-          Fetching CISA KEV catalog…
+          Refreshing CISA KEV; retained catalog remains visible.
         </div>
+      )}
+
+      {loadState === "error" && (
+        <div style={{ marginBottom: entries.length > 0 ? "10px" : 0 }}>
+          <SurfaceCallout
+            tone="warning"
+            compact
+            role="alert"
+            title="CISA KEV unavailable"
+            description={
+              entries.length > 0
+                ? "The latest refresh failed. The last verified catalog remains visible."
+                : "The catalog could not be verified. Retry without leaving CYBER."
+            }
+          >
+            <ShellButton
+              onClick={() => setRetryToken((current) => current + 1)}
+            >
+              Retry CISA KEV
+            </ShellButton>
+          </SurfaceCallout>
+        </div>
+      )}
+
+      {loading && entries.length === 0 && (
+        <DataLoadingState dataName="CISA KEV catalog" height={140} />
+      )}
+
+      {loadState === "ready" && entries.length === 0 && (
+        <SurfaceEmpty
+          icon="🛡️"
+          title="No CISA KEV entries returned"
+          description="The catalog responded successfully with no current records."
+          compact
+          action={
+            <ShellButton
+              onClick={() => setRetryToken((current) => current + 1)}
+            >
+              Refresh catalog
+            </ShellButton>
+          }
+        />
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>

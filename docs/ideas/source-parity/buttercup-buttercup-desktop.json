@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "buttercup-buttercup-desktop",
   "name": "Buttercup Desktop",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/buttercup/buttercup-desktop",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/buttercup/buttercup-desktop",
@@ -26,8 +26,13 @@
       "id": "electron-tauri-ux-patterns",
       "title": "Desktop UX patterns for credential management in Electron/native app",
       "sourceEvidence": "Buttercup Desktop UX: vault file management, drag-drop, system tray integration",
-      "disposition": "pending",
-      "reason": "Nexus has a Tauri desktop app; credential UX patterns (vault unlock, system tray, secure input) from Buttercup are useful references."
+      "disposition": "adapted",
+      "reason": "The active VAULT provides explicit locked/unlocked state, secure passphrase fields, auto-lock, encrypted import/export, destructive-action confirmations, and full re-keying in the existing Tauri-capable app. System-tray credential management is intentionally not claimed.",
+      "proof": [
+        "components/vault/SealedVaultPanel.tsx",
+        "lib/sealedVault.ts",
+        "app/vault/page.tsx"
+      ]
     },
     {
       "id": "vault-file-format",
@@ -41,8 +46,13 @@
       "id": "entry-history-and-undo",
       "title": "Entry edit history and undo for credential changes",
       "sourceEvidence": "Buttercup: entry history with timestamped change log",
-      "disposition": "pending",
-      "reason": "Nexus settings do not have edit history; a change log with undo for sensitive settings is a useful pattern."
+      "disposition": "adapted",
+      "reason": "Each sealed record now retains up to twelve encrypted prior revisions and exposes an explicit restore action; mutation receipts record the restore without leaking note content.",
+      "proof": [
+        "lib/sealedVault.ts",
+        "components/vault/SealedVaultPanel.tsx",
+        "scripts/check-sealed-vault-runtime.mjs"
+      ]
     }
   ]
 }

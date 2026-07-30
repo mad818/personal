@@ -10,6 +10,10 @@ import {
   OPSMAP_FREE_AUTO_REFRESH_DEFAULT,
   OPSMAP_QUAKE_AUTO_REFRESH_MS,
 } from "@/lib/opsMapFreeTier";
+import {
+  resolveOverviewViewport,
+  resolveTacticalViewport,
+} from "@/lib/opsMapSynchronizedView";
 
 // Quake colors by magnitude
 function quakeColor(mag: number): string {
@@ -62,7 +66,9 @@ async function fetchQuakes(): Promise<Quake[]> {
         place: eq.place ?? "",
         time: eq.time ?? 0,
       }))
-      .filter((eq: Quake) => Number.isFinite(eq.lat) && Number.isFinite(eq.lng));
+      .filter(
+        (eq: Quake) => Number.isFinite(eq.lat) && Number.isFinite(eq.lng),
+      );
   } catch {
     return [];
   }
@@ -112,6 +118,20 @@ function flightDivIcon(
     iconSize: [14, 14],
     iconAnchor: [7, 7],
   });
+}
+
+function buildFlightLayer(L: any, flights: Flight[]) {
+  const group = L.layerGroup();
+  flights.forEach((flight) => {
+    const squawk = flight.squawk?.trim();
+    const tip = `<b>${(flight.callsign || flight.icao || "?").trim()}</b>${squawk ? `<br>Squawk ${squawk}` : ""}<br>Alt ${Math.round(flight.alt)} m · ${Math.round(flight.vel * 3.6)} km/h · Hdg ${Math.round(flight.hdg)} deg`;
+    L.marker([flight.lat, flight.lng], {
+      icon: flightDivIcon(L, flight) as import("leaflet").DivIcon,
+    })
+      .bindPopup(tip)
+      .addTo(group);
+  });
+  return group;
 }
 
 async function fetchFires(): Promise<Fire[]> {
@@ -215,13 +235,19 @@ const LAYER_META: Record<
   quakes: { label: "Quakes", icon: "Q" },
   flights: { label: "Flights", icon: "F" },
   fires: { label: "Fires", icon: "H" },
-  geodep: { label: "AI Scan", icon: "AI", serviceRequired: true },
+  geodep: { label: "Feature Scan", icon: "FS", serviceRequired: true },
 };
 
 export default function OpsMap() {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const layerRefs = useRef<Record<string, any>>({});
+  const tacticalContainerRef = useRef<HTMLDivElement>(null);
+  const tacticalMapRef = useRef<any>(null);
+  const tacticalLayerRef = useRef<any>(null);
+  const flightSnapshotRef = useRef<Flight[]>([]);
+  const syncingViewportRef = useRef(false);
+  const syncReleaseTimerRef = useRef<number | null>(null);
 
   const firmsKey = useStore((s) => s.settings.firmsKey);
 
@@ -235,6 +261,7 @@ export default function OpsMap() {
     OPSMAP_FREE_AUTO_REFRESH_DEFAULT,
   );
   const [showDensity, setShowDensity] = useState(false);
+  const [dualFlightView, setDualFlightView] = useState(false);
 
   const toggleLayer = useCallback(async (key: LayerKey) => {
     const map = mapRef.current;
@@ -264,21 +291,22 @@ export default function OpsMap() {
       const L = await import("leaflet");
       const flights = await fetchFlights();
       if (!mapRef.current) return;
-      const group = L.layerGroup();
-      flights.forEach((f) => {
-        const sq = f.squawk?.trim();
-        const tip = `<b>${(f.callsign || f.icao || "?").trim()}</b>${sq ? `<br>Squawk ${sq}` : ""}<br>Alt ${Math.round(f.alt)} m · ${Math.round(f.vel * 3.6)} km/h · Hdg ${Math.round(f.hdg)} deg`;
-        L.marker([f.lat, f.lng], {
-          icon: flightDivIcon(L, f) as import("leaflet").DivIcon,
-        })
-          .bindPopup(tip)
-          .addTo(group);
-      });
+      flightSnapshotRef.current = flights;
+      const group = buildFlightLayer(L, flights);
       if (layerRefs.current.flights) {
         map.removeLayer(layerRefs.current.flights);
       }
       group.addTo(map);
       layerRefs.current.flights = group;
+      const tacticalMap = tacticalMapRef.current;
+      if (tacticalMap) {
+        if (tacticalLayerRef.current) {
+          tacticalMap.removeLayer(tacticalLayerRef.current);
+        }
+        const tacticalLayer = buildFlightLayer(L, flights);
+        tacticalLayer.addTo(tacticalMap);
+        tacticalLayerRef.current = tacticalLayer;
+      }
     } finally {
       setLayerLoading((p) => ({ ...p, flights: false }));
     }
@@ -369,7 +397,7 @@ export default function OpsMap() {
         })
           .addTo(group)
           .bindPopup(
-            `<b>${d.label}</b><br>Confidence: ${Math.round(d.confidence * 100)}%`,
+            `<b>${d.label}</b><br>Contrast strength: ${Math.round(d.confidence * 100)}%`,
           );
       });
       if (layerRefs.current.geodep) {
@@ -488,7 +516,7 @@ export default function OpsMap() {
     };
   }, [activeLayers, mapReady, paintFlightsLayer]);
 
-  // Geodep: load once when layer turns on - no auto-refresh (expensive ML call, manual only)
+  // GeoDeep: load once when the layer turns on; the external tile scan is manual only.
   useEffect(() => {
     if (!mapReady || !activeLayers.has("geodep")) return;
     void refreshGeodep();
@@ -549,6 +577,12 @@ export default function OpsMap() {
   ]);
 
   useEffect(() => {
+    if (!activeLayers.has("flights")) {
+      setDualFlightView(false);
+    }
+  }, [activeLayers]);
+
+  useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     if ((container as any)._leaflet_id) {
@@ -593,6 +627,118 @@ export default function OpsMap() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!dualFlightView || !mapReady) return;
+    const overviewMap = mapRef.current;
+    const tacticalContainer = tacticalContainerRef.current;
+    if (!overviewMap || !tacticalContainer) return;
+
+    let disposed = false;
+    let detachListeners = () => {};
+
+    void import("leaflet").then((L) => {
+      if (disposed || tacticalMapRef.current) return;
+      const center = overviewMap.getCenter();
+      const tacticalViewport = resolveTacticalViewport({
+        lat: center.lat,
+        lng: center.lng,
+        zoom: overviewMap.getZoom(),
+      });
+      const tacticalMap = L.map(tacticalContainer, {
+        center: [tacticalViewport.lat, tacticalViewport.lng],
+        zoom: tacticalViewport.zoom,
+        zoomControl: true,
+        attributionControl: false,
+      });
+      tacticalMapRef.current = tacticalMap;
+      L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        {
+          subdomains: "abcd",
+          maxZoom: 18,
+        },
+      ).addTo(tacticalMap);
+
+      const currentFlights = flightSnapshotRef.current;
+      if (currentFlights.length > 0) {
+        const tacticalLayer = buildFlightLayer(L, currentFlights);
+        tacticalLayer.addTo(tacticalMap);
+        tacticalLayerRef.current = tacticalLayer;
+      }
+
+      const releaseSync = () => {
+        if (syncReleaseTimerRef.current !== null) {
+          window.clearTimeout(syncReleaseTimerRef.current);
+        }
+        syncReleaseTimerRef.current = window.setTimeout(() => {
+          syncingViewportRef.current = false;
+          syncReleaseTimerRef.current = null;
+        }, 0);
+      };
+
+      const syncFromOverview = () => {
+        if (syncingViewportRef.current || !tacticalMapRef.current) return;
+        const nextCenter = overviewMap.getCenter();
+        const next = resolveTacticalViewport({
+          lat: nextCenter.lat,
+          lng: nextCenter.lng,
+          zoom: overviewMap.getZoom(),
+        });
+        syncingViewportRef.current = true;
+        tacticalMapRef.current.setView([next.lat, next.lng], next.zoom, {
+          animate: false,
+        });
+        releaseSync();
+      };
+
+      const syncFromTactical = () => {
+        if (syncingViewportRef.current || !tacticalMapRef.current) return;
+        const nextCenter = tacticalMapRef.current.getCenter();
+        const next = resolveOverviewViewport({
+          lat: nextCenter.lat,
+          lng: nextCenter.lng,
+          zoom: tacticalMapRef.current.getZoom(),
+        });
+        syncingViewportRef.current = true;
+        overviewMap.setView([next.lat, next.lng], next.zoom, {
+          animate: false,
+        });
+        releaseSync();
+      };
+
+      overviewMap.on("moveend", syncFromOverview);
+      tacticalMap.on("moveend", syncFromTactical);
+      detachListeners = () => {
+        overviewMap.off("moveend", syncFromOverview);
+        tacticalMap.off("moveend", syncFromTactical);
+      };
+    });
+
+    return () => {
+      disposed = true;
+      detachListeners();
+      if (syncReleaseTimerRef.current !== null) {
+        window.clearTimeout(syncReleaseTimerRef.current);
+        syncReleaseTimerRef.current = null;
+      }
+      syncingViewportRef.current = false;
+      if (tacticalMapRef.current) {
+        tacticalMapRef.current.remove();
+        tacticalMapRef.current = null;
+      }
+      tacticalLayerRef.current = null;
+    };
+  }, [dualFlightView, mapReady]);
+
+  useEffect(() => {
+    if (!mapReady) return;
+    const timer = window.setTimeout(() => {
+      mapRef.current?.invalidateSize();
+      tacticalMapRef.current?.invalidateSize();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [dualFlightView, mapReady]);
+
   return (
     <div style={{ marginTop: "18px" }}>
       {/* Header + layer toggles */}
@@ -623,7 +769,7 @@ export default function OpsMap() {
           const loading = layerLoading[key];
           const locked = meta.needsKey === "firmsKey" && !firmsKey;
           const svcHint = meta.serviceRequired
-            ? "Requires local GeoDeep AI service - see docs/deployment/geodep.md"
+            ? "Requires local GeoDeep feature-scan service - see docs/deployment/geodep.md"
             : undefined;
           return (
             <button
@@ -659,6 +805,35 @@ export default function OpsMap() {
             </button>
           );
         })}
+        <button
+          type="button"
+          aria-pressed={dualFlightView}
+          disabled={!activeLayers.has("flights")}
+          onClick={() => setDualFlightView((current) => !current)}
+          title={
+            activeLayers.has("flights")
+              ? "Show the same flight snapshot in synchronized overview and tactical maps"
+              : "Enable the Flights layer first"
+          }
+          style={{
+            height: "26px",
+            padding: "0 10px",
+            borderRadius: "6px",
+            fontSize: "10.5px",
+            fontWeight: 700,
+            cursor: activeLayers.has("flights") ? "pointer" : "default",
+            border: "1px solid var(--border2)",
+            background: dualFlightView
+              ? "rgba(96,165,250,0.22)"
+              : "transparent",
+            color: activeLayers.has("flights")
+              ? "var(--text2)"
+              : "var(--text3)",
+            opacity: activeLayers.has("flights") ? 1 : 0.45,
+          }}
+        >
+          Dual flight view
+        </button>
       </div>
 
       {/* Manual refresh - free APIs only; you choose when to hit the network */}
@@ -772,7 +947,7 @@ export default function OpsMap() {
           {activeLayers.has("geodep") && (
             <button
               type="button"
-              aria-label="Run AI object detection via local GeoDeep service"
+              aria-label="Run local GeoDeep contrast feature scan"
               onClick={() => void refreshGeodep()}
               disabled={!!layerLoading.geodep}
               style={{
@@ -787,7 +962,7 @@ export default function OpsMap() {
                 cursor: layerLoading.geodep ? "wait" : "pointer",
               }}
             >
-              {layerLoading.geodep ? "..." : "Run AI scan"}
+              {layerLoading.geodep ? "..." : "Run feature scan"}
             </button>
           )}
         </div>
@@ -907,7 +1082,7 @@ export default function OpsMap() {
                   display: "inline-block",
                 }}
               />
-              AI detections - local service - manual refresh only
+              Contrast features - local service - manual refresh only
             </span>
           )}
           {showDensity && (
@@ -947,29 +1122,101 @@ export default function OpsMap() {
         {OPSMAP_DATA_ATTRIBUTION}
       </p>
 
+      {dualFlightView ? (
+        <p
+          style={{
+            margin: "0 0 8px",
+            fontSize: "10px",
+            lineHeight: 1.45,
+            color: "var(--text2)",
+          }}
+        >
+          Synchronized 2D views share one OpenSky snapshot. Move either map to
+          update the other; the tactical view stays up to two zoom levels
+          closer.
+        </p>
+      ) : null}
+
       <div
-        ref={containerRef}
         style={{
-          width: "100%",
-          height: "420px",
-          borderRadius: "10px",
-          overflow: "hidden",
-          border: "1px solid var(--border)",
+          display: "grid",
+          gridTemplateColumns: dualFlightView
+            ? "repeat(auto-fit, minmax(300px, 1fr))"
+            : "minmax(0, 1fr)",
+          gap: "10px",
         }}
-      />
+      >
+        <div style={{ minWidth: 0 }}>
+          {dualFlightView ? (
+            <div
+              style={{
+                marginBottom: "5px",
+                fontSize: "10px",
+                fontWeight: 700,
+                color: "var(--text3)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Overview · all active layers
+            </div>
+          ) : null}
+          <div
+            ref={containerRef}
+            role="region"
+            aria-label="Operations overview map"
+            style={{
+              width: "100%",
+              height: "420px",
+              borderRadius: "10px",
+              overflow: "hidden",
+              border: "1px solid var(--border)",
+            }}
+          />
+        </div>
+        {dualFlightView ? (
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                marginBottom: "5px",
+                fontSize: "10px",
+                fontWeight: 700,
+                color: "var(--text3)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Tactical · same flight snapshot
+            </div>
+            <div
+              ref={tacticalContainerRef}
+              role="region"
+              aria-label="Synchronized tactical flight map"
+              style={{
+                width: "100%",
+                height: "420px",
+                borderRadius: "10px",
+                overflow: "hidden",
+                border: "1px solid var(--border)",
+              }}
+            />
+          </div>
+        ) : null}
+      </div>
 
       {!firmsKey && (
         <div
           style={{ marginTop: "6px", fontSize: "10px", color: "var(--text3)" }}
         >
-          Add a NASA FIRMS key in Settings for live fire data. Without one, the layer falls back to sample hotspots.
+          Add a NASA FIRMS key in Settings for live fire data. Without one, the
+          layer falls back to sample hotspots.
         </div>
       )}
       {activeLayers.has("geodep") && (
         <div
           style={{ marginTop: "6px", fontSize: "10px", color: "var(--text3)" }}
         >
-          AI Scan uses a local GeoDeep service. See{" "}
+          Feature Scan uses a local GeoDeep contrast service. See{" "}
           <code style={{ fontFamily: "monospace", fontSize: "9px" }}>
             docs/deployment/geodep.md
           </code>{" "}

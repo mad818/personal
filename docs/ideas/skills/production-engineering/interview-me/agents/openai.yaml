@@ -1,0 +1,4 @@
+interface:
+  display_name: "Interview Me"
+  short_description: "Clarify consequentially ambiguous product requests."
+  default_prompt: "Use $interview-me to clarify this request one decision at a time before planning."

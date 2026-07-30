@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "getumbrel-umbrel",
   "name": "Umbrel",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/getumbrel/umbrel",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "PolyForm Noncommercial 1.0.0",
     "primaryEvidence": [
       "https://github.com/getumbrel/umbrel",
@@ -18,22 +18,34 @@
       "id": "app-store-ux-pattern",
       "title": "Home server app-store UX: one-click install, uninstall, and update for self-hosted apps",
       "sourceEvidence": "Umbrel app store: catalog of self-hosted apps with single-click management",
-      "disposition": "pending",
-      "reason": "Nexus COMMAND could adapt app-store UX patterns for managing optional Nexus modules or integrations; design reference pending."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "One-click third-party installation, removal, and updating would let remote packages mutate the trusted Nexus runtime. Skills remain curated project code rather than an executable app store."
     },
     {
       "id": "self-host-onboarding-ux",
       "title": "Self-host onboarding UX: guided setup wizard for first-time home server configuration",
       "sourceEvidence": "Umbrel onboarding: step-by-step setup with network, storage, and app config",
-      "disposition": "pending",
-      "reason": "Nexus desktop app has basic setup; a guided onboarding wizard with progress indicators is not yet implemented."
+      "disposition": "adapted",
+      "reason": "Settings and the free/local readiness panel provide ordered setup checks, actionable provider guidance, environment readiness, and visible pass/fail state inside the existing desktop-capable app.",
+      "proof": [
+        "components/settings/SettingsDrawer.tsx",
+        "components/ui/FreeLocalReadinessPanel.tsx",
+        "lib/agentPlatformReadiness.ts"
+      ]
     },
     {
       "id": "app-health-dashboard",
       "title": "App health dashboard: per-service status, resource usage, and restart controls",
       "sourceEvidence": "Umbrel dashboard: CPU, RAM, storage per running service",
-      "disposition": "pending",
-      "reason": "Nexus COMMAND has status panels; a per-service resource usage and health control panel modeled on Umbrel's dashboard is pending."
+      "disposition": "adapted",
+      "reason": "COMMAND and shared readiness surfaces expose bounded runtime/network/provider health and operator recovery guidance. Automatic service restart and arbitrary host mutation remain outside the safe dashboard boundary.",
+      "proof": [
+        "app/command/page.tsx",
+        "components/settings/PMHealthStrip.tsx",
+        "components/ui/FreeLocalReadinessPanel.tsx",
+        "lib/networkTopology.ts"
+      ]
     },
     {
       "id": "openclaw-runtime-dependency",

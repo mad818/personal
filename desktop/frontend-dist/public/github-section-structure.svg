@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 500" width="1000" height="500" role="img" aria-labelledby="pT pD">
+  <title id="pT">Project structure</title>
+  <desc id="pD">app components lib store docs root files</desc>
+  <defs>
+    <linearGradient id="pBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0708"/><stop offset="100%" style="stop-color:#120d0f"/>
+    </linearGradient>
+    <linearGradient id="pAc" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#c4485a"/><stop offset="100%" style="stop-color:#60a5fa"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="500" rx="16" fill="url(#pBg)" stroke="#c4485a" stroke-opacity="0.32" stroke-width="1"/>
+  <path d="M 22 22 L 48 22 M 22 22 L 22 48" stroke="#60a5fa" stroke-opacity="0.25" fill="none"/>
+
+  <text x="500" y="38" text-anchor="middle" fill="#e8ddd0" font-family="system-ui,Segoe UI,sans-serif" font-size="13" font-weight="800" letter-spacing="0.28em">PROJECT STRUCTURE</text>
+  <line x1="100" y1="52" x2="900" y2="52" stroke="url(#pAc)" stroke-opacity="0.5" stroke-width="1"/>
+  <text x="500" y="74" text-anchor="middle" fill="#a8a29e" font-family="system-ui,sans-serif" font-size="10.5">Next.js App Router | one folder per tab under app/ | shared logic in lib/</text>
+
+  <!-- Spine x=40: left of cards; branch shelf y=300 sits in gap (app ends 292, row starts 308) -->
+  <g stroke="#57534e" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
+    <path d="M 40 98 L 40 205 L 96 205"/>
+    <path d="M 40 205 L 40 300 L 96 300"/>
+    <path d="M 96 300 L 904 300"/>
+    <path d="M 235 300 L 235 308"/>
+    <path d="M 525 300 L 525 308"/>
+    <path d="M 830 300 L 830 308"/>
+    <path d="M 40 300 L 40 456 L 96 456"/>
+  </g>
+  <circle cx="40" cy="98" r="5" fill="#c4485a" stroke="#f5d0d6" stroke-width="1"/>
+
+  <text x="56" y="102" fill="#f5d0d6" font-family="ui-monospace,monospace" font-size="12" font-weight="700">personal/</text>
+
+  <!-- app/ card -->
+  <rect x="96" y="118" width="888" height="174" rx="12" fill="#141011" stroke="#60a5fa" stroke-opacity="0.45" stroke-width="1.2"/>
+  <text x="112" y="142" fill="#93c5fd" font-family="ui-monospace,monospace" font-size="13" font-weight="800">app/</text>
+  <text x="112" y="164" fill="#d6d3d1" font-family="system-ui,sans-serif" font-size="10">page.tsx redirects to /command | layout.tsx CommandBar + nav</text>
+  <text x="112" y="184" fill="#e7e5e4" font-family="ui-monospace,monospace" font-size="9.5">command/  signals/  alpha/  ops/  intel/  cyber/  vault/</text>
+  <text x="112" y="202" fill="#e7e5e4" font-family="ui-monospace,monospace" font-size="9.5">home/  resources/  skills/  security/  vehicle/  iot/  reset/</text>
+  <text x="112" y="224" fill="#86efac" font-family="ui-monospace,monospace" font-size="9.5">api/  ai  tools  search  health  project  ...</text>
+  <text x="112" y="246" fill="#a8a29e" font-family="system-ui,sans-serif" font-size="9">Server routes behind NEXUS_TOKEN (except public health)</text>
+  <text x="112" y="264" fill="#a8a29e" font-family="system-ui,sans-serif" font-size="9">Field manual: /resources</text>
+
+  <!-- three sibling cards: aligned row, same height; connector shelf at y=292 sits in gap above cards -->
+  <rect x="96" y="308" width="278" height="100" rx="10" fill="#1a1512" stroke="#d4a56a" stroke-opacity="0.5" stroke-width="1.2"/>
+  <text x="112" y="332" fill="#fcd34d" font-family="ui-monospace,monospace" font-size="12" font-weight="800">components/</text>
+  <text x="112" y="354" fill="#d6d3d1" font-family="system-ui,sans-serif" font-size="10">ui/  system/  nav/</text>
+  <text x="112" y="372" fill="#a8a29e" font-family="system-ui,sans-serif" font-size="9">One folder per tab surface</text>
+  <text x="112" y="392" fill="#78716c" font-family="system-ui,sans-serif" font-size="8.5">Radix primitives, CommandBar</text>
+
+  <rect x="386" y="308" width="278" height="100" rx="10" fill="#1a1512" stroke="#34d399" stroke-opacity="0.5" stroke-width="1.2"/>
+  <text x="402" y="332" fill="#6ee7b7" font-family="ui-monospace,monospace" font-size="12" font-weight="800">lib/</text>
+  <text x="402" y="354" fill="#d6d3d1" font-family="system-ui,sans-serif" font-size="10">ai.ts  agent.ts  helpers.ts</text>
+  <text x="402" y="372" fill="#a8a29e" font-family="system-ui,sans-serif" font-size="9">liveContext  apiFetch  aiModelRouting</text>
+  <text x="402" y="392" fill="#78716c" font-family="system-ui,sans-serif" font-size="8.5">Shared server + client logic</text>
+
+  <rect x="676" y="308" width="308" height="100" rx="10" fill="#1a1512" stroke="#a78bfa" stroke-opacity="0.5" stroke-width="1.2"/>
+  <text x="692" y="332" fill="#ddd6fe" font-family="ui-monospace,monospace" font-size="12" font-weight="800">store/</text>
+  <text x="692" y="354" fill="#d6d3d1" font-family="system-ui,sans-serif" font-size="10">useStore.ts</text>
+  <text x="692" y="372" fill="#a8a29e" font-family="system-ui,sans-serif" font-size="9">Zustand: settings + session data</text>
+  <text x="692" y="392" fill="#78716c" font-family="system-ui,sans-serif" font-size="8.5">Persisted + live slices</text>
+
+  <!-- meta band: spine meets left edge -->
+  <rect x="96" y="424" width="888" height="64" rx="10" fill="#0d0a0b" stroke="#52525b" stroke-opacity="0.65" stroke-width="1.2"/>
+  <text x="500" y="448" text-anchor="middle" fill="#d4d4d8" font-family="system-ui,sans-serif" font-size="11" font-weight="700">META + DOCS + LEGACY</text>
+  <text x="500" y="468" text-anchor="middle" fill="#a1a1aa" font-family="ui-monospace,monospace" font-size="9">.claude/skills/  |  tasks/todo.md  lessons.md  |  docs/architecture.md  deployment/coolify.md</text>
+  <text x="500" y="484" text-anchor="middle" fill="#a1a1aa" font-family="ui-monospace,monospace" font-size="9">Dockerfile  .dockerignore  |  middleware.ts  |  nexus-final.html  |  public/*.svg README assets</text>
+</svg>

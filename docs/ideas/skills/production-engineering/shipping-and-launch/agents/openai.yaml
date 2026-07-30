@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shipping And Launch"
+  short_description: "Gate Nexus release readiness and rollback."
+  default_prompt: "Use $shipping-and-launch to prepare this Nexus change for a truthful reversible release."

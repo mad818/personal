@@ -15,7 +15,8 @@ const cache = createCache<GeocodeLookupResponse>({
 });
 
 const NOMINATIM_BASE = "https://nominatim.openstreetmap.org";
-const USER_AGENT = "NexusPrime/1.0 (geocoding-playground; local intelligence dashboard)";
+const USER_AGENT =
+  "NexusPrime/1.0 (geocoding-playground; local intelligence dashboard)";
 
 async function nominatimFetch(path: string) {
   const r = await fetch(`${NOMINATIM_BASE}${path}`, {

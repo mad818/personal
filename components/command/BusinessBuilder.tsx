@@ -184,6 +184,7 @@ export default function BusinessBuilder() {
             MRR $
           </span>
           <input
+            aria-label="Monthly recurring revenue"
             type="number"
             min={0}
             value={revenue || ""}

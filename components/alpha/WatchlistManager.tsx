@@ -96,6 +96,7 @@ export default function WatchlistManager() {
         </span>
         <button
           onClick={() => setOpen(false)}
+          aria-label="Close crypto watchlist"
           style={{
             background: "none",
             border: "none",
@@ -186,6 +187,7 @@ export default function WatchlistManager() {
       {/* Add custom */}
       <div style={{ display: "flex", gap: "6px", marginBottom: "10px" }}>
         <input
+          aria-label="CoinGecko asset ID"
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}

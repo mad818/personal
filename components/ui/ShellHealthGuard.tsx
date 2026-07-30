@@ -287,7 +287,11 @@ function readHealAttemptCount(storageKey: string) {
     const raw = window.sessionStorage.getItem(storageKey);
     if (!raw) return 0;
     const parsed = JSON.parse(raw) as { count?: number; ts?: number };
-    if (!parsed || typeof parsed.count !== "number" || typeof parsed.ts !== "number") {
+    if (
+      !parsed ||
+      typeof parsed.count !== "number" ||
+      typeof parsed.ts !== "number"
+    ) {
       return 0;
     }
     if (Date.now() - parsed.ts > SHELL_HEAL_WINDOW_MS) {
@@ -338,7 +342,8 @@ function evaluateShellHealth(pathname: string): ShellHealthIssue | null {
   if (toprailStyle.position !== "fixed") {
     return {
       reason: "unstyled_toprail",
-      detail: "Toprail styling did not resolve, which usually means the shell CSS or hydration path stalled.",
+      detail:
+        "Toprail styling did not resolve, which usually means the shell CSS or hydration path stalled.",
     };
   }
 
@@ -350,11 +355,14 @@ function evaluateShellHealth(pathname: string): ShellHealthIssue | null {
     };
   }
 
-  const mainPaddingTop = Number.parseFloat(window.getComputedStyle(main).paddingTop || "0");
+  const mainPaddingTop = Number.parseFloat(
+    window.getComputedStyle(main).paddingTop || "0",
+  );
   if (!Number.isFinite(mainPaddingTop) || mainPaddingTop < 60) {
     return {
       reason: "unstyled_toprail",
-      detail: "Toprail spacing is unresolved, so the page is not using the expected shell styling.",
+      detail:
+        "Toprail spacing is unresolved, so the page is not using the expected shell styling.",
     };
   }
 
@@ -507,7 +515,10 @@ export default function ShellHealthGuard() {
 
   return (
     <>
-      <ClientStyleMount id="shell-health-emergency-css" cssText={EMERGENCY_SHELL_CSS} />
+      <ClientStyleMount
+        id="shell-health-emergency-css"
+        cssText={EMERGENCY_SHELL_CSS}
+      />
       <div
         data-testid="shell-health-recovery"
         style={{
@@ -574,8 +585,8 @@ export default function ShellHealthGuard() {
                 color: "rgba(252, 211, 77, 0.88)",
               }}
             >
-              A one-time automatic reload already ran. The actions below let you recover
-              without getting stuck in a reload loop.
+              A one-time automatic reload already ran. The actions below let you
+              recover without getting stuck in a reload loop.
             </div>
           ) : null}
         </div>
@@ -638,9 +649,9 @@ export default function ShellHealthGuard() {
             color: "rgba(163, 190, 210, 0.82)",
           }}
         >
-          Reset clears only local UI view state such as split/layout cache and graph or
-          scheduler filters. It does not expose secrets and does not wipe durable saved
-          artifacts.
+          Reset clears only local UI view state such as split/layout cache and
+          graph or scheduler filters. It does not expose secrets and does not
+          wipe durable saved artifacts.
         </div>
       </div>
     </>

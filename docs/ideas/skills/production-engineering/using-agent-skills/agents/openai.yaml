@@ -1,0 +1,4 @@
+interface:
+  display_name: "Using Agent Skills"
+  short_description: "Route work through the Nexus engineering lifecycle."
+  default_prompt: "Use $using-agent-skills to select the smallest complete Nexus workflow for this task."

@@ -5,7 +5,10 @@ export interface ThinkingTraceExtraction {
 }
 
 function normalizeBlockText(value: string): string {
-  return value.replace(/\r\n?/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  return value
+    .replace(/\r\n?/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 export function extractThinkingTrace(raw: string): ThinkingTraceExtraction {
@@ -53,8 +56,7 @@ export function extractThinkingTrace(raw: string): ThinkingTraceExtraction {
   const visibleText = normalizeBlockText(visibleParts.join(""));
   return {
     visibleText:
-      visibleText ||
-      normalizeBlockText(source.replace(/<\/?think>/gi, " ")),
+      visibleText || normalizeBlockText(source.replace(/<\/?think>/gi, " ")),
     thinkingBlocks,
     hasThinking: thinkingBlocks.length > 0,
   };

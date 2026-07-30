@@ -8,14 +8,13 @@ import {
   TASK_MODELS,
   type AITask,
 } from "@/lib/aiModelRouting";
-import {
-  resolveInstalledOllamaModel,
-} from "@/lib/ollamaModelResolver";
+import { resolveInstalledOllamaModel } from "@/lib/ollamaModelResolver";
 import { BRAND_NAME } from "@/lib/brand";
 import {
   applyRateLimitHeaders,
   checkRateLimit,
 } from "@/lib/security/rateLimit";
+import { resolvePhoneSessionAiPolicy } from "@/lib/security/phoneSessionPolicy";
 import {
   applyPrivacyShieldHeaders,
   protectCloudBoundPayload,
@@ -25,12 +24,23 @@ import {
   readLocalAccelerationConfig,
   validateLocalAccelerationEndpoint,
 } from "@/lib/localAcceleration";
+import {
+  normalizeOllamaEndpoint,
+  resolveProviderChainForTask,
+} from "@/lib/localInferencePosture";
+import {
+  appendSecondBrainSystemPrompt,
+  buildSecondBrainSystemBlock,
+  isSecondBrainModeReady,
+  resolveSecondBrainMode,
+} from "@/lib/secondBrain";
+import { readAzureOpenAIConfig } from "@/lib/azureOpenAI";
 
 /**
  * Multi-provider AI proxy with task-based model routing.
  *
- * Fallback chain (auto mode): Ollama → Groq → OpenRouter → Google → MiniMax → Anthropic → OpenAI
- * Research chain: Anthropic → OpenRouter → Groq → MiniMax → Ollama → OpenAI
+ * Fallback chain (auto mode): Ollama → Groq → OpenRouter → Google → MiniMax → Anthropic → Azure → OpenAI
+ * Research chain: Anthropic → Azure → OpenRouter → Groq → MiniMax → Ollama → OpenAI
  *
  * Task routing maps task hints to the optimal local Ollama model:
  *   chat      → qwen3:8b             (fast, general purpose)
@@ -154,6 +164,20 @@ const PROVIDERS: Record<string, Provider> = {
       Authorization: `Bearer ${key}`,
     }),
   },
+  azure: {
+    name: "azure",
+    url: "",
+    key: () => {
+      const result = readAzureOpenAIConfig();
+      return result.configured ? result.config.apiKey : "";
+    },
+    format: "openai",
+    model: "",
+    headers: (key) => ({
+      "Content-Type": "application/json",
+      "api-key": key,
+    }),
+  },
   /** OpenAI-compatible — https://platform.minimax.io/docs/api-reference/text-openai-api */
   minimax: {
     name: "minimax",
@@ -178,11 +202,13 @@ const AUTO_CHAIN = [
   "google",
   "minimax",
   "anthropic",
+  "azure",
   "openai",
 ];
 // research: cloud-first for depth, local as final fallback
 const RESEARCH_CHAIN = [
   "anthropic",
+  "azure",
   "openrouter",
   "groq",
   "minimax",
@@ -194,10 +220,124 @@ const RESEARCH_CHAIN = [
 const FREE_DEFAULT_PROVIDERS = new Set(["ollama", "turboquant"]);
 const ALLOW_PAID_APIS = process.env.NEXUS_ALLOW_PAID_APIS === "true";
 
+function getProviderDefaultModel(providerName: string) {
+  if (providerName === "azure") {
+    const result = readAzureOpenAIConfig();
+    return result.configured ? result.config.deployment : "azure-deployment";
+  }
+  return PROVIDERS[providerName]?.model ?? "";
+}
+
 function providerAllowedByPolicy(providerName: string, localOnlyMode: boolean) {
-  if (localOnlyMode) return providerName === "ollama" || providerName === "turboquant";
+  if (localOnlyMode)
+    return providerName === "ollama" || providerName === "turboquant";
   if (ALLOW_PAID_APIS) return true;
   return FREE_DEFAULT_PROVIDERS.has(providerName);
+}
+
+async function fetchLocalOllamaChat(rawEndpoint: string, init: RequestInit) {
+  const endpoint = new URL(normalizeOllamaEndpoint(rawEndpoint));
+  if (
+    endpoint.protocol !== "http:" ||
+    endpoint.port !== "11434" ||
+    endpoint.pathname !== "/v1/chat/completions" ||
+    endpoint.search ||
+    endpoint.hash
+  ) {
+    throw new Error("Ollama chat endpoint must use the local port 11434.");
+  }
+  switch (endpoint.hostname) {
+    case "localhost":
+      return fetch("http://localhost:11434/v1/chat/completions", init);
+    case "127.0.0.1":
+      return fetch("http://127.0.0.1:11434/v1/chat/completions", init);
+    case "[::1]":
+      return fetch("http://[::1]:11434/v1/chat/completions", init);
+    default:
+      throw new Error("Ollama chat endpoint must use a loopback host.");
+  }
+}
+
+async function fetchLocalTurboQuantChat(init: RequestInit) {
+  const config = readLocalAccelerationConfig();
+  const endpoint = validateLocalAccelerationEndpoint(
+    config.turboQuant.openAiEndpoint,
+    false,
+  );
+  if (
+    endpoint.protocol !== "http:" ||
+    endpoint.port !== "8000" ||
+    endpoint.pathname !== "/v1/chat/completions" ||
+    endpoint.search ||
+    endpoint.hash
+  ) {
+    throw new Error("TurboQuant chat endpoint must use the local port 8000.");
+  }
+  switch (endpoint.hostname) {
+    case "localhost":
+      return fetch("http://localhost:8000/v1/chat/completions", init);
+    case "127.0.0.1":
+      return fetch("http://127.0.0.1:8000/v1/chat/completions", init);
+    case "[::1]":
+      return fetch("http://[::1]:8000/v1/chat/completions", init);
+    default:
+      throw new Error("TurboQuant chat endpoint must use a loopback host.");
+  }
+}
+
+async function fetchProviderRequest(
+  providerName: string,
+  ollamaUrl: string | undefined,
+  azureChatCompletionsUrl: string | undefined,
+  init: RequestInit,
+) {
+  if (providerName === "ollama") {
+    return fetchLocalOllamaChat(
+      ollamaUrl ?? "http://localhost:11434/v1/chat/completions",
+      init,
+    );
+  }
+  if (providerName === "turboquant") {
+    return fetchLocalTurboQuantChat(init);
+  }
+  if (providerName === "azure") {
+    if (!azureChatCompletionsUrl) {
+      throw new Error("Azure OpenAI endpoint is not configured.");
+    }
+    const target = new URL(azureChatCompletionsUrl);
+    const hostname = target.hostname.toLowerCase();
+    if (
+      target.protocol !== "https:" ||
+      target.pathname !== "/openai/v1/chat/completions" ||
+      target.port ||
+      target.search ||
+      target.hash ||
+      (!hostname.endsWith(".openai.azure.com") &&
+        !hostname.endsWith(".services.ai.azure.com"))
+    ) {
+      throw new Error("Azure OpenAI endpoint escaped the approved boundary.");
+    }
+    return fetch(target, init);
+  }
+  switch (providerName) {
+    case "groq":
+      return fetch("https://api.groq.com/openai/v1/chat/completions", init);
+    case "openrouter":
+      return fetch("https://openrouter.ai/api/v1/chat/completions", init);
+    case "google":
+      return fetch(
+        "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        init,
+      );
+    case "anthropic":
+      return fetch("https://api.anthropic.com/v1/messages", init);
+    case "openai":
+      return fetch("https://api.openai.com/v1/chat/completions", init);
+    case "minimax":
+      return fetch("https://api.minimax.io/v1/chat/completions", init);
+    default:
+      throw new Error("Unknown AI provider.");
+  }
 }
 
 // ── Call a single provider ────────────────────────────────────────────────────
@@ -216,11 +356,19 @@ async function callProvider(
   },
 ): Promise<Response | null> {
   const p = PROVIDERS[providerName];
-  const key = options?.key ?? p.key();
+  const azureResult = providerName === "azure" ? readAzureOpenAIConfig() : null;
+  const azureConfig =
+    azureResult?.configured === true ? azureResult.config : null;
+  if (providerName === "azure" && !azureConfig) return null;
+
+  const key = options?.key ?? azureConfig?.apiKey ?? p.key();
   if (!key || (key === "ollama" && providerName !== "ollama")) return null;
   if (!key && providerName !== "ollama") return null;
 
-  const resolvedModel = model ?? p.model;
+  const resolvedModel =
+    providerName === "azure"
+      ? (azureConfig?.deployment ?? getProviderDefaultModel(providerName))
+      : (model ?? p.model);
 
   let body: Record<string, unknown>;
 
@@ -242,7 +390,9 @@ async function callProvider(
       : messages;
     body = {
       model: resolvedModel,
-      max_tokens: maxTokens,
+      ...(providerName === "azure"
+        ? { max_completion_tokens: maxTokens }
+        : { max_tokens: maxTokens }),
       messages: msgs,
       ...(tools ? { tools } : {}),
       ...(toolChoice ? { tool_choice: toolChoice } : {}),
@@ -251,20 +401,19 @@ async function callProvider(
   }
 
   try {
-    const requestUrl =
-      providerName === "turboquant"
-        ? validateLocalAccelerationEndpoint(
-            options?.url ?? p.url,
-            readLocalAccelerationConfig().allowTailnet,
-          ).toString()
-        : options?.url ?? p.url;
-    const r = await fetch(requestUrl, {
+    const requestInit = {
       method: "POST",
       headers: p.headers(key),
       body: JSON.stringify(body),
-      // @ts-expect-error — Node 18 fetch supports duplex for streaming
+      redirect: "error",
       duplex: "half",
-    });
+    } satisfies RequestInit & { duplex: "half" };
+    const r = await fetchProviderRequest(
+      providerName,
+      options?.url,
+      azureConfig?.chatCompletionsUrl,
+      requestInit,
+    );
     if (!r.ok) return null;
     return r;
   } catch {
@@ -285,7 +434,8 @@ export async function POST(req: NextRequest) {
     const response = NextResponse.json(
       {
         error: {
-          message: "AI route rate limit exceeded. Slow down and try again shortly.",
+          message:
+            "AI route rate limit exceeded. Slow down and try again shortly.",
         },
       },
       { status: 429 },
@@ -304,6 +454,7 @@ export async function POST(req: NextRequest) {
     stream?: boolean;
     tools?: unknown;
     tool_choice?: unknown;
+    secondBrainMode?: unknown;
     [key: string]: unknown;
   };
   try {
@@ -334,7 +485,64 @@ export async function POST(req: NextRequest) {
       localEndpoint,
       localApiKey,
       preferRunningModel,
+      secondBrainMode,
     } = body;
+
+    const trustContext = await readProtectedActionContext(req);
+    const phoneAiPolicy = resolvePhoneSessionAiPolicy(
+      trustContext.session?.authTier,
+      typeof provider === "string" ? provider : null,
+    );
+    if (!phoneAiPolicy.explicitProviderAllowed) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "phone_token_limited",
+            message: `Provider "${phoneAiPolicy.provider}" is blocked for phone-token sessions. Phone access can use Ollama or TurboQuant local AI only.`,
+            recoveryAction:
+              "Use local AI from the phone, or use the master token from the desktop for an explicitly enabled BYOK provider.",
+          },
+        },
+        { status: 403 },
+      );
+    }
+    const localOnlyMode =
+      phoneAiPolicy.localOnly || trustContext.networkMode === "isolated";
+
+    const resolvedSecondBrainMode = resolveSecondBrainMode({
+      requestedMode: secondBrainMode,
+      task,
+      messages,
+    });
+    const secondBrain = await buildSecondBrainSystemBlock(
+      resolvedSecondBrainMode,
+    );
+    if (
+      !isSecondBrainModeReady(resolvedSecondBrainMode, secondBrain.loadedFiles)
+    ) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "second_brain_unavailable",
+            message:
+              resolvedSecondBrainMode === "human-editor"
+                ? "The canonical Human Editor skill file is unavailable. Restore it or check the file status in VAULT before rewriting."
+                : "The canonical Night Shift skill or house rules are unavailable. Restore the tracked contract before refining second-brain material.",
+          },
+        },
+        {
+          status: 503,
+          headers: {
+            "X-Second-Brain-Mode": resolvedSecondBrainMode,
+            "X-Second-Brain-Files": String(secondBrain.loadedFiles.length),
+          },
+        },
+      );
+    }
+    const effectiveSystem = appendSecondBrainSystemPrompt(
+      typeof system === "string" ? system : undefined,
+      secondBrain.block,
+    );
 
     // Clamp tokens
     const safeMaxTokens = Math.min(
@@ -346,8 +554,29 @@ export async function POST(req: NextRequest) {
     const taskModel = task
       ? (TASK_MODELS[task as keyof typeof TASK_MODELS] ?? DEFAULT_LOCAL_MODEL)
       : undefined;
-    const trustContext = await readProtectedActionContext(req);
-    const localOnlyMode = trustContext.networkMode === "isolated";
+
+    let validatedLocalEndpoint: string | undefined;
+    if (typeof localEndpoint === "string" && localEndpoint.trim()) {
+      try {
+        validatedLocalEndpoint = normalizeOllamaEndpoint(localEndpoint);
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Ollama endpoint is invalid.";
+        return NextResponse.json(
+          {
+            error: {
+              code: "ollama_endpoint_blocked",
+              message,
+              recoveryAction:
+                "Use a loopback Ollama endpoint such as http://localhost:11434/v1/chat/completions.",
+            },
+          },
+          { status: 400 },
+        );
+      }
+    }
 
     // Determine provider chain
     let chain: string[];
@@ -359,8 +588,7 @@ export async function POST(req: NextRequest) {
           {
             error: {
               code: "network_locked",
-              message:
-                `Provider "${provider}" is blocked while the network mode is isolated. Start Ollama or the optional TurboQuant local runtime, or switch to internal/connected mode first.`,
+              message: `Provider "${provider}" is blocked while the network mode is isolated. Start Ollama or the optional TurboQuant local runtime, or switch to internal/connected mode first.`,
               recoveryAction:
                 "Keep NEXUS_NETWORK_MODE=isolated for offline use and run Ollama or TurboQuant locally.",
             },
@@ -385,13 +613,19 @@ export async function POST(req: NextRequest) {
       }
       // Explicit provider requested
       chain = [provider];
-      resolvedModel = model ?? PROVIDERS[provider].model;
-    } else if (task === "research") {
-      chain = RESEARCH_CHAIN;
-      resolvedModel = model;
+      resolvedModel =
+        provider === "azure"
+          ? getProviderDefaultModel(provider)
+          : (model ?? PROVIDERS[provider].model);
     } else {
-      // Auto chain — use task model for ollama, default for cloud
-      chain = AUTO_CHAIN;
+      chain = resolveProviderChainForTask({
+        task: typeof task === "string" ? task : undefined,
+        localOnlyMode,
+        paidApisAllowed: ALLOW_PAID_APIS,
+        explicitProvider: null,
+        autoChain: AUTO_CHAIN,
+        researchChain: RESEARCH_CHAIN,
+      });
       resolvedModel = taskModel ?? model;
     }
 
@@ -399,17 +633,25 @@ export async function POST(req: NextRequest) {
       providerAllowedByPolicy(providerName, localOnlyMode),
     );
     if (policyFilteredChain.length === 0) {
+      const phoneLocalAiRequired = phoneAiPolicy.phoneSession;
       return NextResponse.json(
         {
           error: {
-            code: localOnlyMode ? "ollama_required" : "provider_policy_blocked",
-            message:
-              localOnlyMode
+            code: phoneLocalAiRequired
+              ? "phone_local_ai_required"
+              : localOnlyMode
+                ? "ollama_required"
+                : "provider_policy_blocked",
+            message: phoneLocalAiRequired
+              ? "No local AI provider is available for this phone-token session. Start Ollama or the optional TurboQuant runtime."
+              : localOnlyMode
                 ? "No local providers are available while the network mode is isolated. Start Ollama locally to continue."
                 : "No providers allowed by free-use policy. Set NEXUS_ALLOW_PAID_APIS=true to opt in.",
-            recoveryAction: localOnlyMode
-              ? "Start Ollama and install the configured local model."
-              : "Use Ollama locally, or explicitly opt in to BYOK cloud providers.",
+            recoveryAction: phoneLocalAiRequired
+              ? "Start a local AI runtime on the host, then retry from the phone."
+              : localOnlyMode
+                ? "Start Ollama and install the configured local model."
+                : "Use Ollama locally, or explicitly opt in to BYOK cloud providers.",
           },
         },
         { status: 403 },
@@ -435,7 +677,7 @@ export async function POST(req: NextRequest) {
             ? (task as AITask)
             : "default";
         const resolution = await resolveInstalledOllamaModel({
-          endpoint: typeof localEndpoint === "string" ? localEndpoint : undefined,
+          endpoint: validatedLocalEndpoint,
           apiKey:
             typeof localApiKey === "string" && localApiKey.trim()
               ? localApiKey.trim()
@@ -453,7 +695,7 @@ export async function POST(req: NextRequest) {
       const protectedPayload = protectCloudBoundPayload({
         providerName,
         messages,
-        system,
+        system: effectiveSystem,
         tools,
         toolChoice: tool_choice,
       });
@@ -471,7 +713,12 @@ export async function POST(req: NextRequest) {
         response.headers.set("X-Provider", providerName);
         response.headers.set(
           "X-Model",
-          effectiveModel ?? PROVIDERS[providerName].model,
+          effectiveModel ?? getProviderDefaultModel(providerName),
+        );
+        response.headers.set("X-Second-Brain-Mode", resolvedSecondBrainMode);
+        response.headers.set(
+          "X-Second-Brain-Files",
+          String(secondBrain.loadedFiles.length),
         );
         applyPrivacyShieldHeaders(response, protectedPayload.status);
         applyRateLimitHeaders(response, rateLimitConfig);
@@ -489,7 +736,7 @@ export async function POST(req: NextRequest) {
         protectedPayload.toolChoice,
         providerName === "ollama"
           ? {
-              url: typeof localEndpoint === "string" ? localEndpoint : undefined,
+              url: validatedLocalEndpoint,
               key:
                 typeof localApiKey === "string" && localApiKey.trim()
                   ? localApiKey.trim()
@@ -501,21 +748,30 @@ export async function POST(req: NextRequest) {
       );
 
       if (r) {
-        const usedModel = effectiveModel ?? PROVIDERS[providerName].model;
+        const usedModel =
+          effectiveModel ?? getProviderDefaultModel(providerName);
         const response = new NextResponse(r.body, {
           status: r.status,
           headers: {
             "Content-Type": r.headers.get("Content-Type") ?? "application/json",
             "X-Provider": providerName,
             "X-Model": usedModel,
+            "X-Second-Brain-Mode": resolvedSecondBrainMode,
+            "X-Second-Brain-Files": String(secondBrain.loadedFiles.length),
           },
         });
         if (providerName === "ollama") {
           if (ollamaResolutionReason) {
-            response.headers.set("X-Ollama-Resolution-Reason", ollamaResolutionReason);
+            response.headers.set(
+              "X-Ollama-Resolution-Reason",
+              ollamaResolutionReason,
+            );
           }
           if (ollamaRequestedModel) {
-            response.headers.set("X-Ollama-Requested-Model", ollamaRequestedModel);
+            response.headers.set(
+              "X-Ollama-Requested-Model",
+              ollamaRequestedModel,
+            );
           }
         }
         applyPrivacyShieldHeaders(response, protectedPayload.status);
@@ -528,14 +784,21 @@ export async function POST(req: NextRequest) {
     const response = NextResponse.json(
       {
         error: {
-          code: localOnlyMode ? "ollama_unavailable" : "provider_unavailable",
-          message:
-            localOnlyMode
+          code: phoneAiPolicy.phoneSession
+            ? "phone_local_ai_unavailable"
+            : localOnlyMode
+              ? "ollama_unavailable"
+              : "provider_unavailable",
+          message: phoneAiPolicy.phoneSession
+            ? "Local AI did not answer this phone-token request. Check that Ollama or TurboQuant is running on the host."
+            : localOnlyMode
               ? "Local Ollama did not answer. Check that Ollama is running and the resolved model is installed."
               : "All allowed AI providers are unavailable. Check Ollama first, then any explicitly configured BYOK provider keys.",
-          recoveryAction: localOnlyMode
-            ? "Run ollama serve, then run npm run offline:local:check."
-            : "Open provider health and keep paid APIs disabled unless you explicitly opt in.",
+          recoveryAction: phoneAiPolicy.phoneSession
+            ? "Run the local AI readiness check on the host, then retry from the phone."
+            : localOnlyMode
+              ? "Run ollama serve, then run npm run offline:local:check."
+              : "Open provider health and keep paid APIs disabled unless you explicitly opt in.",
         },
       },
       { status: 503 },

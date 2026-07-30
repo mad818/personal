@@ -1,5 +1,4 @@
 components/nav/Nav.tsx
-components/ui/TrustPostureStrip.tsx
 components/ui/TrustOperationsRail.tsx
 lib/apiFetch.ts
 lib/authSession.ts

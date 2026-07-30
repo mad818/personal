@@ -1,0 +1,18 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" fill="#05090E"/>
+  <rect x="44" y="44" width="1512" height="812" rx="20" stroke="#26313C" stroke-width="2"/>
+  <path d="M160 152H1440" stroke="#17202A" stroke-width="2"/>
+  <path d="M160 764H1440" stroke="#17202A" stroke-width="2"/>
+  <path d="M256 152V764" stroke="#17202A" stroke-width="2"/>
+  <path d="M512 152V764" stroke="#17202A" stroke-width="2"/>
+  <path d="M768 152V764" stroke="#17202A" stroke-width="2"/>
+  <path d="M1024 152V764" stroke="#17202A" stroke-width="2"/>
+  <path d="M1280 152V764" stroke="#17202A" stroke-width="2"/>
+  <path d="M312 638L488 558L720 576L956 420L1264 298" stroke="#DCE6EE" stroke-width="4"/>
+  <path d="M312 690L504 680L748 714L992 628L1264 544" stroke="#8194A4" stroke-width="3" stroke-dasharray="12 12"/>
+  <rect x="216" y="196" width="318" height="124" rx="18" fill="#091018" stroke="#33404C" stroke-width="2"/>
+  <text x="248" y="246" fill="#AEBCC8" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">SYSTEMS LAB</text>
+  <text x="248" y="288" fill="#E5EEF6" font-family="Arial, sans-serif" font-size="46" font-weight="700">VEHICLE OPS</text>
+  <circle cx="956" cy="420" r="18" fill="#E5EEF6"/>
+  <circle cx="1264" cy="298" r="18" fill="#D6DFE7"/>
+</svg>

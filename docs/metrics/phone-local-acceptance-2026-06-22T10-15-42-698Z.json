@@ -1,0 +1,212 @@
+{
+  "capturedAt": "2026-06-22T10:15:42.698Z",
+  "baseUrl": "http://127.0.0.1:3100",
+  "routes": [
+    {
+      "route": "/api/health",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "application/json",
+      "durationMs": 46
+    },
+    {
+      "route": "/hq?focus=hq-chronicle",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "text/html; charset=utf-8",
+      "durationMs": 173
+    },
+    {
+      "route": "/command",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "text/html; charset=utf-8",
+      "durationMs": 100
+    },
+    {
+      "route": "/api/free-local-readiness",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "application/json",
+      "durationMs": 2991
+    },
+    {
+      "route": "/api/phone-acceptance/receipt",
+      "ok": true,
+      "status": 200,
+      "redirected": false,
+      "contentType": "application/json",
+      "durationMs": 660
+    }
+  ],
+  "readinessSummary": {
+    "overallStatus": "blocked",
+    "freeInvariant": {
+      "status": "ready",
+      "chargesEndUsers": false,
+      "value": "Free — no in-app charges"
+    },
+    "networkMode": {
+      "status": "ready",
+      "mode": "isolated",
+      "value": "isolated"
+    },
+    "paidApisAllowed": {
+      "status": "ready",
+      "allowed": false,
+      "value": "blocked"
+    },
+    "ollama": {
+      "status": "ready",
+      "reachable": true,
+      "installedCount": 5,
+      "runningCount": 0,
+      "value": "reachable"
+    },
+    "resolvedModel": {
+      "status": "ready",
+      "resolvedModel": "gemma4:latest",
+      "value": "gemma4:latest",
+      "resolutionReason": "recommended_fallback"
+    },
+    "agentHealth": {
+      "status": "ready",
+      "passRate": 1,
+      "passCount": 4,
+      "failCount": 0,
+      "lastRun": "2026-04-01T15:45:01.853Z"
+    },
+    "session": {
+      "status": "blocked",
+      "authenticated": false,
+      "tokenConfigured": true,
+      "remainingSeconds": null
+    },
+    "toolPosture": {
+      "status": "ready",
+      "highRiskEnabled": false,
+      "settingsWrites": "session_required",
+      "verification": "session_required",
+      "mutateExecTools": "session_required",
+      "networkedTools": "session_required",
+      "value": "review-gated"
+    },
+    "phoneLan": {
+      "status": "ready",
+      "enabled": true,
+      "tokenRequired": true,
+      "pwaReady": true,
+      "preferredLanUrl": "http://100.116.64.77:3100",
+      "preferredHqLanUrl": "http://100.116.64.77:3100/hq?focus=hq-chronicle",
+      "lanUrlCount": 2,
+      "hqLanUrlCount": 2,
+      "firewallStatus": "Allow Node/Next on this port through Windows Firewall before using phone LAN access.",
+      "tailscaleOptional": "Optional free private tunnel: use Tailscale personal/free tier if LAN is not available."
+    }
+  },
+  "manualPhoneProof": {
+    "phoneOpened": false,
+    "phoneLogin": false,
+    "pingReceipt": false,
+    "localAiReceipt": false,
+    "pwaInstalled": false
+  },
+  "receiptPhoneProof": {
+    "receiptAvailable": true,
+    "latestAt": null,
+    "receiptCount": 0,
+    "mobileReceiptCount": 0,
+    "phoneOpened": false,
+    "phoneLogin": false,
+    "browserStorageReady": false,
+    "pwaCapable": false,
+    "pingReceipt": false,
+    "localAiReceipt": false,
+    "pwaInstalled": false
+  },
+  "combinedPhoneProof": {
+    "phoneOpened": false,
+    "phoneLogin": false,
+    "pingReceipt": false,
+    "localAiReceipt": false,
+    "pwaInstalled": false,
+    "browserStorageReady": false,
+    "pwaCapable": false,
+    "receiptCount": 0,
+    "mobileReceiptCount": 0,
+    "latestReceiptAt": null
+  },
+  "receiptLiveStatus": {
+    "overallStatus": "blocked",
+    "acceptanceReady": false,
+    "receiptCount": 0,
+    "mobileReceiptCount": 0,
+    "latestAt": null,
+    "items": [
+      {
+        "id": "phoneOpened",
+        "label": "Phone opened",
+        "passed": false,
+        "detail": "Open the LAN HQ URL from the phone or iPad."
+      },
+      {
+        "id": "phoneLogin",
+        "label": "Phone login",
+        "passed": false,
+        "detail": "Log in with NEXUS_TOKEN on the phone."
+      },
+      {
+        "id": "browserStorageReady",
+        "label": "Browser storage",
+        "passed": false,
+        "detail": "Let the Free Local Readiness panel finish loading on the phone."
+      },
+      {
+        "id": "pingReceipt",
+        "label": "Ping receipt",
+        "passed": false,
+        "detail": "Send `ping` from HQ chat on the phone."
+      },
+      {
+        "id": "localAiReceipt",
+        "label": "Local AI receipt",
+        "passed": false,
+        "detail": "Ask the local Ollama proof prompt from the phone."
+      },
+      {
+        "id": "pwaCapable",
+        "label": "PWA capable",
+        "passed": false,
+        "detail": "Use a browser with home-screen install support."
+      },
+      {
+        "id": "pwaInstalled",
+        "label": "PWA installed",
+        "passed": false,
+        "detail": "Install Homefront from the phone browser home-screen flow."
+      }
+    ]
+  },
+  "missingReceiptProofItems": [
+    "Phone opened",
+    "Phone login",
+    "Browser storage",
+    "Ping receipt",
+    "Local AI receipt",
+    "PWA capable",
+    "PWA installed"
+  ],
+  "blocked": [
+    "Free Local Readiness is not fully local/free for phone acceptance.",
+    "Phone proof missing: phone or iPad opened the LAN URL.",
+    "Phone proof missing: phone logged in with NEXUS_TOKEN.",
+    "Phone proof missing: HQ ping receipt.",
+    "Phone proof missing: local AI receipt.",
+    "Phone proof missing: PWA install."
+  ],
+  "acceptanceReady": false
+}

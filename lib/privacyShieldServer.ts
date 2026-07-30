@@ -80,17 +80,17 @@ const PROTECTED_PATH_REPLACEMENTS: Array<[RegExp, string]> = [
   [/\b\.env(?:\.[A-Za-z0-9_-]+)?\b/gi, "[protected-env]"],
 ];
 
-function replaceAndCount(
-  value: string,
-  pattern: RegExp,
-  replacement: string,
-) {
+function replaceAndCount(value: string, pattern: RegExp, replacement: string) {
   const count = value.match(pattern)?.length ?? 0;
   const next = value.replace(pattern, replacement);
   return { next, count };
 }
 
-function bumpCount(state: RedactionState, kind: PrivacyShieldKind, count: number) {
+function bumpCount(
+  state: RedactionState,
+  kind: PrivacyShieldKind,
+  count: number,
+) {
   if (count <= 0) return;
   state.classCounts[kind] += count;
 }
@@ -109,7 +109,10 @@ function createRedactionState(): RedactionState {
 }
 
 function countProtectedValues(state: RedactionState) {
-  return Object.values(state.classCounts).reduce((sum, count) => sum + count, 0);
+  return Object.values(state.classCounts).reduce(
+    (sum, count) => sum + count,
+    0,
+  );
 }
 
 function sanitizeString(value: string, state: RedactionState): string {
@@ -180,7 +183,9 @@ function sanitizeField<T>(
 
 function buildSummary(status: Omit<PrivacyShieldServerStatus, "summary">) {
   const classLabels = status.protectedKinds
-    .map((kind) => `${kind.replace(/_/g, " ")} ${status.classCounts[kind] ?? 0}`)
+    .map(
+      (kind) => `${kind.replace(/_/g, " ")} ${status.classCounts[kind] ?? 0}`,
+    )
     .join(" · ");
   const fieldLabels = status.protectedFields
     .map((field) => field.replace(/_/g, " "))
@@ -191,10 +196,12 @@ function buildSummary(status: Omit<PrivacyShieldServerStatus, "summary">) {
   return `Privacy shield redacted ${status.protectedCount} sensitive value${status.protectedCount === 1 ? "" : "s"} across ${classLabels || "protected classes"} in ${fieldLabels || "provider payload"}.`;
 }
 
-function finalizeStatus(state: RedactionState): PrivacyShieldServerStatus | null {
-  const protectedKinds = (Object.entries(state.classCounts) as Array<
-    [PrivacyShieldKind, number]
-  >)
+function finalizeStatus(
+  state: RedactionState,
+): PrivacyShieldServerStatus | null {
+  const protectedKinds = (
+    Object.entries(state.classCounts) as Array<[PrivacyShieldKind, number]>
+  )
     .filter(([, count]) => count > 0)
     .map(([kind]) => kind);
   const protectedCount = protectedKinds.reduce(
@@ -283,7 +290,8 @@ export function previewPrivacyShieldPayload(input: unknown) {
         protected_path: 0,
         sensitive_evidence: 0,
       },
-      summary: "Privacy shield found no protected values in the preview payload.",
+      summary:
+        "Privacy shield found no protected values in the preview payload.",
       dispatchMode: "redacted" as const,
       blockedReason: null,
     },
@@ -298,7 +306,10 @@ export function applyPrivacyShieldHeaders(
   if (!status?.active) return response;
   response.headers.set("X-Anonymization-Active", "true");
   response.headers.set("X-Anonymization-Policy", status.policy);
-  response.headers.set("X-Anonymization-Protected", String(status.protectedCount));
+  response.headers.set(
+    "X-Anonymization-Protected",
+    String(status.protectedCount),
+  );
   response.headers.set(
     "X-Anonymization-Kinds",
     status.protectedKinds.join(","),
@@ -310,12 +321,18 @@ export function applyPrivacyShieldHeaders(
       .map(([kind, count]) => `${kind}:${count}`)
       .join(","),
   );
-  response.headers.set("X-Anonymization-Fields", status.protectedFields.join(","));
+  response.headers.set(
+    "X-Anonymization-Fields",
+    status.protectedFields.join(","),
+  );
   response.headers.set("X-Anonymization-Mode", status.dispatchMode);
   response.headers.set("X-Anonymization-Summary", status.summary);
   if (status.blockedReason) {
     response.headers.set("X-Anonymization-Blocked", "true");
-    response.headers.set("X-Anonymization-Blocked-Reason", status.blockedReason);
+    response.headers.set(
+      "X-Anonymization-Blocked-Reason",
+      status.blockedReason,
+    );
   }
   return response;
 }

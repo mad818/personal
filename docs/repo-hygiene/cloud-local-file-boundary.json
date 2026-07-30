@@ -86,14 +86,6 @@
         "reason": "Temporary research scratch output is local-only."
       },
       {
-        "pattern": "assets/arpg/intake/raw/**",
-        "reason": "Raw asset intake is not cloud-safe until license, provenance, and manifest checks pass."
-      },
-      {
-        "pattern": "assets/arpg/intake/work/**",
-        "reason": "Intermediate asset work files are not cloud-safe until normalized and manifest-tracked."
-      },
-      {
         "pattern": "*.pem",
         "reason": "Certificate/private key material must never be tracked."
       },
@@ -131,8 +123,6 @@
       "docs/metrics/dependabot-alerts-source*.json",
       "agent-workspace/feynman/sessions/",
       "agent-workspace/feynman/tmp/",
-      "assets/arpg/intake/raw/",
-      "assets/arpg/intake/work/",
       "*.pem",
       "*.key",
       "*.p12",

@@ -165,7 +165,7 @@ export default function SecurityPage() {
           <ShellBadge tone="success">Physical ops preserved</ShellBadge>
         </>
       }
-      >
+    >
       <ShellStack>
         {mission || from || source ? (
           <MissionHandoffStrip
@@ -212,7 +212,10 @@ export default function SecurityPage() {
             <strong>{activeMode.title}</strong>
             <p>{activeMode.detail}</p>
           </div>
-          <div className="nexus-security-mission-strip__signals" aria-label="Security mode preview">
+          <div
+            className="nexus-security-mission-strip__signals"
+            aria-label="Security mode preview"
+          >
             <span>
               <span>Workplane</span>
               <strong>{activeMode.lead}</strong>
@@ -235,7 +238,9 @@ export default function SecurityPage() {
           <div id="security-doctrine" style={{ scrollMarginTop: "120px" }}>
             <div className="nexus-surface-chamber-shell">
               <div className="nexus-surface-chamber-shell__body">
-                <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${securityLayout.railClass}`}>
+                <OpsRail
+                  className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${securityLayout.railClass}`}
+                >
                   <ShellStack gap="12px">
                     <OpsField
                       title="Control fascia"
@@ -243,7 +248,10 @@ export default function SecurityPage() {
                       tone="muted"
                       compact
                     >
-                      <div className="nexus-security-rail-preview" aria-label="Control fascia preview">
+                      <div
+                        className="nexus-security-rail-preview"
+                        aria-label="Control fascia preview"
+                      >
                         <span>
                           <strong>Route</strong>
                           <em>Policy pinned</em>
@@ -265,7 +273,9 @@ export default function SecurityPage() {
                     />
                   </ShellStack>
                 </OpsRail>
-                <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${securityLayout.workplaneClass}`}>
+                <OpsWorkplane
+                  className={`nexus-surface-chamber-shell__lead ${securityLayout.workplaneClass}`}
+                >
                   <OpsField
                     title="Security controls"
                     detail="Route, auth, input, config, and AI-surface coverage"
@@ -283,10 +293,20 @@ export default function SecurityPage() {
             <ShellStack>
               <div className="nexus-surface-chamber-shell">
                 <div className="nexus-surface-chamber-shell__body">
-                  <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${securityLayout.railClass}`}>
+                  <OpsRail
+                    className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${securityLayout.railClass}`}
+                  >
                     <ShellStack gap="12px">
-                      <OpsField title="AI boundary note" detail="Prompt, tool, retrieval, and persistence posture" tone="muted" compact>
-                        <div className="nexus-security-rail-preview" aria-label="AI boundary preview">
+                      <OpsField
+                        title="AI boundary note"
+                        detail="Prompt, tool, retrieval, and persistence posture"
+                        tone="muted"
+                        compact
+                      >
+                        <div
+                          className="nexus-security-rail-preview"
+                          aria-label="AI boundary preview"
+                        >
                           <span>
                             <strong>Prompt</strong>
                             <em>Injection</em>
@@ -308,8 +328,13 @@ export default function SecurityPage() {
                       />
                     </ShellStack>
                   </OpsRail>
-                  <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${securityLayout.workplaneClass}`}>
-                    <OpsField title="AI surface matrix" detail="AI-specific security scenarios">
+                  <OpsWorkplane
+                    className={`nexus-surface-chamber-shell__lead ${securityLayout.workplaneClass}`}
+                  >
+                    <OpsField
+                      title="AI surface matrix"
+                      detail="AI-specific security scenarios"
+                    >
                       <SecurityDoctrineMatrix initialSource="ai-surface" />
                     </OpsField>
                   </OpsWorkplane>
@@ -340,7 +365,9 @@ export default function SecurityPage() {
             <ShellStack>
               <div className="nexus-surface-chamber-shell">
                 <div className="nexus-surface-chamber-shell__body">
-                  <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${securityLayout.workplaneClass}`}>
+                  <OpsWorkplane
+                    className={`nexus-surface-chamber-shell__lead ${securityLayout.workplaneClass}`}
+                  >
                     <OpsField
                       title="Live monitoring"
                       detail="Camera coverage stays primary while sweep posture opens on demand"
@@ -362,14 +389,19 @@ export default function SecurityPage() {
                       </ShellStack>
                     </OpsField>
                   </OpsWorkplane>
-                  <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${securityLayout.railClass}`}>
+                  <OpsRail
+                    className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${securityLayout.railClass}`}
+                  >
                     <ShellStack gap="12px">
                       <OpsField
                         title="Threat posture"
                         detail="Current physical risk and escalation posture"
                         compact
                       >
-                        <div className="nexus-security-rail-preview" aria-label="Physical support preview">
+                        <div
+                          className="nexus-security-rail-preview"
+                          aria-label="Physical support preview"
+                        >
                           <span>
                             <strong>Threat</strong>
                             <em>Escalation read</em>
@@ -402,7 +434,10 @@ export default function SecurityPage() {
                         tone="muted"
                         compact
                       >
-                        <div className="nexus-security-rail-preview" aria-label="Physical control note preview">
+                        <div
+                          className="nexus-security-rail-preview"
+                          aria-label="Physical control note preview"
+                        >
                           <span>
                             <strong>Camera</strong>
                             <em>Primary</em>
@@ -438,7 +473,9 @@ export default function SecurityPage() {
                         <SecurityAlerts />
                       </OpsField>
                     </div>
-                    <OpsInspector className={`nexus-surface-chamber-shell__support ${securityLayout.inspectorClass}`}>
+                    <OpsInspector
+                      className={`nexus-surface-chamber-shell__support ${securityLayout.inspectorClass}`}
+                    >
                       <details className="nexus-surface-disclosure">
                         <summary>Open incident continuity</summary>
                         <div className="nexus-surface-disclosure__body">

@@ -62,6 +62,10 @@ export const HUGGING_FACE_INSPECTION_LIMITS = {
 
 const HUB_ORIGIN = "https://huggingface.co";
 const DATASET_SERVER_ORIGIN = "https://datasets-server.huggingface.co";
+const TRUSTED_HUGGING_FACE_ORIGINS = new Set([
+  HUB_ORIGIN,
+  DATASET_SERVER_ORIGIN,
+]);
 const HUGGING_FACE_USER_AGENT = "NexusPrime/hugging-face-inspection";
 const REPO_SEGMENT_RE = /^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$/;
 const SAFE_TEXT_EXTENSIONS = new Set([
@@ -98,7 +102,9 @@ const SAFE_EXTENSIONLESS_FILES = new Set([
 ]);
 
 function cleanInline(value: unknown, max = 180) {
-  const normalized = String(value ?? "").replace(/\s+/g, " ").trim();
+  const normalized = String(value ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
   return normalized.length <= max
     ? normalized
     : `${normalized.slice(0, max - 1).trimEnd()}…`;
@@ -109,7 +115,8 @@ function optionalNumber(value: unknown) {
 }
 
 function normalizeRepoId(rawRepoId: string) {
-  const repoId = decodeURIComponent(rawRepoId).trim().replace(/\/+$/, "");
+  let repoId = decodeURIComponent(rawRepoId).trim();
+  while (repoId.endsWith("/")) repoId = repoId.slice(0, -1);
   if (
     !repoId ||
     repoId.length > HUGGING_FACE_INSPECTION_LIMITS.maximumRepoIdLength ||
@@ -164,7 +171,9 @@ export function normalizeHuggingFaceReference(
       parsed.search ||
       parsed.hash
     ) {
-      throw new Error("Only credential-free public huggingface.co URLs are allowed.");
+      throw new Error(
+        "Only credential-free public huggingface.co URLs are allowed.",
+      );
     }
     const segments = parsed.pathname.split("/").filter(Boolean);
     if (segments[0]?.toLowerCase() === "datasets") {
@@ -210,13 +219,51 @@ function safeRequestInit(): RequestInit {
     },
     signal: AbortSignal.timeout(HUGGING_FACE_INSPECTION_LIMITS.timeoutMs),
     cache: "no-store",
+    redirect: "error",
   };
+}
+
+function buildTrustedHuggingFaceUrl(
+  origin: string,
+  pathname: string,
+  search?: URLSearchParams,
+) {
+  if (!TRUSTED_HUGGING_FACE_ORIGINS.has(origin)) {
+    throw new Error("Untrusted Hugging Face service origin.");
+  }
+  const url = new URL(origin);
+  url.pathname = pathname;
+  if (search) url.search = search.toString();
+  return url;
+}
+
+async function fetchTrustedHuggingFaceUrl(
+  url: URL,
+  deps: HuggingFaceInspectionDeps,
+  init: RequestInit = {},
+) {
+  if (
+    url.protocol !== "https:" ||
+    !TRUSTED_HUGGING_FACE_ORIGINS.has(url.origin) ||
+    url.username ||
+    url.password ||
+    url.port
+  ) {
+    throw new Error("Untrusted Hugging Face request URL.");
+  }
+  return (deps.fetchImpl ?? fetch)(url, {
+    ...safeRequestInit(),
+    ...init,
+    redirect: "error",
+  });
 }
 
 async function readResponseBytes(response: Response, maximumBytes: number) {
   const contentLength = Number(response.headers.get("content-length") ?? "0");
   if (contentLength > maximumBytes) {
-    throw new Error(`Hugging Face response exceeded the ${maximumBytes}-byte limit.`);
+    throw new Error(
+      `Hugging Face response exceeded the ${maximumBytes}-byte limit.`,
+    );
   }
   if (!response.body) return new Uint8Array();
 
@@ -250,12 +297,14 @@ async function readResponseBytes(response: Response, maximumBytes: number) {
 }
 
 async function readJson(
-  url: string,
+  url: URL,
   deps: HuggingFaceInspectionDeps,
 ): Promise<unknown> {
-  const response = await (deps.fetchImpl ?? fetch)(url, safeRequestInit());
+  const response = await fetchTrustedHuggingFaceUrl(url, deps);
   if (!response.ok) {
-    throw new Error(`Hugging Face public API returned HTTP ${response.status}.`);
+    throw new Error(
+      `Hugging Face public API returned HTTP ${response.status}.`,
+    );
   }
   const bytes = await readResponseBytes(
     response,
@@ -302,7 +351,8 @@ function normalizeFiles(value: unknown): HuggingFaceRepoFile[] {
       const rawType = cleanInline(entry.type, 20).toLowerCase();
       return {
         path: filePath,
-        type: rawType === "directory" || rawType === "dir" ? "directory" : "file",
+        type:
+          rawType === "directory" || rawType === "dir" ? "directory" : "file",
         size: optionalNumber(entry.size),
       } satisfies HuggingFaceRepoFile;
     })
@@ -375,16 +425,27 @@ function normalizeDatasetStructure(value: unknown) {
 
 function metadataUrl(reference: HuggingFaceReference) {
   const kind = reference.repoType === "dataset" ? "datasets" : "models";
-  return `${HUB_ORIGIN}/api/${kind}/${reference.repoId}`;
+  return buildTrustedHuggingFaceUrl(
+    HUB_ORIGIN,
+    `/api/${kind}/${reference.repoId}`,
+  );
 }
 
 function treeUrl(reference: HuggingFaceReference) {
   const kind = reference.repoType === "dataset" ? "datasets" : "models";
-  return `${HUB_ORIGIN}/api/${kind}/${reference.repoId}/tree/main?recursive=false&expand=false`;
+  return buildTrustedHuggingFaceUrl(
+    HUB_ORIGIN,
+    `/api/${kind}/${reference.repoId}/tree/main`,
+    new URLSearchParams({ recursive: "false", expand: "false" }),
+  );
 }
 
 function datasetInfoUrl(reference: HuggingFaceReference) {
-  return `${DATASET_SERVER_ORIGIN}/info?dataset=${encodeURIComponent(reference.repoId)}`;
+  return buildTrustedHuggingFaceUrl(
+    DATASET_SERVER_ORIGIN,
+    "/info",
+    new URLSearchParams({ dataset: reference.repoId }),
+  );
 }
 
 export async function inspectHuggingFaceRepository(
@@ -457,7 +518,9 @@ function normalizeTextFilePath(rawPath: string) {
     filePath.endsWith("/") ||
     filePath.includes("?") ||
     filePath.includes("#") ||
-    segments.some((segment) => !segment || segment === "." || segment === "..") ||
+    segments.some(
+      (segment) => !segment || segment === "." || segment === "..",
+    ) ||
     segments.some((segment) => segment.toLowerCase() === ".git")
   ) {
     throw new Error("Hugging Face text-file path is invalid.");
@@ -485,23 +548,28 @@ export async function readHuggingFaceTextFile(
   );
   const filePath = normalizeTextFilePath(rawPath);
   const prefix = normalized.repoType === "dataset" ? "datasets/" : "";
-  const url = `${HUB_ORIGIN}/${prefix}${normalized.repoId}/resolve/main/${filePath}`;
-  const response = await (deps.fetchImpl ?? fetch)(url, {
-    ...safeRequestInit(),
+  const url = buildTrustedHuggingFaceUrl(
+    HUB_ORIGIN,
+    `/${prefix}${normalized.repoId}/resolve/main/${filePath}`,
+  );
+  const response = await fetchTrustedHuggingFaceUrl(url, deps, {
     headers: {
       Accept: "text/plain, application/json;q=0.9",
       "User-Agent": HUGGING_FACE_USER_AGENT,
     },
-    redirect: "follow",
   });
   if (!response.ok) {
-    throw new Error(`Hugging Face text-file read returned HTTP ${response.status}.`);
+    throw new Error(
+      `Hugging Face text-file read returned HTTP ${response.status}.`,
+    );
   }
   const bytes = await readResponseBytes(
     response,
     HUGGING_FACE_INSPECTION_LIMITS.maximumTextFileBytes,
   );
-  const content = new TextDecoder("utf-8", { fatal: true }).decode(bytes).trim();
+  const content = new TextDecoder("utf-8", { fatal: true })
+    .decode(bytes)
+    .trim();
   return {
     ...normalized,
     path: filePath,

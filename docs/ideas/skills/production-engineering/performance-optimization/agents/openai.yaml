@@ -1,0 +1,4 @@
+interface:
+  display_name: "Performance Optimization"
+  short_description: "Measure and improve one proven bottleneck."
+  default_prompt: "Use $performance-optimization to measure and improve this Nexus performance bottleneck."

@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import ResourcesWorkbench from "@/components/resources/ResourcesWorkbench";
-import {
-  ShellBadge,
-  ShellPage,
-} from "@/components/ui/shell";
+import { ShellBadge, ShellPage } from "@/components/ui/shell";
 import { BRAND_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = {
@@ -19,7 +16,7 @@ export default function ResourcesPage() {
       surface="resources"
       eyebrow="Reference deck"
       title="Reference desk"
-      description="References, playbooks, and architecture maps on one desk."
+      description="References and playbooks."
       actions={
         <>
           <ShellBadge tone="accent">Curated references</ShellBadge>

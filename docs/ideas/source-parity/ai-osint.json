@@ -20,11 +20,9 @@
       "sourceEvidence": "Repository taxonomy and README category structure",
       "disposition": "adapted",
       "proof": [
-        "lib/aiExposureReview.ts",
-        "lib/vulnerabilityReview.ts",
-        "scripts/validate-ai-exposure-assimilation.mjs"
+        "lib/aiExposureReview.ts"
       ],
-      "adaptationNotes": "Five passive-first exposure packs plus vulnerability-review knowledge card; no offensive automation."
+      "adaptationNotes": "Five passive-first exposure packs with bounded advisory framing; no offensive automation."
     },
     {
       "id": "passive-review-pack-generation",
@@ -34,8 +32,7 @@
       "proof": [
         "components/recon/AiExposureReviewCard.tsx",
         "app/cyber/page.tsx",
-        "app/recon/page.tsx",
-        "scripts/check-ai-exposure-assimilation-runtime.mjs"
+        "app/recon/page.tsx"
       ],
       "adaptationNotes": "CYBER and RECON triage lanes file advisory reviews to VAULT with workflowId ai-exposure-review."
     },

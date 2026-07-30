@@ -4,25 +4,20 @@
 
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useStore } from "@/store/useStore";
 import { timeAgo } from "@/lib/helpers";
 import type { CVE } from "@/hooks/useCVEs";
 import type { OTXPulse } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
-
-// ── KEV entry (CISA) ──────────────────────────────────────────────────────────
-interface KEVEntry {
-  cveID: string;
-  vendorProject: string;
-  product: string;
-  vulnerabilityName: string;
-  dateAdded: string;
-  shortDescription: string;
-  requiredAction: string;
-  dueDate: string;
-  knownRansomwareCampaignUse: string;
-}
+import { ShellButton } from "@/components/ui/shell";
+import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { loadClientJsonResource } from "@/lib/clientJsonResource";
+import {
+  isCisaKevPayload,
+  type CisaKevEntry,
+  type CisaKevPayload,
+} from "@/lib/cisaKev";
 
 // ── Unified triage item ──────────────────────────────────────────────────────
 type TriageSource = "CVE" | "OTX" | "CISA";
@@ -105,7 +100,7 @@ function otxToTriageItems(pulses: OTXPulse[]): TriageItem[] {
 }
 
 // ── Map CISA KEV entries to triage items ─────────────────────────────────────
-function kevToTriageItems(kevs: KEVEntry[]): TriageItem[] {
+function kevToTriageItems(kevs: CisaKevEntry[]): TriageItem[] {
   return kevs.map((k) => {
     const days = daysUntilDue(k.dueDate);
     const overdue = days !== null && days < 0;
@@ -313,39 +308,47 @@ export default function TriageView() {
   const cves = useStore((s) => s.cves) as CVE[];
   const cvesLoaded = useStore((s) => s.cvesLoaded);
   const otxPulses = useStore((s) => s.otxPulses);
-  const [kevEntries, setKevEntries] = useState<KEVEntry[]>([]);
-  const [kevLoading, setKevLoading] = useState(false);
-  const [kevLoaded, setKevLoaded] = useState(false);
+  const [kevEntries, setKevEntries] = useState<CisaKevEntry[]>([]);
+  const [kevLoadState, setKevLoadState] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
+  const [kevRetryToken, setKevRetryToken] = useState(0);
+  const kevLoading = kevLoadState === "loading";
 
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
 
-  // Fetch CISA KEV once on mount (light endpoint, tiny payload)
-  const loadKev = useCallback(async () => {
-    if (kevLoading || kevEntries.length > 0) return;
-    setKevLoading(true);
-    try {
-      const r = await apiFetch("/api/cisa-kev");
-      const d = await r.json();
-      const catalog = (d.vulnerabilities ?? []) as KEVEntry[];
+  // Fetch CISA KEV once on mount and again only after an explicit local retry.
+  useEffect(() => {
+    let active = true;
+
+    const loadKev = async () => {
+      setKevLoadState("loading");
+      const result = await loadClientJsonResource<CisaKevPayload>(
+        () => apiFetch("/api/cisa-kev"),
+        isCisaKevPayload,
+      );
+      if (!active) return;
+      if (!result.ok) {
+        setKevLoadState("error");
+        return;
+      }
+
       // Surface overdue + closing-soon items first
-      const sorted = catalog.slice().sort((a, b) => {
+      const sorted = result.payload.vulnerabilities.slice().sort((a, b) => {
         const da = daysUntilDue(a.dueDate) ?? 9999;
         const db = daysUntilDue(b.dueDate) ?? 9999;
         return da - db;
       });
       setKevEntries(sorted.slice(0, 30));
-    } catch {
-      // silent fail
-    } finally {
-      setKevLoaded(true);
-      setKevLoading(false);
-    }
-  }, [kevLoading, kevEntries.length]);
+      setKevLoadState("ready");
+    };
 
-  useEffect(() => {
-    loadKev();
-  }, [loadKev]);
+    void loadKev();
+    return () => {
+      active = false;
+    };
+  }, [kevRetryToken]);
 
   const allItems = useMemo<TriageItem[]>(() => {
     const items = [
@@ -368,10 +371,26 @@ export default function TriageView() {
   const hasData =
     cves.length > 0 || otxPulses.length > 0 || kevEntries.length > 0;
 
+  if (!hasData && cvesLoaded && kevLoadState === "error") {
+    return (
+      <SurfaceCallout
+        tone="warning"
+        role="alert"
+        title="Cyber triage incomplete"
+        description="CISA KEV could not be verified and no CVE or OTX records are currently available. Retry the CISA lane without leaving CYBER."
+      >
+        <ShellButton onClick={() => setKevRetryToken((current) => current + 1)}>
+          Retry CISA triage
+        </ShellButton>
+      </SurfaceCallout>
+    );
+  }
+
   if (!hasData) {
-    const isStillLoading = !cvesLoaded || kevLoading || !kevLoaded;
+    const isStillLoading = !cvesLoaded || kevLoading;
     return (
       <div
+        role={isStillLoading ? "status" : undefined}
         style={{
           padding: "60px",
           textAlign: "center",
@@ -394,6 +413,28 @@ export default function TriageView() {
 
   return (
     <div>
+      {kevLoadState === "error" && (
+        <div style={{ marginBottom: "12px" }}>
+          <SurfaceCallout
+            tone="warning"
+            compact
+            role="alert"
+            title="CISA KEV unavailable"
+            description={
+              kevEntries.length > 0
+                ? "The latest CISA refresh failed. Retained KEV evidence remains in this triage view."
+                : "CVE and OTX evidence remains visible, but CISA KEV could not be verified."
+            }
+          >
+            <ShellButton
+              onClick={() => setKevRetryToken((current) => current + 1)}
+            >
+              Retry CISA KEV
+            </ShellButton>
+          </SurfaceCallout>
+        </div>
+      )}
+
       {/* Summary */}
       <TriageSummary items={allItems} />
 
@@ -461,6 +502,7 @@ export default function TriageView() {
         </div>
 
         <span
+          role={kevLoading ? "status" : undefined}
           style={{
             marginLeft: "auto",
             fontSize: "10px",

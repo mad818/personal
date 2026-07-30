@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { applyNoStoreHeaders } from "@/lib/cacheHeaders";
 
-const DEFAULT_PROTECTED_VARY = [
-  "Cookie",
-  "X-Nexus-Internal-Auth",
-] as const;
+const DEFAULT_PROTECTED_VARY = ["Cookie", "X-Nexus-Internal-Auth"] as const;
 
 function mergeVaryHeaders(headers: Headers, vary: readonly string[]) {
   const existing = headers.get("Vary");

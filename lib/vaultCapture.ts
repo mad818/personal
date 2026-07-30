@@ -1,4 +1,8 @@
-import type { AgentId, HQAssistantIntent, PreparedWorkspaceTarget } from "@/components/home/office/types";
+import type {
+  AgentId,
+  HQAssistantIntent,
+  PreparedWorkspaceTarget,
+} from "@/components/home/office/types";
 import type { ResearchSourceRef } from "@/lib/researchSources";
 import { buildCitationSourceRefs } from "@/lib/xr1Workflows";
 
@@ -25,13 +29,15 @@ function firstMeaningfulLine(value: string) {
   );
 }
 
-function routeFromPreparedWorkspace(preparedWorkspace?: PreparedWorkspaceTarget | null) {
+function routeFromPreparedWorkspace(
+  preparedWorkspace?: PreparedWorkspaceTarget | null,
+) {
   const href = preparedWorkspace?.href?.trim();
   if (!href) return null;
   try {
     return new URL(href, "http://nexus.local").pathname;
   } catch {
-    return href.startsWith("/") ? href.split("?")[0] ?? href : null;
+    return href.startsWith("/") ? (href.split("?")[0] ?? href) : null;
   }
 }
 
@@ -49,10 +55,14 @@ function inferCaptureTags(input: {
   ];
 
   if (/\b(signal|signals)\b/.test(signal)) tags.push("signal");
-  if (/\b(decision|recommend|verdict|pick|choose)\b/.test(signal)) tags.push("decision");
-  if (/\b(threat|incident|containment|evidence|ioc|cve)\b/.test(signal)) tags.push("threat");
-  if (/\b(research|brief|findings|counter-signals|sources?)\b/.test(signal)) tags.push("research");
-  if (/\b(playbook|rule|operator|next step|repair)\b/.test(signal)) tags.push("operator-note");
+  if (/\b(decision|recommend|verdict|pick|choose)\b/.test(signal))
+    tags.push("decision");
+  if (/\b(threat|incident|containment|evidence|ioc|cve)\b/.test(signal))
+    tags.push("threat");
+  if (/\b(research|brief|findings|counter-signals|sources?)\b/.test(signal))
+    tags.push("research");
+  if (/\b(playbook|rule|operator|next step|repair)\b/.test(signal))
+    tags.push("operator-note");
 
   return Array.from(new Set(tags));
 }
@@ -73,15 +83,20 @@ export function buildVaultCaptureSuggestion(input: {
     /^[-*]\s+/m.test(input.result) ||
     /^\d+\.\s+/m.test(input.result) ||
     /^#+\s+/m.test(input.result);
-  const looksReusable = /\b(signal|decision|recommend|threat|research|brief|takeaway|verdict|repair|operator|watch items|evidence)\b/.test(
-    classifierSignal,
-  );
+  const looksReusable =
+    /\b(signal|decision|recommend|threat|research|brief|takeaway|verdict|repair|operator|watch items|evidence)\b/.test(
+      classifierSignal,
+    );
 
   if (!looksStructured && !looksReusable) return null;
 
   const titleSeed = firstMeaningfulLine(input.result).replace(/^#+\s*/, "");
-  const title =
-    trimInline(titleSeed || input.query || `${input.agentId.toUpperCase()} archive capture`, 88);
+  const title = trimInline(
+    titleSeed ||
+      input.query ||
+      `${input.agentId.toUpperCase()} archive capture`,
+    88,
+  );
   const summary = trimInline(
     input.result
       .split(/\r?\n/)

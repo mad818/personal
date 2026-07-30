@@ -1,6 +1,7 @@
 "use client";
 
-import type { ChangeEvent, RefObject } from "react";
+import type { RefObject } from "react";
+import { takeSelectedFile } from "@/components/ui/fileInput";
 import {
   areSchedulerAuditFiltersEqual,
   MAX_SAVED_SCHEDULER_AUDIT_VIEWS,
@@ -25,7 +26,7 @@ interface Props {
   onExportSavedAuditViews: () => void;
   onImportSavedAuditViewsClick: () => void;
   onTogglePasteAuditViews: () => void;
-  onImportSavedAuditViewsFromFile: (event: ChangeEvent<HTMLInputElement>) => void;
+  onImportSavedAuditViewsFromFile: (file: File | null) => void;
   onPastedAuditViewsTextChange: (value: string) => void;
   onPreviewPastedAuditViewsImport: () => void;
   onApplyImportedSavedAuditViews: () => void;
@@ -61,7 +62,14 @@ export default function CronSchedulerSavedViewsSection({
 }: Props) {
   return (
     <>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexWrap: "wrap",
+        }}
+      >
         <button
           type="button"
           onClick={onToggleSaveAuditView}
@@ -129,10 +137,15 @@ export default function CronSchedulerSavedViewsSection({
           {showPasteAuditViews ? "Cancel paste" : "Paste JSON"}
         </button>
         <input
+          aria-label="Import saved scheduler audit views"
           ref={importSavedViewsInputRef}
           type="file"
           accept=".json,application/json"
-          onChange={onImportSavedAuditViewsFromFile}
+          onChange={(event) =>
+            onImportSavedAuditViewsFromFile(
+              takeSelectedFile(event.currentTarget),
+            )
+          }
           style={{ display: "none" }}
         />
       </div>
@@ -140,8 +153,11 @@ export default function CronSchedulerSavedViewsSection({
       {showPasteAuditViews ? (
         <div style={{ display: "grid", gap: 8 }}>
           <textarea
+            aria-label="Pasted scheduler audit views JSON"
             value={pastedAuditViewsText}
-            onChange={(event) => onPastedAuditViewsTextChange(event.target.value)}
+            onChange={(event) =>
+              onPastedAuditViewsTextChange(event.target.value)
+            }
             placeholder="Paste a saved audit view JSON export here"
             rows={5}
             style={{
@@ -156,7 +172,14 @@ export default function CronSchedulerSavedViewsSection({
               fontFamily: "ui-monospace, SFMono-Regular, Consolas, monospace",
             }}
           />
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              flexWrap: "wrap",
+            }}
+          >
             <button
               type="button"
               onClick={onPreviewPastedAuditViewsImport}
@@ -191,7 +214,14 @@ export default function CronSchedulerSavedViewsSection({
             background: "rgba(8,17,32,.78)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              flexWrap: "wrap",
+            }}
+          >
             <span style={{ color: "#00DDFF", fontWeight: 700, fontSize: 10 }}>
               Import preview
             </span>
@@ -202,17 +232,20 @@ export default function CronSchedulerSavedViewsSection({
               {pendingImportedAuditViews.summary.newCount} new
             </span>
             <span style={{ color: "#6875a0", fontSize: 10 }}>
-              {pendingImportedAuditViews.summary.replacementCount} replace existing
+              {pendingImportedAuditViews.summary.replacementCount} replace
+              existing
             </span>
             {pendingImportedAuditViews.summary.trimmedCount ? (
               <span style={{ color: "#fbbf24", fontSize: 10 }}>
-                {pendingImportedAuditViews.summary.trimmedCount} oldest removed by cap
+                {pendingImportedAuditViews.summary.trimmedCount} oldest removed
+                by cap
               </span>
             ) : null}
           </div>
           {pendingImportedAuditViews.summary.replacementNames.length ? (
             <div style={{ color: "#ccd6f6", fontSize: 10 }}>
-              Replaces: {pendingImportedAuditViews.summary.replacementNames.join(", ")}
+              Replaces:{" "}
+              {pendingImportedAuditViews.summary.replacementNames.join(", ")}
             </div>
           ) : null}
           {pendingImportedAuditViews.summary.newNames.length ? (
@@ -220,7 +253,14 @@ export default function CronSchedulerSavedViewsSection({
               Adds: {pendingImportedAuditViews.summary.newNames.join(", ")}
             </div>
           ) : null}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              flexWrap: "wrap",
+            }}
+          >
             <button
               type="button"
               onClick={onApplyImportedSavedAuditViews}
@@ -258,8 +298,16 @@ export default function CronSchedulerSavedViewsSection({
       ) : null}
 
       {showSaveAuditView ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexWrap: "wrap",
+          }}
+        >
           <input
+            aria-label="Saved scheduler audit view name"
             value={newAuditViewName}
             onChange={(event) => onNewAuditViewNameChange(event.target.value)}
             placeholder="Saved audit view name"
@@ -297,10 +345,20 @@ export default function CronSchedulerSavedViewsSection({
       ) : null}
 
       {savedAuditViews.length ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexWrap: "wrap",
+          }}
+        >
           <span style={{ color: "#6875a0", fontSize: 10 }}>Saved views</span>
           {savedAuditViews.map((view) => {
-            const active = areSchedulerAuditFiltersEqual(auditFilters, view.filters);
+            const active = areSchedulerAuditFiltersEqual(
+              auditFilters,
+              view.filters,
+            );
             return (
               <div
                 key={view.id}

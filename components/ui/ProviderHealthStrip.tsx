@@ -24,9 +24,7 @@ export default function ProviderHealthStrip({
       }
       compact
       icon="AI"
-      title={
-        surface === "command" ? "Provider health" : "Provider resilience"
-      }
+      title={surface === "command" ? "Provider health" : "Provider resilience"}
       description={posture.summaryDescription}
     >
       <div className="flex flex-wrap gap-2">
@@ -59,7 +57,10 @@ export default function ProviderHealthStrip({
         </div>
       ) : null}
       {loadError ? (
-        <div className="mt-2 text-[10px] leading-5 text-[var(--text3)]">
+        <div
+          role="alert"
+          className="mt-2 text-[10px] leading-5 text-[var(--text3)]"
+        >
           {loadError}
         </div>
       ) : null}

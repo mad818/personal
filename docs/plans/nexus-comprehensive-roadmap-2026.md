@@ -1,7 +1,10 @@
 # Nexus Prime — Comprehensive improvement roadmap (2026)
 
-**Status:** living document — prioritise with `tasks/todo.md` before large builds.  
-**Related:** [expansion-plan.md](../expansion-plan.md) (data feeds & features), [architecture.md](../architecture.md), [CLAUDE.md](../../CLAUDE.md).
+**Status:** historical planning snapshot — preserve the body as period context; do not use it as the current queue or architecture contract.
+
+**Current authority:** [tasks/todo.md](../../tasks/todo.md), [SYSTEM_STATE.md](../SYSTEM_STATE.md), and [architecture.md](../architecture.md).
+
+**Related historical context:** [expansion-plan.md](../expansion-plan.md) (data feeds & features).
 
 ---
 

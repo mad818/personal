@@ -5,7 +5,11 @@ import { apiFetch } from "@/lib/apiFetch";
 import type { MemoryVisibility } from "@/lib/memorySpine";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
 
-const VISIBILITY_OPTIONS: MemoryVisibility[] = ["safe", "internal", "restricted"];
+const VISIBILITY_OPTIONS: MemoryVisibility[] = [
+  "safe",
+  "internal",
+  "restricted",
+];
 
 function parseTags(value: string) {
   return Array.from(
@@ -19,7 +23,11 @@ function parseTags(value: string) {
 }
 
 function deriveTitle(originLabel: string, content: string) {
-  const origin = originLabel.replace(/\\/g, "/").split("/").filter(Boolean).pop();
+  const origin = originLabel
+    .replace(/\\/g, "/")
+    .split("/")
+    .filter(Boolean)
+    .pop();
   if (origin) return origin.slice(0, 80);
   const firstLine = content
     .split(/\r?\n/)
@@ -75,8 +83,7 @@ export default function DocumentIntakePanel() {
           sourceRefs: [
             {
               id: originLabel.trim() || "local-document",
-              title:
-                title.trim() || deriveTitle(originLabel, trimmedContent),
+              title: title.trim() || deriveTitle(originLabel, trimmedContent),
               sourceType:
                 documentMimeType.trim().toLowerCase() === "application/pdf"
                   ? "local-pdf"
@@ -141,6 +148,7 @@ export default function DocumentIntakePanel() {
       />
 
       <input
+        aria-label="Document title"
         style={INPUT}
         value={title}
         onChange={(event) => setTitle(event.target.value)}
@@ -148,6 +156,7 @@ export default function DocumentIntakePanel() {
       />
 
       <textarea
+        aria-label="Document content"
         style={{
           ...INPUT,
           minHeight: "140px",
@@ -160,29 +169,41 @@ export default function DocumentIntakePanel() {
         placeholder="Paste extracted document text, OCR output, or cleaned notes here"
       />
 
-      <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "minmax(0, 1.2fr) minmax(140px, 0.8fr) 120px" }}>
+      <div
+        style={{
+          display: "grid",
+          gap: "10px",
+          gridTemplateColumns: "minmax(0, 1.2fr) minmax(140px, 0.8fr) 120px",
+        }}
+      >
         <input
+          aria-label="Document origin label"
           style={INPUT}
           value={originLabel}
           onChange={(event) => setOriginLabel(event.target.value)}
           placeholder="Optional file label or origin name"
         />
         <input
+          aria-label="Document MIME type"
           style={INPUT}
           value={documentMimeType}
           onChange={(event) => setDocumentMimeType(event.target.value)}
           placeholder="application/pdf"
         />
         <input
+          aria-label="Document page count"
           style={INPUT}
           inputMode="numeric"
           value={pageCountText}
-          onChange={(event) => setPageCountText(event.target.value.replace(/[^\d]/g, ""))}
+          onChange={(event) =>
+            setPageCountText(event.target.value.replace(/[^\d]/g, ""))
+          }
           placeholder="Pages"
         />
       </div>
 
       <input
+        aria-label="Document tags"
         style={INPUT}
         value={tagsText}
         onChange={(event) => setTagsText(event.target.value)}
@@ -215,7 +236,14 @@ export default function DocumentIntakePanel() {
         })}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          flexWrap: "wrap",
+        }}
+      >
         <button
           type="button"
           onClick={() => void submit()}
@@ -226,12 +254,15 @@ export default function DocumentIntakePanel() {
           {saving ? "Filing…" : "File document"}
         </button>
         <span style={{ fontSize: "11px", color: "var(--text3)" }}>
-          Server-side rules can still escalate visibility if the content appears sensitive.
+          Server-side rules can still escalate visibility if the content appears
+          sensitive.
         </span>
       </div>
 
       {statusMsg ? (
-        <div style={{ fontSize: "11px", color: "var(--text2)" }}>{statusMsg}</div>
+        <div role="status" style={{ fontSize: "11px", color: "var(--text2)" }}>
+          {statusMsg}
+        </div>
       ) : null}
     </div>
   );

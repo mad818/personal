@@ -25,7 +25,10 @@ export async function GET(req: NextRequest) {
     if (id) {
       const page = await getCompiledMemoryPageById(id);
       if (!page) {
-        return NextResponse.json({ error: "Compiled page not found." }, { status: 404 });
+        return NextResponse.json(
+          { error: "Compiled page not found." },
+          { status: 404 },
+        );
       }
       return NextResponse.json({ page: toCompiledMemoryPageSummary(page) });
     }
@@ -33,11 +36,15 @@ export async function GET(req: NextRequest) {
     const limit = boundedLimit(req.nextUrl.searchParams.get("limit"));
     const pages = await listCompiledMemoryPages({
       limit: req.nextUrl.searchParams.get("semanticQuery") ? 160 : limit,
-      workflowId: req.nextUrl.searchParams.get("workflowId")?.trim() || undefined,
+      workflowId:
+        req.nextUrl.searchParams.get("workflowId")?.trim() || undefined,
     });
-    const semanticQuery = req.nextUrl.searchParams.get("semanticQuery")?.trim() ?? "";
+    const semanticQuery =
+      req.nextUrl.searchParams.get("semanticQuery")?.trim() ?? "";
     if (semanticQuery) {
-      const visiblePages = pages.filter((page) => page.visibility !== "restricted");
+      const visiblePages = pages.filter(
+        (page) => page.visibility !== "restricted",
+      );
       try {
         const matches = await turboVecSearch({
           query: semanticQuery,
@@ -72,7 +79,10 @@ export async function GET(req: NextRequest) {
         .sort((left, right) => right.score - left.score)
         .slice(0, limit)
         .map((entry) => toCompiledMemoryPageSummary(entry.page));
-      return NextResponse.json({ pages: keywordPages, retrieval: "keyword_fallback" });
+      return NextResponse.json({
+        pages: keywordPages,
+        retrieval: "keyword_fallback",
+      });
     }
     return NextResponse.json({
       pages: pages.map(toCompiledMemoryPageSummary),

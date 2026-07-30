@@ -3,7 +3,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/apiFetch";
-import { SurfaceEmpty, SurfaceSkeletonRows } from "@/components/ui/surfacePrimitives";
+import {
+  SurfaceCallout,
+  SurfaceEmpty,
+  SurfaceSkeletonRows,
+} from "@/components/ui/surfacePrimitives";
+import { loadClientJsonResource } from "@/lib/clientJsonResource";
 
 interface AgentHealth {
   agent: string;
@@ -13,6 +18,39 @@ interface AgentHealth {
   avgDurationMs: number;
   lastRun: string | null;
   trend: "up" | "down" | "stable" | "unknown";
+}
+
+interface AgentHealthPayload {
+  agents: AgentHealth[];
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function isAgentHealth(value: unknown): value is AgentHealth {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.agent === "string" &&
+    typeof value.passRate === "number" &&
+    Number.isFinite(value.passRate) &&
+    typeof value.passCount === "number" &&
+    Number.isFinite(value.passCount) &&
+    typeof value.failCount === "number" &&
+    Number.isFinite(value.failCount) &&
+    typeof value.avgDurationMs === "number" &&
+    Number.isFinite(value.avgDurationMs) &&
+    (typeof value.lastRun === "string" || value.lastRun === null) &&
+    ["up", "down", "stable", "unknown"].includes(String(value.trend))
+  );
+}
+
+function isAgentHealthPayload(value: unknown): value is AgentHealthPayload {
+  return (
+    isRecord(value) &&
+    Array.isArray(value.agents) &&
+    value.agents.every(isAgentHealth)
+  );
 }
 
 const AGENT_COLORS: Record<string, string> = {
@@ -33,33 +71,44 @@ const TREND_ICON: Record<string, string> = {
 
 export function AgentHealthCard() {
   const [agents, setAgents] = useState<AgentHealth[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [retryToken, setRetryToken] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-
-  const refresh = async () => {
-    setLoading(true);
-    try {
-      const res = await apiFetch("/api/agent-health");
-      if (res.ok) {
-        const data = (await res.json()) as { agents: AgentHealth[] };
-        setAgents(data.agents ?? []);
-        setLastUpdated(new Date().toLocaleTimeString());
-      }
-    } catch {
-      /* silent */
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = loadState === "loading";
 
   useEffect(() => {
-    refresh();
-  }, []);
+    let active = true;
+
+    const refresh = async () => {
+      setLoadState("loading");
+      const result = await loadClientJsonResource<AgentHealthPayload>(
+        () => apiFetch("/api/agent-health"),
+        isAgentHealthPayload,
+      );
+      if (!active) return;
+      if (!result.ok) {
+        setLoadState("error");
+        return;
+      }
+
+      setAgents(result.payload.agents);
+      setLastUpdated(new Date().toLocaleTimeString());
+      setLoadState("ready");
+    };
+
+    void refresh();
+    return () => {
+      active = false;
+    };
+  }, [retryToken]);
 
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--surf2)] p-3 text-xs">
       <button
+        type="button"
         className="flex w-full items-center justify-between text-[var(--text2)] hover:text-[var(--text)]"
         onClick={() => setExpanded((v) => !v)}
       >
@@ -67,11 +116,15 @@ export function AgentHealthCard() {
           AGENT HEALTH
         </span>
         <div className="flex items-center gap-2">
+          {loadState === "error" && (
+            <span role="alert" className="text-[9px] text-[var(--flo)]">
+              unavailable
+            </span>
+          )}
           {agents.length > 0 && (
             <span className="text-[9px] text-[var(--text3)]">
               {Math.round(
-                (agents.reduce((s, a) => s + a.passRate, 0) /
-                  agents.length) *
+                (agents.reduce((s, a) => s + a.passRate, 0) / agents.length) *
                   100,
               )}
               % avg
@@ -83,7 +136,29 @@ export function AgentHealthCard() {
 
       {expanded && (
         <div className="mt-3 flex flex-col gap-2">
-          {agents.length === 0 && !loading && (
+          {loadState === "error" && (
+            <SurfaceCallout
+              tone="warning"
+              compact
+              role="alert"
+              title="Agent health unavailable"
+              description={
+                agents.length > 0
+                  ? "The latest refresh failed. Last verified metrics remain visible."
+                  : "The local diagnostic route could not be verified. Retry from this panel."
+              }
+            >
+              <button
+                type="button"
+                onClick={() => setRetryToken((current) => current + 1)}
+                className="rounded bg-[var(--surf3)] px-2 py-1 font-mono text-[10px] text-[var(--text2)] hover:text-[var(--text)]"
+              >
+                Retry agent health
+              </button>
+            </SurfaceCallout>
+          )}
+
+          {agents.length === 0 && loadState === "ready" && (
             <SurfaceEmpty
               icon="🧪"
               title="No agent health metrics yet"
@@ -92,7 +167,17 @@ export function AgentHealthCard() {
             />
           )}
 
-          {loading && agents.length === 0 ? <SurfaceSkeletonRows rows={3} height={18} /> : null}
+          {loading && agents.length === 0 ? (
+            <div role="status" aria-label="Loading agent health metrics">
+              <SurfaceSkeletonRows rows={3} height={18} />
+            </div>
+          ) : null}
+
+          {loading && agents.length > 0 ? (
+            <div role="status" className="text-[9px] text-[var(--text3)]">
+              Refreshing metrics; last verified values remain visible.
+            </div>
+          ) : null}
 
           {agents.map((a) => {
             const pct = Math.round(a.passRate * 100);
@@ -121,7 +206,7 @@ export function AgentHealthCard() {
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-[var(--surf3)] overflow-hidden">
                   <div
-                    className="h-full rounded-full transition-all duration-500"
+                    className="h-full rounded-full transition-[width] duration-500"
                     style={{
                       width: `${pct}%`,
                       background:
@@ -142,7 +227,8 @@ export function AgentHealthCard() {
               {lastUpdated ? `Updated ${lastUpdated}` : ""}
             </span>
             <button
-              onClick={refresh}
+              type="button"
+              onClick={() => setRetryToken((current) => current + 1)}
               disabled={loading}
               className="rounded bg-[var(--surf3)] px-2 py-0.5 font-mono text-[10px] text-[var(--text2)] hover:text-[var(--text)] disabled:opacity-50"
             >

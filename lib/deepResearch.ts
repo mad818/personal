@@ -93,9 +93,7 @@ function buildEvidenceLedgerFallback(input: DeepResearchPipelineInput) {
   const lines: string[] = [];
 
   if (input.paperSignal.trim()) {
-    lines.push(
-      `- Papers sweep: ${cleanInline(input.paperSignal, 240)}`,
-    );
+    lines.push(`- Papers sweep: ${cleanInline(input.paperSignal, 240)}`);
   }
 
   for (const webResult of input.webResults) {
@@ -111,9 +109,7 @@ function buildEvidenceLedgerFallback(input: DeepResearchPipelineInput) {
   }
 
   for (const source of input.fetchedSources) {
-    lines.push(
-      `- ${source.url} — ${cleanInline(source.content, 220)}`,
-    );
+    lines.push(`- ${source.url} — ${cleanInline(source.content, 220)}`);
   }
 
   if (lines.length === 0) {
@@ -159,8 +155,9 @@ export function buildDeepResearchQueries(topic: string) {
 
 export function extractFeedUrlFromTopic(topic: string) {
   return (
-    extractUrls(topic).find((url) => /\.(?:rss|xml|atom)(?:$|[?#])/i.test(url)) ??
-    null
+    extractUrls(topic).find((url) =>
+      /\.(?:rss|xml|atom)(?:$|[?#])/i.test(url),
+    ) ?? null
   );
 }
 
@@ -268,7 +265,9 @@ export function buildFallbackDeepResearchSections(
 ): DeepResearchSections {
   const sourceCount = input.fetchedSources.length;
   const webCount = input.webResults.length;
-  const rssUsed = input.rssSignal ? "One feed signal was included." : "No feed signal was used.";
+  const rssUsed = input.rssSignal
+    ? "One feed signal was included."
+    : "No feed signal was used.";
 
   return {
     scope: `Topic: ${input.topic}. The bounded pipeline ran 1 paper sweep, ${webCount} targeted web angle${webCount === 1 ? "" : "s"}, fetched ${sourceCount} source page${sourceCount === 1 ? "" : "s"}, and ${rssUsed.toLowerCase()}`,
@@ -291,15 +290,13 @@ export function buildFallbackDeepResearchSections(
   };
 }
 
-export async function runDeepResearch(
-  topic: string,
-  deps: DeepResearchDeps,
-) {
+export async function runDeepResearch(topic: string, deps: DeepResearchDeps) {
   const normalizedTopic = topic.trim();
   if (!normalizedTopic) {
     return formatDeepResearchBrief({
       scope: "No research topic was provided.",
-      coreClaim: "A deep-research brief cannot run without a topic or question.",
+      coreClaim:
+        "A deep-research brief cannot run without a topic or question.",
       evidenceLedger: "- No evidence was gathered.",
       counterSignals: "- No counter-signals were evaluated.",
       operatorTakeaway: "Retry with a concrete topic or question.",
@@ -313,7 +310,9 @@ export async function runDeepResearch(
   try {
     paperSignal = await deps.hfPapersSearch(normalizedTopic, "4");
     if (looksLikeToolFailure(paperSignal)) {
-      failures.push(`hf_papers_search returned: ${cleanInline(paperSignal, 120)}`);
+      failures.push(
+        `hf_papers_search returned: ${cleanInline(paperSignal, 120)}`,
+      );
       paperSignal = "";
     }
   } catch {
@@ -357,8 +356,11 @@ export async function runDeepResearch(
   }
 
   const candidateUrls = uniqueStrings(
-    [paperSignal, ...webResults.map((result) => result.result), rssSignal?.result ?? ""]
-      .flatMap((value) => extractUrls(value)),
+    [
+      paperSignal,
+      ...webResults.map((result) => result.result),
+      rssSignal?.result ?? "",
+    ].flatMap((value) => extractUrls(value)),
   ).slice(0, 4);
 
   const fetchedSources: DeepResearchFetchedSource[] = [];

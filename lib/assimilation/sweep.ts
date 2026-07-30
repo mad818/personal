@@ -22,7 +22,11 @@ const SWEEP_SOURCES: Record<SweepTheater, SweepSourceDef[]> = {
   cyber: [
     { id: "cves", label: "CVEs", endpoint: "/api/cves" },
     { id: "cisa-kev", label: "CISA KEV", endpoint: "/api/cisa-kev" },
-    { id: "threat-intel", label: "Threat Intel", endpoint: "/api/threat-intel" },
+    {
+      id: "threat-intel",
+      label: "Threat Intel",
+      endpoint: "/api/threat-intel",
+    },
     { id: "news", label: "Cyber news", endpoint: "/api/news" },
   ],
   geopolitics: [
@@ -38,7 +42,11 @@ const SWEEP_SOURCES: Record<SweepTheater, SweepSourceDef[]> = {
   ],
   infra: [
     { id: "cves", label: "CVEs", endpoint: "/api/cves" },
-    { id: "threat-intel", label: "Threat Intel", endpoint: "/api/threat-intel" },
+    {
+      id: "threat-intel",
+      label: "Threat Intel",
+      endpoint: "/api/threat-intel",
+    },
     { id: "sec-filings", label: "SEC", endpoint: "/api/sec-filings" },
     { id: "earthquakes", label: "Earthquakes", endpoint: "/api/earthquakes" },
   ],
@@ -143,9 +151,7 @@ export async function performSweepBundle(
   const baseUrl = buildBaseUrl(reqUrl);
   const startedAt = new Date().toISOString();
   const sources = await Promise.all(
-    getSweepSources(theater).map((source) =>
-      runSingleSource(source, baseUrl),
-    ),
+    getSweepSources(theater).map((source) => runSingleSource(source, baseUrl)),
   );
   const severity = severityFromResults(sources);
   const completedAt = new Date().toISOString();

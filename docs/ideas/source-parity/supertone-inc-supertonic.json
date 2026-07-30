@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "id": "supertone-inc-supertonic",
   "name": "Supertonic",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/supertone-inc/supertonic",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
-    "license": "MIT",
+    "version": "main-49-commits-archive-notice-2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "MIT sample code; OpenRAIL-M model",
     "primaryEvidence": [
       "https://github.com/supertone-inc/supertonic",
       "https://github.com/supertone-inc/supertonic/blob/main/README.md"
@@ -17,7 +17,7 @@
     {
       "id": "audio-processing-pipeline",
       "title": "Audio processing pipeline: noise reduction, enhancement, and format conversion",
-      "sourceEvidence": "Supertonic: high-quality audio processing and enhancement toolkit",
+      "sourceEvidence": "The current README exposes on-device multilingual TTS; it does not claim a general noise-reduction, enhancement, or conversion toolkit.",
       "disposition": "excluded",
       "conflict": "product_purpose",
       "reason": "Nexus is an intelligence dashboard with no audio processing lane. Audio pipeline tooling is outside product scope."
@@ -27,15 +27,16 @@
       "title": "Neural voice synthesis: text-to-speech with controllable pitch, pace, and style",
       "sourceEvidence": "Supertonic voice synthesis capabilities",
       "disposition": "excluded",
-      "conflict": "product_purpose",
-      "reason": "Voice synthesis is outside Nexus product scope; all output is text-based."
+      "conflict": "security",
+      "reason": "The upstream announced archival and the model carries a separate OpenRAIL-M license. Nexus will not add an unsupported ONNX/model supply chain without a consent-aware voice surface and maintained dependency plan."
     },
     {
       "id": "audio-intelligence-signals",
       "title": "Extract structured signals from audio: sentiment, topic, speaker diarization",
-      "sourceEvidence": "Supertonic audio intelligence: transcription and signal extraction",
-      "disposition": "pending",
-      "reason": "Audio intelligence signals (e.g., earnings call tone analysis) could extend ALPHA or INTEL; deferred pending an audio ingestion lane."
+      "sourceEvidence": "The current README exposes TTS inference and does not claim transcription, sentiment, topic extraction, or speaker diarization.",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The inventoried signal-extraction claim is not supported by the current upstream. Nexus will not present a TTS model as an audio-intelligence analyzer."
     }
   ]
 }

@@ -1,4 +1,7 @@
-import type { VaultGraphData, VaultLintResult } from "@/components/home/office/types";
+import type {
+  VaultGraphData,
+  VaultLintResult,
+} from "@/components/home/office/types";
 import type { CompiledMemoryPageSummary } from "@/components/vault/vaultGraphPageUtils";
 import {
   isBinaryTriageMemoryArtifact,
@@ -63,8 +66,12 @@ export function buildVaultStewardshipSnapshot(input: {
   const { savedArticles, compiledPages, graph, lint } = input;
 
   const totalArtifacts = savedArticles.length + compiledPages.length;
-  const taggedSavedCount = savedArticles.filter((article) => (article.tags?.length ?? 0) > 0).length;
-  const taggedCompiledCount = compiledPages.filter((page) => page.tags.length > 0).length;
+  const taggedSavedCount = savedArticles.filter(
+    (article) => (article.tags?.length ?? 0) > 0,
+  ).length;
+  const taggedCompiledCount = compiledPages.filter(
+    (page) => page.tags.length > 0,
+  ).length;
   const taggedCoverage = coveragePercent(
     taggedSavedCount + taggedCompiledCount,
     totalArtifacts,
@@ -85,8 +92,11 @@ export function buildVaultStewardshipSnapshot(input: {
   const noBacklinkCount = lint?.noBacklinkPages.length ?? 0;
   const staleCount = lint?.staleClaims.length ?? 0;
   const gapTopicCount = lint?.gapTopics.length ?? 0;
-  const untaggedCount = totalArtifacts - (taggedSavedCount + taggedCompiledCount);
-  const routeLessCompiledCount = compiledPages.filter((page) => !page.route?.trim()).length;
+  const untaggedCount =
+    totalArtifacts - (taggedSavedCount + taggedCompiledCount);
+  const routeLessCompiledCount = compiledPages.filter(
+    (page) => !page.route?.trim(),
+  ).length;
   const reverseEngineeringPrepPages = compiledPages.filter((page) =>
     isBinaryTriageMemoryArtifact(page),
   );
@@ -131,7 +141,9 @@ export function buildVaultStewardshipSnapshot(input: {
 
   const priorities: string[] = [];
   if (orphanCount > 0) {
-    priorities.push(`Reconnect ${orphanCount} orphan artifact${orphanCount === 1 ? "" : "s"}.`);
+    priorities.push(
+      `Reconnect ${orphanCount} orphan artifact${orphanCount === 1 ? "" : "s"}.`,
+    );
   }
   if (underlinkedCount > 0) {
     priorities.push(
@@ -149,7 +161,9 @@ export function buildVaultStewardshipSnapshot(input: {
     );
   }
   if (untaggedCount > 0) {
-    priorities.push(`Tag ${untaggedCount} archive item${untaggedCount === 1 ? "" : "s"} to keep retrieval sharp.`);
+    priorities.push(
+      `Tag ${untaggedCount} archive item${untaggedCount === 1 ? "" : "s"} to keep retrieval sharp.`,
+    );
   }
   if (reverseEngineeringPrepCount > 0) {
     priorities.push(
@@ -163,13 +177,19 @@ export function buildVaultStewardshipSnapshot(input: {
   }
   if (staleCount > 0 || staleSoonCount > 0) {
     const count = staleCount > 0 ? staleCount : staleSoonCount;
-    priorities.push(`Review ${count} stale archive artifact${count === 1 ? "" : "s"} before they drift further.`);
+    priorities.push(
+      `Review ${count} stale archive artifact${count === 1 ? "" : "s"} before they drift further.`,
+    );
   }
   if (gapTopicCount > 0) {
-    priorities.push(`Strengthen ${gapTopicCount} thin topic area${gapTopicCount === 1 ? "" : "s"} with more than one supporting artifact.`);
+    priorities.push(
+      `Strengthen ${gapTopicCount} thin topic area${gapTopicCount === 1 ? "" : "s"} with more than one supporting artifact.`,
+    );
   }
   if (priorities.length === 0) {
-    priorities.push("Archive posture is clean. Keep filing with tags, routes, and durable summaries so it stays that way.");
+    priorities.push(
+      "Archive posture is clean. Keep filing with tags, routes, and durable summaries so it stays that way.",
+    );
   }
 
   const summary =

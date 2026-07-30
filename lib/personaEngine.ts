@@ -3,9 +3,17 @@
 // Keeps persona routing on the shared AI boundary instead of ad hoc fetch logic.
 
 import { callAIWithSystemPrompt } from "@/lib/ai";
+import {
+  applyCappedCouncilIdeationFrames,
+  buildPinnedCouncilAdoptDraft,
+  buildPinnedCouncilMergeDraft,
+  COUNCIL_IDEATION_FRAMES,
+  getCouncilIdeationFrameLabel,
+} from "@/lib/councilDivergence";
 import type {
   AgentId,
   AgentPersona,
+  CouncilIdeationFrameId,
   CouncilResult,
   HQAssistantIntent,
   PersonaMode,
@@ -14,6 +22,7 @@ import type {
 export interface CouncilMember {
   agent: AgentId;
   persona: PersonaMode;
+  frame?: CouncilIdeationFrameId;
 }
 
 interface RunCouncilOptions {
@@ -50,15 +59,18 @@ export const PERSONA_TEMPLATES: Record<PersonaMode, AgentPersona> = {
   direct: {
     mode: "direct",
     label: "Direct",
-    tone: "blunt, signal-first, no filler",
+    tone: "action-first, concrete, no filler",
     maxTokens: 1024,
     outputStyle: "bullets and short statements",
     promptSuffix: [
       "PERSONA OVERRIDE — DIRECT MODE:",
-      "Be blunt. Lead with the answer, not the context.",
-      "Use short sentences and bullet points.",
-      "Cut all filler. Every word must earn its place.",
-      "If you have a recommendation, state it first.",
+      "Lead with the action or answer, not background or a preamble.",
+      "Use numbered steps when sequence matters and keep any list to five items or fewer.",
+      "End with one concrete next action. Suppress tangents unless they block the task.",
+      "Restate the current state after an interruption or error, and describe errors matter-of-factly.",
+      "Make completed work and the current win visible when that helps the operator resume.",
+      "Give estimates only when grounded in available evidence; never invent precision.",
+      "Do not infer or mention a diagnosis or personal condition from this response style.",
     ].join("\n"),
   },
   deep: {
@@ -96,47 +108,51 @@ export function resolveCouncilMembers(input: {
   target: AgentId;
   intent: HQAssistantIntent;
   routeHint?: string | null;
+  input?: string;
 }): CouncilMember[] {
+  let members: CouncilMember[];
+
   if (input.intent === "repo_work" || input.target === "orbit") {
-    return [
+    members = [
       { agent: "orbit", persona: "formal" },
       { agent: "jansky", persona: "direct" },
       { agent: "cipher", persona: "deep" },
     ];
-  }
-
-  if (input.routeHint?.startsWith("/cyber") || input.target === "cipher") {
-    return [
+  } else if (
+    input.routeHint?.startsWith("/cyber") ||
+    input.target === "cipher"
+  ) {
+    members = [
       { agent: "cipher", persona: "formal" },
       { agent: "jansky", persona: "direct" },
       { agent: "nova", persona: "deep" },
     ];
-  }
-
-  if (input.routeHint?.startsWith("/alpha") || input.target === "flux") {
-    return [
+  } else if (input.routeHint?.startsWith("/alpha") || input.target === "flux") {
+    members = [
       { agent: "flux", persona: "formal" },
       { agent: "jansky", persona: "direct" },
       { agent: "nova", persona: "deep" },
     ];
-  }
-
-  if (
+  } else if (
     input.routeHint?.startsWith("/recon") ||
     input.routeHint?.startsWith("/intel") ||
     input.target === "nova"
   ) {
-    return [
+    members = [
       { agent: "nova", persona: "formal" },
       { agent: "jansky", persona: "direct" },
       { agent: "cipher", persona: "deep" },
     ];
+  } else {
+    members = DEFAULT_COUNCIL_MEMBERS;
   }
 
-  return DEFAULT_COUNCIL_MEMBERS;
+  return applyCappedCouncilIdeationFrames(members, input.input ?? "");
 }
 
-function resolveCouncilTask(persona: PersonaMode): "chat" | "fast" | "reasoning" {
+function resolveCouncilTask(
+  persona: PersonaMode,
+): "chat" | "fast" | "reasoning" {
   if (persona === "deep") return "reasoning";
   if (persona === "direct") return "fast";
   return "chat";
@@ -153,28 +169,27 @@ export function sortCouncilResults(
   members: CouncilMember[],
 ): CouncilResult[] {
   const order = new Map(
-    members.map((member, index) => [`${member.agent}:${member.persona}`, index]),
+    members.map((member, index) => [
+      `${member.agent}:${member.persona}`,
+      index,
+    ]),
   );
   return [...results].sort((a, b) => {
-    const aIndex = order.get(`${a.agent}:${a.persona}`) ?? Number.MAX_SAFE_INTEGER;
-    const bIndex = order.get(`${b.agent}:${b.persona}`) ?? Number.MAX_SAFE_INTEGER;
+    const aIndex =
+      order.get(`${a.agent}:${a.persona}`) ?? Number.MAX_SAFE_INTEGER;
+    const bIndex =
+      order.get(`${b.agent}:${b.persona}`) ?? Number.MAX_SAFE_INTEGER;
     if (aIndex !== bIndex) return aIndex - bIndex;
     return compareCouncilMembers(a, b);
   });
 }
 
 export function buildCouncilMergeDraft(results: CouncilResult[]): string {
-  const combined = results
-    .map(
-      (result) =>
-        `=== ${result.agent.toUpperCase()} [${result.persona}] ===\n${result.answer}`,
-    )
-    .join("\n\n");
-  return `Synthesize these council responses into one final operator reply:\n\n${combined}`;
+  return buildPinnedCouncilMergeDraft(results);
 }
 
 export function buildCouncilAdoptDraft(result: CouncilResult): string {
-  return `Refine this council answer into the final operator reply without losing its core signal:\n\n=== ${result.agent.toUpperCase()} [${result.persona}] ===\n${result.answer}`;
+  return buildPinnedCouncilAdoptDraft(result);
 }
 
 async function callCouncilMember(input: {
@@ -204,9 +219,12 @@ export async function runCouncil(
     members.map(async (member) => {
       const template = PERSONA_TEMPLATES[member.persona];
       const start = Date.now();
+      const framePrompt = member.frame
+        ? `\n\nCOUNCIL IDEATION FRAME — ${getCouncilIdeationFrameLabel(member.frame).toUpperCase()}:\n${COUNCIL_IDEATION_FRAMES.find((entry) => entry.id === member.frame)?.prompt ?? ""}\nWork independently inside this frame. Do not simulate the other Council members.`
+        : "";
       const answer = await invoke({
         member,
-        systemPrompt: opts.buildSystemPrompt(member),
+        systemPrompt: `${opts.buildSystemPrompt(member)}${framePrompt}`,
         message: opts.message,
         maxTokens: template.maxTokens,
         task: resolveCouncilTask(member.persona),
@@ -214,6 +232,7 @@ export async function runCouncil(
       const result: CouncilResult = {
         agent: member.agent,
         persona: member.persona,
+        frame: member.frame,
         answer,
         duration: Date.now() - start,
       };

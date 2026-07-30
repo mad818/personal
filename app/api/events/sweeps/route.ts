@@ -47,7 +47,9 @@ export async function GET(req: NextRequest): Promise<Response> {
     async start(controller) {
       const push = (event: string, payload: unknown) => {
         controller.enqueue(
-          encoder.encode(`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`),
+          encoder.encode(
+            `event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`,
+          ),
         );
       };
 
@@ -80,7 +82,8 @@ export async function GET(req: NextRequest): Promise<Response> {
             count: 0,
             durationMs: Date.now() - startedAt,
             ok: false,
-            message: error instanceof Error ? error.message : "Sweep source failed.",
+            message:
+              error instanceof Error ? error.message : "Sweep source failed.",
           });
         }
       }

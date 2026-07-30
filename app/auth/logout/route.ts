@@ -6,7 +6,9 @@ import {
 
 function buildRedirect(req: NextRequest, path: string) {
   const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
-  const proto = req.headers.get("x-forwarded-proto") ?? req.nextUrl.protocol.replace(":", "");
+  const proto =
+    req.headers.get("x-forwarded-proto") ??
+    req.nextUrl.protocol.replace(":", "");
   if (host) {
     return new URL(path, `${proto}://${host}`);
   }
@@ -20,7 +22,7 @@ export async function GET(req: NextRequest) {
   const response = NextResponse.redirect(buildRedirect(req, nextPath), 303);
   response.cookies.set(NEXUS_SESSION_COOKIE, "", {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: 0,

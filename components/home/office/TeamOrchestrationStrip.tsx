@@ -45,7 +45,7 @@ export default function TeamOrchestrationStrip({
           marginBottom: "6px",
         }}
       >
-        Team orchestration · {plan.headline}
+        Central orchestrator · {plan.headline}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
         {plan.phases.map((phase) => (

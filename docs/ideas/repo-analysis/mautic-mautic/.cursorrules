@@ -1,0 +1,5 @@
+Use REPO_CONTEXT.md for strategic orientation only.
+Keep the adaptation inside the existing Nexus Workflow Forge.
+Preserve local persistence, server validation, explicit save state, and human approval.
+Do not install, import, or reproduce Mautic, its CRM, automation runtime, or outbound channels.
+Do not copy GPL code, assets, schemas, styles, or text templates.

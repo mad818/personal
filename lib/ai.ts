@@ -21,14 +21,21 @@ import {
   AI_EVIDENCE_DISCIPLINE_BLOCK,
   AI_TRUTH_BOUNDARY_BLOCK,
 } from "@/lib/aiTruthBoundary";
-import { YAGNI_AGENT_DIRECTIVE } from "@/lib/agentYagniGuardrails";
+import {
+  FAINIR_READER_CONTRACT_BLOCK,
+  YAGNI_AGENT_DIRECTIVE,
+} from "@/lib/agentYagniGuardrails";
 import {
   normalizePreferredAIProvider,
   resolveApiAIProvider,
 } from "@/lib/aiProviderPreference";
 import { NEXUS_AGENT_NO_BILLING_RULE } from "@/lib/productGuarantees";
 import { readPrivacyShieldStatusFromHeaders } from "@/lib/privacyShieldClient";
-import { getNavProductSurfaces, summarizeSurfaceTiers } from "@/lib/releaseMatrix";
+import {
+  getNavProductSurfaces,
+  summarizeSurfaceTiers,
+} from "@/lib/releaseMatrix";
+import { buildPersonalAIProfilePromptBlock } from "@/lib/personalAIProfile";
 
 function getSettings(): Settings {
   // BUG-04 fix: read from the in-memory Zustand store, not localStorage.
@@ -58,14 +65,17 @@ function syncPrivacyShieldStatus(response: Response) {
 }
 
 function aiReady(s: Settings): boolean {
-  if (resolveApiAIProvider(normalizePreferredAIProvider(s.aiProvider))) return true;
+  if (resolveApiAIProvider(normalizePreferredAIProvider(s.aiProvider)))
+    return true;
   // Local Ollama — needs endpoint + model
   if (s.localEndpoint && s.localModel) return true;
   return false;
 }
 
 function readServerRoutedProvider(settings: Settings) {
-  return resolveApiAIProvider(normalizePreferredAIProvider(settings.aiProvider));
+  return resolveApiAIProvider(
+    normalizePreferredAIProvider(settings.aiProvider),
+  );
 }
 
 function readServerRoutedModel(
@@ -78,6 +88,8 @@ function readServerRoutedModel(
       return MINIMAX_DEFAULT_CHAT_MODEL;
     case "openai":
       return OPENAI_DEFAULT_CHAT_MODEL;
+    case "azure":
+      return undefined;
     default:
       return undefined;
   }
@@ -185,17 +197,6 @@ export function buildCachedSystemPrompt(s: Settings, liveContext = ""): string {
   return prompt;
 }
 
-function buildDirectCallProfileBlock(s: Settings): string {
-  const parts: string[] = [];
-  if (s.userGoals) parts.push(`Goals: ${s.userGoals}`);
-  if (s.userSkills) parts.push(`Building: ${s.userSkills}`);
-  if (s.userLearning) parts.push(`Learning: ${s.userLearning}`);
-  if (s.userContext) parts.push(`Context: ${s.userContext}`);
-  if (!parts.length) return "";
-  const name = s.userName || "Mario";
-  return `\n\n== ${name.toUpperCase()}'S PROFILE ==\n${parts.join("\n")}\n== END PROFILE ==`;
-}
-
 export function buildDirectCallSystemPrompt(s: Settings): string {
   const name = s.userName || "Mario";
   return `You are Homefront AI — ${name}'s direct analysis and drafting lane.
@@ -208,7 +209,7 @@ ${AI_TRUTH_BOUNDARY_BLOCK}
 
 ${AI_NO_IMPLICIT_TOOLING_BLOCK}
 
-${AI_EVIDENCE_DISCIPLINE_BLOCK}${buildDirectCallProfileBlock(s)}`;
+${AI_EVIDENCE_DISCIPLINE_BLOCK}${buildPersonalAIProfilePromptBlock(s)}`;
 }
 
 export function buildScheduledMissionPromptParts(
@@ -231,8 +232,12 @@ export function buildScheduledMissionSingleFlightKey(input: {
   volatilePrompt: string;
   timeWindowMs?: number;
 }): string {
-  const { systemPrompt, cacheablePrefix = "", volatilePrompt, timeWindowMs = 60_000 } =
-    input;
+  const {
+    systemPrompt,
+    cacheablePrefix = "",
+    volatilePrompt,
+    timeWindowMs = 60_000,
+  } = input;
   const windowBucket = Math.floor(Date.now() / Math.max(1, timeWindowMs));
   return `scheduled:${windowBucket}:${stableHash(
     `${systemPrompt}\n${cacheablePrefix}\n${volatilePrompt}`,
@@ -267,7 +272,7 @@ export function buildNonInteractiveBatchPrompt(
     "Process each mission independently and return ONLY valid JSON.",
     'Return an array where every item matches this exact shape: {"id":"string","status":"ok|error","content":"string"}',
     "Do not omit any mission. Keep each content concise, operator-grade, and specific to that mission only.",
-    "If a mission cannot be completed, still return its id with status=\"error\" and a brief explanation in content.",
+    'If a mission cannot be completed, still return its id with status="error" and a brief explanation in content.',
     "",
     manifest,
   ].join("\n");
@@ -371,7 +376,10 @@ export async function submitAnthropicNativeBatch(opts: {
     provider: "anthropic",
     model: typeof data.model === "string" ? data.model : undefined,
     processingStatus: String(data.processingStatus ?? "unknown"),
-    requestCount: Math.max(0, Number(data.requestCount ?? opts.items.length) || 0),
+    requestCount: Math.max(
+      0,
+      Number(data.requestCount ?? opts.items.length) || 0,
+    ),
   };
 }
 
@@ -400,7 +408,9 @@ export async function pollAnthropicNativeBatch(
   const results = Array.isArray(data.results)
     ? data.results
         .filter(
-          (item): item is { id?: unknown; status?: unknown; content?: unknown } =>
+          (
+            item,
+          ): item is { id?: unknown; status?: unknown; content?: unknown } =>
             typeof item === "object" && item !== null,
         )
         .map<NonInteractiveBatchResult>((item) => ({
@@ -446,9 +456,7 @@ export async function readAnthropicNativeBatchPosture(): Promise<NativeAnthropic
     provider: "anthropic",
     nativeReady: data.nativeReady === true,
     mode:
-      data.mode === "provider_native"
-        ? "provider_native"
-        : "internal_fallback",
+      data.mode === "provider_native" ? "provider_native" : "internal_fallback",
     featureEnabled: data.featureEnabled === true,
     paidApisAllowed: data.paidApisAllowed === true,
     apiKeyConfigured: data.apiKeyConfigured === true,
@@ -513,12 +521,20 @@ async function callLocalModel(
     max_tokens: number;
     messages: { role: string; content: string }[];
     task?: string;
+    secondBrainMode?:
+      | "off"
+      | "auto"
+      | "file-first"
+      | "human-editor"
+      | "night-shift";
   },
 ) {
   const requestedModel = body.task
     ? (TASK_MODELS[body.task as keyof typeof TASK_MODELS] ?? s.localModel)
     : s.localModel;
-  const preferRunningModel = shouldPreferActiveOllamaModel(body.task ?? "default");
+  const preferRunningModel = shouldPreferActiveOllamaModel(
+    body.task ?? "default",
+  );
   try {
     const res = await apiFetch("/api/ai", {
       method: "POST",
@@ -529,13 +545,17 @@ async function callLocalModel(
         messages: body.messages,
         preferRunningModel,
         ...(body.task ? { task: body.task } : {}),
+        ...(body.secondBrainMode
+          ? { secondBrainMode: body.secondBrainMode }
+          : {}),
         ...(s.localEndpoint ? { localEndpoint: s.localEndpoint } : {}),
         ...(s.localApiKey ? { localApiKey: s.localApiKey } : {}),
       }),
     });
-    const data = (await res.json().catch(() => null)) as
-      | Record<string, unknown>
-      | null;
+    const data = (await res.json().catch(() => null)) as Record<
+      string,
+      unknown
+    > | null;
     syncPrivacyShieldStatus(res);
     if (!res.ok) {
       return "";
@@ -550,8 +570,10 @@ async function callLocalModel(
         localModel: activeModel,
       } as Partial<Settings>);
     }
-    return (data as { choices?: { message?: { content?: string } }[] })?.choices?.[0]
-      ?.message?.content ?? "";
+    return (
+      (data as { choices?: { message?: { content?: string } }[] })?.choices?.[0]
+        ?.message?.content ?? ""
+    );
   } catch {
     return "";
   }
@@ -570,6 +592,12 @@ interface DirectAiRequestOptions {
   task?: string;
   provider?: string;
   model?: string;
+  secondBrainMode?:
+    | "off"
+    | "auto"
+    | "file-first"
+    | "human-editor"
+    | "night-shift";
 }
 
 async function callAIInternal(opts: DirectAiRequestOptions): Promise<string> {
@@ -594,6 +622,9 @@ async function callAIInternal(opts: DirectAiRequestOptions): Promise<string> {
         system: opts.systemPrompt,
         messages: opts.messages,
         ...(opts.task ? { task: opts.task } : {}),
+        ...(opts.secondBrainMode
+          ? { secondBrainMode: opts.secondBrainMode }
+          : {}),
       }),
     });
     syncPrivacyShieldStatus(res);
@@ -606,6 +637,7 @@ async function callAIInternal(opts: DirectAiRequestOptions): Promise<string> {
             ? [{ role: "system", content: opts.systemPrompt }, ...opts.messages]
             : opts.messages,
           task: opts.task,
+          secondBrainMode: opts.secondBrainMode,
         });
       }
       throw new Error(data?.error?.message ?? `API error ${res.status}`);
@@ -619,6 +651,7 @@ async function callAIInternal(opts: DirectAiRequestOptions): Promise<string> {
       ? [{ role: "system", content: opts.systemPrompt }, ...opts.messages]
       : opts.messages,
     task: opts.task,
+    secondBrainMode: opts.secondBrainMode,
   });
 }
 
@@ -648,6 +681,12 @@ async function callNonInteractiveAIInternal(opts: {
   task?: string;
   singleFlightKey?: string;
   promptParts?: NonInteractivePromptParts;
+  secondBrainMode?:
+    | "off"
+    | "auto"
+    | "file-first"
+    | "human-editor"
+    | "night-shift";
 }): Promise<NonInteractiveAIResult> {
   const {
     systemPrompt,
@@ -656,6 +695,7 @@ async function callNonInteractiveAIInternal(opts: {
     task = "fast",
     singleFlightKey,
     promptParts,
+    secondBrainMode,
   } = opts;
   const existing = singleFlightKey
     ? NON_INTERACTIVE_SINGLE_FLIGHT.get(singleFlightKey)
@@ -705,6 +745,7 @@ async function callNonInteractiveAIInternal(opts: {
           messages: anthropicMessages,
           task,
           non_interactive: true,
+          secondBrainMode,
         }),
       });
       syncPrivacyShieldStatus(res);
@@ -718,6 +759,7 @@ async function callNonInteractiveAIInternal(opts: {
               { role: "user", content: userPrompt },
             ],
             task,
+            secondBrainMode,
           });
           return {
             content,
@@ -745,6 +787,7 @@ async function callNonInteractiveAIInternal(opts: {
         { role: "user", content: userPrompt },
       ],
       task,
+      secondBrainMode,
     });
     return {
       content,
@@ -760,7 +803,8 @@ async function callNonInteractiveAIInternal(opts: {
   const promise = run().finally(() => {
     if (singleFlightKey) NON_INTERACTIVE_SINGLE_FLIGHT.delete(singleFlightKey);
   });
-  if (singleFlightKey) NON_INTERACTIVE_SINGLE_FLIGHT.set(singleFlightKey, promise);
+  if (singleFlightKey)
+    NON_INTERACTIVE_SINGLE_FLIGHT.set(singleFlightKey, promise);
   return promise;
 }
 
@@ -771,6 +815,12 @@ export async function callNonInteractiveAI(opts: {
   task?: string;
   singleFlightKey?: string;
   promptParts?: NonInteractivePromptParts;
+  secondBrainMode?:
+    | "off"
+    | "auto"
+    | "file-first"
+    | "human-editor"
+    | "night-shift";
 }): Promise<string> {
   const result = await callNonInteractiveAIInternal(opts);
   return result.content;
@@ -783,6 +833,12 @@ export async function callNonInteractiveAIWithMeta(opts: {
   task?: string;
   singleFlightKey?: string;
   promptParts?: NonInteractivePromptParts;
+  secondBrainMode?:
+    | "off"
+    | "auto"
+    | "file-first"
+    | "human-editor"
+    | "night-shift";
 }): Promise<NonInteractiveAIResult> {
   return callNonInteractiveAIInternal(opts);
 }
@@ -969,23 +1025,20 @@ export function buildSystemPrompt(s: Settings, liveContext = ""): string {
     .map((surface) => surface.href.replace("/", ""))
     .join(", ");
   const surfaceSummary = summarizeSurfaceTiers().counts;
-  const parts: string[] = [];
-  if (s.userGoals) parts.push(`Goals: ${s.userGoals}`);
-  if (s.userSkills) parts.push(`Building: ${s.userSkills}`);
-  if (s.userLearning) parts.push(`Learning: ${s.userLearning}`);
-  if (s.userContext) parts.push(`Context: ${s.userContext}`);
-  const profile = parts.length
-    ? `\n\n== ${name.toUpperCase()}'S PROFILE ==\n${parts.join("\n")}\n== END PROFILE ==`
-    : "";
+  const profile = buildPersonalAIProfilePromptBlock(s);
   return `You are Homefront AI — ${name}'s personal intelligence system, advisor, and developer agent. You are direct, sharp, and technical. You adapt to whatever ${name} needs: market analysis, research, trading signals, or coding and editing the Homefront website itself.
 
 ${NEXUS_AGENT_NO_BILLING_RULE}
 
 You have full access to the Homefront project source code through these tools:
 - list_project_files(directory) — explore the project structure
-- read_project_file(path) — read any source file before editing
+- read_project_file(path, focus?, chunk?) — read exact small files or bounded semantic context from large files before editing
 - patch_project_file(path, old_string, new_string) — make targeted edits to components, pages, or library files
 - fetch_url('/api/project') — read the canonical context spine (AGENTS, SYSTEM_STATE, STANDARDS, PROJECT_BIBLE)
+- list_design_skills(query?, category?, family?, availability?, limit?) — find an active project-owned builder procedure
+- resolve_design_skill(skill) — load its complete requirements, inputs, workflow, guardrails, and acceptance checks before relevant design, capture, support, media, performance, motion, WebGL, or UI-detail work
+- list_go_to_market_skills(query?, category?, family?, availability?, limit?) — find an active guarded visual, content, launch, market, outreach, buyer-research, or developer-communication procedure
+- resolve_go_to_market_skill(skill) — load its complete read-only requirements, workflow, guardrails, prerequisites, and acceptance checks before relevant go-to-market work
 
 Project structure:
 - app/ — Next.js routes. Supported GA tabs this cycle: ${supportedTabs}
@@ -1011,9 +1064,11 @@ Reasoning standard — operate like a senior analyst:
 - When coding, read the file first, understand context, then patch surgically
 - Never give generic answers when live data is available — use it
 
-${AI_TRUTH_BOUNDARY_BLOCK}
+  ${AI_TRUTH_BOUNDARY_BLOCK}
 
 ${AI_EVIDENCE_DISCIPLINE_BLOCK}
+
+${FAINIR_READER_CONTRACT_BLOCK}
 
 ${YAGNI_AGENT_DIRECTIVE}${profile}${liveContext}`;
 }

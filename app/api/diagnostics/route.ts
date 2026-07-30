@@ -22,6 +22,7 @@ import {
 import { summarizeSkillGovernance } from "@/lib/skillMetadata";
 import { protectedJson } from "@/lib/protectedApi";
 import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
+import { isAzureOpenAIConfigured } from "@/lib/azureOpenAI";
 
 export const dynamic = "force-dynamic";
 
@@ -62,10 +63,12 @@ export async function GET() {
   const providers = {
     local: {
       ollamaEndpoint:
-        process.env.OLLAMA_ENDPOINT ?? "http://localhost:11434/v1/chat/completions",
+        process.env.OLLAMA_ENDPOINT ??
+        "http://localhost:11434/v1/chat/completions",
     },
     configured: {
       anthropic: present(process.env.ANTHROPIC_API_KEY),
+      azure: isAzureOpenAIConfigured(),
       openai: present(process.env.OPENAI_API_KEY),
       minimax: present(process.env.MINIMAX_API_KEY),
       groq: present(process.env.GROQ_API_KEY),

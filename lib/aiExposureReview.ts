@@ -218,7 +218,9 @@ export function buildAiExposureReviewMarkdown(draft: AiExposureReviewDraft) {
   ];
 
   return sections
-    .map(([heading, value]) => `## ${heading}\n${value.trim() || EMPTY_SECTION}`)
+    .map(
+      ([heading, value]) => `## ${heading}\n${value.trim() || EMPTY_SECTION}`,
+    )
     .join("\n\n");
 }
 
@@ -253,7 +255,9 @@ export function buildAiExposureReviewTags(draft: AiExposureReviewDraft) {
   ].filter((tag): tag is string => Boolean(tag));
 }
 
-export function parseAiExposureReviewMarkdown(content: string): AiExposureReviewDraft {
+export function parseAiExposureReviewMarkdown(
+  content: string,
+): AiExposureReviewDraft {
   const sections = parseMarkdownSections(content);
   return {
     subject: sections.get("subject") ?? "",
@@ -299,7 +303,9 @@ export function buildAiExposureEvidenceStrength(
   return inferEvidenceStrength({
     sourceType: "vault-artifact",
     sourceCount: sourceRefs.length,
-    citationCount: sourceRefs.filter((sourceRef) => sourceRef.sourceType === "citation").length,
+    citationCount: sourceRefs.filter(
+      (sourceRef) => sourceRef.sourceType === "citation",
+    ).length,
   });
 }
 

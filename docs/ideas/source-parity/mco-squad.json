@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "id": "mco-squad",
+  "name": "mco-org/squad",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/mco-org/squad",
+    "version": "main-97-commits-2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/mco-org/squad/blob/main/README.md",
+      "https://github.com/mco-org/squad/blob/main/Cargo.toml",
+      "https://github.com/mco-org/squad/blob/main/src/main.rs",
+      "https://github.com/mco-org/squad/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "manager-worker-inspector-roles",
+      "title": "Use a manager to decompose work, bounded workers to execute specialist missions, and an inspector to review results",
+      "sourceEvidence": "README.md Role Templates and Usage Flow",
+      "disposition": "adapted",
+      "proof": [
+        "lib/teamOrchestration.ts",
+        "lib/centralOrchestrator.ts",
+        "components/home/office/prompts.ts"
+      ]
+    },
+    {
+      "id": "single-operator-facing-manager",
+      "title": "Keep the manager responsible for assignment, coordination, and the final operator-facing result",
+      "sourceEvidence": "README.md Quick Start and manager role description",
+      "disposition": "implemented",
+      "proof": [
+        "lib/assistantDispatch.ts",
+        "lib/teamOrchestration.ts",
+        "components/home/office/prompts.ts"
+      ]
+    },
+    {
+      "id": "structured-task-lifecycle",
+      "title": "Represent specialist work as a structured mission with identity, assignment, completion status, and result summary",
+      "sourceEvidence": "README.md squad task create, ack, complete, requeue, and list commands",
+      "disposition": "adapted",
+      "proof": [
+        "lib/centralOrchestrator.ts",
+        "app/api/tools/route.ts"
+      ]
+    },
+    {
+      "id": "machine-readable-handoff-envelope",
+      "title": "Return machine-readable worker output with status, result, evidence, risks, verification, and next action",
+      "sourceEvidence": "README.md receive --json and agents --json envelopes",
+      "disposition": "implemented",
+      "proof": [
+        "lib/centralOrchestrator.ts",
+        "scripts/check-central-orchestrator-runtime.mjs"
+      ]
+    },
+    {
+      "id": "capability-aware-worker-routing",
+      "title": "Route tasks according to worker role and declared capabilities",
+      "sourceEvidence": "README.md Agent Capability Metadata and protocol-derived support booleans",
+      "disposition": "adapted",
+      "proof": [
+        "lib/teamOrchestration.ts",
+        "lib/centralOrchestrator.ts",
+        "lib/agent.ts"
+      ]
+    },
+    {
+      "id": "bounded-concurrent-workers",
+      "title": "Allow independent workers to return in one manager run while preventing unbounded fan-out",
+      "sourceEvidence": "README.md multiple worker terminals and automatic worker ID suffixes",
+      "disposition": "adapted",
+      "proof": [
+        "lib/agent.ts",
+        "app/api/tools/route.ts",
+        "lib/centralOrchestrator.ts"
+      ]
+    },
+    {
+      "id": "malformed-and-failed-worker-recovery",
+      "title": "Preserve manager control when a worker fails or returns an invalid envelope",
+      "sourceEvidence": "README.md task requeue, leave preserving unread work, and doctor diagnostics",
+      "disposition": "adapted",
+      "proof": [
+        "lib/centralOrchestrator.ts",
+        "scripts/check-central-orchestrator-runtime.mjs"
+      ]
+    },
+    {
+      "id": "operator-visible-orchestration-plan",
+      "title": "Show the manager and worker phases before or during execution",
+      "sourceEvidence": "README.md Usage Flow and terminal role topology",
+      "disposition": "adapted",
+      "proof": [
+        "components/home/office/TeamOrchestrationStrip.tsx",
+        "lib/teamOrchestration.ts"
+      ]
+    },
+    {
+      "id": "durable-message-and-task-history",
+      "title": "Persist messages, task state, results, and timestamps for later history inspection",
+      "sourceEvidence": "README.md How It Works, Message Flow, pending, and history commands",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus deliberately keeps specialist context inside the bounded operator-visible runtime trace. Persisting worker messages would duplicate potentially sensitive prompt and evidence content without a separate retention and deletion contract."
+    },
+    {
+      "id": "task-ack-requeue-and-reassignment",
+      "title": "Let workers acknowledge leases and let the manager requeue or reassign interrupted tasks",
+      "sourceEvidence": "README.md task ack, complete, requeue, and list commands",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus specialists are short-lived advisory calls, not durable background workers. Lease ownership, requeue, and reassignment would require a second resumable worker platform rather than improving the bounded in-app orchestrator."
+    },
+    {
+      "id": "heartbeat-session-replacement-and-doctor",
+      "title": "Track worker liveness, replaced sessions, protocol compatibility, and recovery diagnostics",
+      "sourceEvidence": "src/main.rs session token checks and doctor command",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "There are no persistent Nexus worker processes or sessions to heartbeat or replace. Request timeouts and typed failed handoffs are the complete lifecycle for the existing advisory-worker model."
+    },
+    {
+      "id": "freeform-agent-messaging-and-broadcast",
+      "title": "Support replies, direct notes, broadcast messages, and task-linked discussion between workers",
+      "sourceEvidence": "README.md send, receive, --reply-to, --task-id, and @all broadcast",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Workers are intentionally isolated and can return only typed handoffs to MAX. Freeform cross-worker messaging would create an unreviewed prompt-propagation channel and bypass the central synthesis boundary."
+    },
+    {
+      "id": "custom-role-and-team-templates",
+      "title": "Load arbitrary Markdown roles and YAML team templates from each project",
+      "sourceEvidence": "README.md Role Templates and Team Templates",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus intentionally keeps one governed five-agent taxonomy. Arbitrary durable roles would recreate an unbounded second agent platform."
+    },
+    {
+      "id": "multi-cli-slash-command-installation",
+      "title": "Install Squad slash commands into Claude, Gemini, Codex, and OpenCode configuration folders",
+      "sourceEvidence": "README.md Setup and supported platforms",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The Nexus orchestrator is an in-app runtime feature and does not modify external AI tool configuration."
+    },
+    {
+      "id": "tmux-terminal-and-worktree-launcher",
+      "title": "Launch tiled external AI terminals and optionally create isolated Git worktrees",
+      "sourceEvidence": "README.md Optional tmux Launcher",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus reuses its existing local AI runtime and review gate; starting external terminals or Git worktrees would be a separate operator workflow."
+    },
+    {
+      "id": "rust-cli-and-sqlite-message-bus",
+      "title": "Install the Rust CLI and coordinate agents through a project-local SQLite database",
+      "sourceEvidence": "README.md How It Works and Cargo.toml dependencies",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The capability is implemented natively through the existing TypeScript agent and API layers, so vendoring a parallel CLI and state store would duplicate the runtime."
+    }
+  ]
+}

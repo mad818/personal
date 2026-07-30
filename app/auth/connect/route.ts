@@ -4,6 +4,7 @@ import {
   clearNexusSessionCookie,
   createNexusSession,
   getConfiguredNexusToken,
+  resolveConfiguredLoginToken,
   setNexusSessionCookie,
   sanitizeAuthReturnPath,
 } from "@/lib/authSession";
@@ -15,7 +16,9 @@ export async function POST(req: NextRequest) {
   const failurePath = sanitizeAuthReturnPath(
     String(form.get("failureNext") ?? nextPath),
   );
-  const submittedToken = normalizeTokenCandidate(String(form.get("token") ?? ""));
+  const submittedToken = normalizeTokenCandidate(
+    String(form.get("token") ?? ""),
+  );
   const configuredToken = getConfiguredNexusToken();
 
   if (!configuredToken) {
@@ -26,7 +29,8 @@ export async function POST(req: NextRequest) {
     return response;
   }
 
-  if (!submittedToken || submittedToken !== configuredToken) {
+  const login = resolveConfiguredLoginToken(submittedToken);
+  if (!login.ok) {
     const url = buildSafeAuthRedirectUrl(req, failurePath);
     url.searchParams.set("authError", "invalid");
     const response = NextResponse.redirect(url, 303);
@@ -34,8 +38,11 @@ export async function POST(req: NextRequest) {
     return response;
   }
 
-  const response = NextResponse.redirect(buildSafeAuthRedirectUrl(req, nextPath), 303);
-  const session = await createNexusSession();
+  const response = NextResponse.redirect(
+    buildSafeAuthRedirectUrl(req, nextPath),
+    303,
+  );
+  const session = await createNexusSession(login.tier);
   if (!session) {
     const url = buildSafeAuthRedirectUrl(req, failurePath);
     url.searchParams.set("authError", "server");
@@ -48,7 +55,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const response = NextResponse.redirect(buildSafeAuthRedirectUrl(req, "/hq"), 303);
+  const response = NextResponse.redirect(
+    buildSafeAuthRedirectUrl(req, "/hq"),
+    303,
+  );
   clearNexusSessionCookie(response);
   return response;
 }

@@ -19,7 +19,9 @@ export function ProjectStackCard() {
         className="flex w-full items-center justify-between text-[var(--text2)] hover:text-[var(--text)]"
         onClick={() => setExpanded((v) => !v)}
       >
-        <span className="font-mono font-semibold tracking-wider">STACK CONTEXT</span>
+        <span className="font-mono font-semibold tracking-wider">
+          STACK CONTEXT
+        </span>
         <span>{expanded ? "▲" : "▼"}</span>
       </button>
 
@@ -69,8 +71,8 @@ export function ProjectStackCard() {
               <ShellBadge tone="accent">Static context</ShellBadge>
             </div>
             <p className="font-mono text-[9px] text-[var(--text3)]">
-              This card reflects the current hardcoded Nexus project context block,
-              not package-level runtime detection.
+              This card reflects the current hardcoded Nexus project context
+              block, not package-level runtime detection.
             </p>
           </div>
         </div>

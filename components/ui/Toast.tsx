@@ -1,16 +1,15 @@
 "use client";
 
 import {
+  type CSSProperties,
   type ReactNode,
   useState,
   useEffect,
   useCallback,
   createContext,
   useContext,
-  useRef,
 } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { SEVERITY_COLORS } from "@/lib/notifications";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import type { NotificationSeverity } from "@/store/useStore";
 
 // ── Toast types ────────────────────────────────────────────────────────────────
@@ -51,173 +50,115 @@ function ToastCard({
   onDismiss: (id: string) => void;
 }) {
   const [hovered, setHovered] = useState(false);
-  const [remaining, setRemaining] = useState(100);
-  const duration = item.duration ?? 5000;
-  const startRef = useRef(Date.now());
-  const pausedRef = useRef(false);
+  const [focusWithin, setFocusWithin] = useState(false);
+  const [documentHidden, setDocumentHidden] = useState(
+    () =>
+      typeof document !== "undefined" && document.visibilityState === "hidden",
+  );
+  const duration = Math.max(1000, item.duration ?? 5000);
+  const [remainingMs, setRemainingMs] = useState(() => duration);
+  const prefersReducedMotion = useReducedMotion() ?? false;
+  const paused = hovered || focusWithin || documentHidden;
+  const urgent = item.severity === "critical" || item.severity === "high";
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setDocumentHidden(document.visibilityState === "hidden");
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
 
   // Progress bar countdown
   useEffect(() => {
-    if (hovered) {
-      pausedRef.current = true;
-      return;
-    }
-    pausedRef.current = false;
-    const interval = setInterval(() => {
-      if (pausedRef.current) return;
-      const elapsed = Date.now() - startRef.current;
-      const pct = Math.max(0, 100 - (elapsed / duration) * 100);
-      setRemaining(pct);
-      if (pct <= 0) {
-        clearInterval(interval);
-        onDismiss(item.id);
-      }
+    if (paused) return;
+
+    let lastTick = performance.now();
+    const interval = window.setInterval(() => {
+      const now = performance.now();
+      const elapsed = now - lastTick;
+      lastTick = now;
+      setRemainingMs((current) => Math.max(0, current - elapsed));
     }, 50);
-    return () => clearInterval(interval);
-  }, [hovered, item.id, duration, onDismiss]);
+    return () => window.clearInterval(interval);
+  }, [paused]);
 
-  // Also reset timer base when hover ends
   useEffect(() => {
-    if (!hovered) {
-      // Recalculate remaining time at start
-      startRef.current = Date.now() - ((100 - remaining) / 100) * duration;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hovered]);
+    if (remainingMs > 0) return;
+    onDismiss(item.id);
+  }, [item.id, onDismiss, remainingMs]);
 
-  const borderColor = SEVERITY_COLORS[item.severity];
+  const remainingPercent = Math.max(
+    0,
+    Math.min(100, (remainingMs / duration) * 100),
+  );
 
   return (
     <motion.div
       layout
-      initial={{ x: 100, opacity: 0 }}
+      role={urgent ? "alert" : "status"}
+      aria-live={urgent ? "assertive" : "polite"}
+      aria-atomic="true"
+      data-severity={item.severity}
+      data-paused={paused}
+      className="nexus-toast"
+      initial={{ x: prefersReducedMotion ? 0 : 48, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-      exit={{ x: 100, opacity: 0, height: 0, marginBottom: 0 }}
-      transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+      exit={
+        prefersReducedMotion
+          ? { opacity: 0 }
+          : { x: 48, opacity: 0, height: 0, marginBottom: 0 }
+      }
+      transition={
+        prefersReducedMotion
+          ? { duration: 0.01 }
+          : { duration: 0.18, ease: [0.4, 0, 0.2, 1] }
+      }
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{
-        position: "relative",
-        width: "300px",
-        background: "rgba(14, 10, 11, 0.96)",
-        border: `1px solid rgba(58,46,43,0.8)`,
-        borderLeft: `3px solid ${borderColor}`,
-        borderRadius: "10px",
-        padding: "12px 14px 14px",
-        boxShadow: `0 8px 32px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.3)`,
-        backdropFilter: "blur(16px)",
-        overflow: "hidden",
-        cursor: "default",
-        marginBottom: "6px",
+      onFocusCapture={() => setFocusWithin(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          setFocusWithin(false);
+        }
       }}
+      style={
+        {
+          "--nexus-toast-progress": `${remainingPercent}%`,
+        } as CSSProperties
+      }
     >
-      {/* Header row */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: "8px",
-          marginBottom: item.message ? "4px" : "0",
-        }}
-      >
-        <div
-          style={{
-            fontSize: "11px",
-            fontWeight: 700,
-            color: "rgba(236,229,223,0.92)",
-            letterSpacing: "0.3px",
-            flex: 1,
-            lineHeight: 1.3,
-          }}
-        >
-          {item.title}
-        </div>
+      <div className="nexus-toast__header">
+        <div className="nexus-toast__title">{item.title}</div>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              fontSize: "8px",
-              fontWeight: 700,
-              color: borderColor,
-              textTransform: "uppercase" as const,
-              letterSpacing: "0.5px",
-              background: `${borderColor}18`,
-              padding: "1px 5px",
-              borderRadius: "3px",
-            }}
-          >
-            {item.severity}
-          </span>
+        <div className="nexus-toast__actions">
+          <span className="nexus-toast__severity">{item.severity}</span>
           <button
             type="button"
             onClick={() => onDismiss(item.id)}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "rgba(122,107,98,0.6)",
-              cursor: "pointer",
-              fontSize: "16px",
-              lineHeight: 1,
-              padding: 0,
-            }}
-            aria-label="Close toast"
+            className="nexus-toast__dismiss"
+            aria-label={`Dismiss ${item.title}`}
           >
-            ×
+            <span aria-hidden="true">×</span>
           </button>
         </div>
       </div>
 
       {item.message && (
-        <div
-          style={{
-            fontSize: "10.5px",
-            color: "rgba(122,107,98,0.85)",
-            lineHeight: 1.4,
-          }}
-        >
-          {item.message}
-        </div>
+        <div className="nexus-toast__message">{item.message}</div>
       )}
 
-      {/* Progress bar */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: "2px",
-          background: "rgba(58,46,43,0.4)",
-        }}
-      >
-        <div
-          style={{
-            height: "100%",
-            width: `${remaining}%`,
-            background: borderColor,
-            transition: "width 0.05s linear",
-            opacity: 0.7,
-          }}
-        />
+      <div className="nexus-toast__progress" aria-hidden="true">
+        <div className="nexus-toast__progress-fill" />
       </div>
     </motion.div>
   );
 }
 
 // ── Toast container — add to layout ───────────────────────────────────────────
-export default function ToastContainer({
-  children,
-}: {
-  children?: ReactNode;
-}) {
+export default function ToastContainer({ children }: { children?: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const dismiss = useCallback((id: string) => {
@@ -246,17 +187,9 @@ export default function ToastContainer({
     <ToastContext.Provider value={{ toast: addToast }}>
       {children}
       <div
-        aria-live="polite"
-        style={{
-          position: "fixed",
-          bottom: "24px",
-          right: "24px",
-          zIndex: 2000,
-          display: "flex",
-          flexDirection: "column-reverse",
-          gap: "0",
-          pointerEvents: toasts.length > 0 ? "auto" : "none",
-        }}
+        role="region"
+        aria-label="Transient notifications"
+        className="nexus-toast-region"
       >
         <AnimatePresence>
           {toasts.map((t) => (

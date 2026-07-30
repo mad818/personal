@@ -25,7 +25,9 @@ async function loadCompiledPageCandidates() {
 
 async function refreshArticleArchiveLinks(articleId: string) {
   const store = useStore.getState();
-  const savedArticle = store.savedArticles.find((article) => article.id === articleId);
+  const savedArticle = store.savedArticles.find(
+    (article) => article.id === articleId,
+  );
   if (!savedArticle) return;
   const compiledPages = await loadCompiledPageCandidates();
   const links = deriveVaultArchiveLinks({
@@ -57,7 +59,9 @@ function queueArticleReasoningIndex(article: Article) {
 
 export function toggleSavedArticleWithIndex(article: Article) {
   const store = useStore.getState();
-  const alreadySaved = store.savedArticles.some((saved) => saved.id === article.id);
+  const alreadySaved = store.savedArticles.some(
+    (saved) => saved.id === article.id,
+  );
   store.toggleSaveArticle(article);
   if (alreadySaved) return;
   if (article.index) {

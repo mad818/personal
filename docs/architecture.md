@@ -2,9 +2,10 @@
 
 ## Overview
 
-Nexus Prime is a **Next.js 14 App Router application** with a **local-first desktop shell** via Tauri and a **self-hosted web deployment** path via Docker/Coolify.
+Nexus Prime is a **Next.js 15 / React 19 App Router application** with a **local-first desktop shell** via Tauri and a **self-hosted web deployment** path via Docker/Coolify. `package.json` is authoritative for exact patch versions.
 
-This repo is no longer a single-file browser artifact. The historical `nexus-final.html` remains as legacy reference only. The active architecture is:
+This repo is no longer a single-file browser artifact. The legacy HTML app is archived under `archive/` and is not an active development surface. The active architecture is:
+
 - `app/` for routes and API handlers,
 - `components/` for UI,
 - `lib/` for runtime logic and policies,
@@ -16,14 +17,14 @@ This repo is no longer a single-file browser artifact. The historical `nexus-fin
 Release scope for the current cycle is intentionally narrower than the full repo route inventory.
 
 ### Supported GA surfaces
-- `/hq` — HQ
-- `/command` — COMMAND
-- `/intel` — INTEL
-- `/alpha` — ALPHA
-- `/cyber` — CYBER
-- `/recon` — RECON
-- `/vault` — VAULT
-- `/resources` — field manual and operator references
+- `/hq` — CITADEL (HQ)
+- `/command` — VECTOR (COMMAND)
+- `/intel` — SPECTRA (INTEL)
+- `/alpha` — QUANT (ALPHA)
+- `/cyber` — BASTION (CYBER)
+- `/recon` — PARALLAX (RECON)
+- `/vault` — ARCHIVE (VAULT)
+- `/resources` — FIELD MANUAL and operator references
 
 ### Beta / internal surfaces
 - Beta: `/labs/signals`, `/labs/ops`, `/labs/security`
@@ -171,7 +172,7 @@ The runtime baseline is monitored through:
 
 ## Current stage
 
-Nexus Prime is **post-migration and pre-GA hardening**.
+Nexus Prime is **post-migration and in release hardening**. The GA surface contract exists; external acceptance and trusted-release proof remain open.
 
 What is already in place:
 - active Next.js app
@@ -185,5 +186,6 @@ What is already in place:
 What remains before a cleaner GA baseline:
 - final deployment and release smoke discipline
 - desktop signing and trusted release verification
-- broader isolation test coverage
+- packaged desktop-shell isolation and OS-level no-outbound proof
+- staged-host, phone/local acceptance, and remote CI confirmation
 - remaining runtime hardening items and rollout cleanup

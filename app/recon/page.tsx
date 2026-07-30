@@ -58,8 +58,16 @@ const LazyRepoIntelPanel = dynamic(
   () => import("@/components/recon/RepoIntelPanel"),
   { ssr: false },
 );
+const LazyIdeaLinkIntakePanel = dynamic(
+  () => import("@/components/recon/IdeaLinkIntakePanel"),
+  { ssr: false },
+);
 const LazyAiExposureReviewCard = dynamic(
   () => import("@/components/recon/AiExposureReviewCard"),
+  { ssr: false },
+);
+const LazyGeocodingPlaygroundCard = dynamic(
+  () => import("@/components/recon/GeocodingPlaygroundCard"),
   { ssr: false },
 );
 
@@ -77,8 +85,7 @@ const VIEWS: { id: View; label: string }[] = [
 const TARGET_BRIEF_COPY: Record<View, string> = {
   osint:
     "Start broad with passive target lookup before narrowing into infrastructure or artifact-specific recon.",
-  pdns:
-    "Use passive DNS when the target is known and historical infrastructure context will change the next move.",
+  pdns: "Use passive DNS when the target is known and historical infrastructure context will change the next move.",
   headers:
     "Use headers audit when web-surface posture matters more than broad discovery.",
   metadata:
@@ -124,18 +131,22 @@ export default function ReconPage() {
       ? "recon-lookup"
       : focus === "recon-repo-intel"
         ? "recon-repo-intel"
-      : focus === "recon-opsec"
-        ? "recon-opsec"
-        : focus === "recon-headers"
-          ? "recon-headers"
-          : focus === "recon-binary"
-            ? "recon-binary"
-          : null;
+        : focus === "recon-opsec"
+          ? "recon-opsec"
+          : focus === "recon-headers"
+            ? "recon-headers"
+            : focus === "recon-binary"
+              ? "recon-binary"
+              : null;
 
   useSurfaceFocusScroll(focusTargetId);
 
   const targetBriefSpec = getSurfaceModuleSpec("recon", "target-brief");
-  const collectionWorkbenchSpec = getSurfaceModuleSpec("recon", "collection-workbench", view);
+  const collectionWorkbenchSpec = getSurfaceModuleSpec(
+    "recon",
+    "collection-workbench",
+    view,
+  );
   const binaryAnalysisSpec = getSurfaceModuleSpec("recon", "binary-analysis");
   const operatorSafetySpec = getSurfaceModuleSpec("recon", "operator-safety");
   const reconLayout = getOpsLayoutDescriptor("recon");
@@ -155,7 +166,7 @@ export default function ReconPage() {
       surface="recon"
       eyebrow="Collection sweep"
       title="Collection desk"
-      description="OSINT, repo intel, and triage on one collection desk."
+      description="OSINT and triage."
       actions={
         <>
           <ShellBadge tone="success">Free by default</ShellBadge>
@@ -227,40 +238,85 @@ export default function ReconPage() {
 
         {view === "osint" && (
           <div id="recon-lookup" style={{ scrollMarginTop: "120px" }}>
-            <OpsWorkplane className={reconLayout.workplaneClass}>
-              <OpsField title="OSINT lookup" detail="Domain, IP, email, username, and hash">
-                <LazyReconLookup />
-              </OpsField>
-              <OpsRail className={reconLayout.railClass}>
-                <TrustOperationsRail
-                  title={reconLayout.trustLabel}
-                  detail="Connector posture, step-up state, and protected-action cues stay in the collection lane."
-                  compact
-                />
-                <OpsField
-                  title="AI exposure packs"
-                  detail="Passive AI posture review"
-                  tone="muted"
-                  compact
+            <div className="nexus-surface-chamber-shell">
+              <div className="nexus-surface-chamber-shell__body">
+                <OpsWorkplane
+                  className={`nexus-surface-chamber-shell__lead ${reconLayout.workplaneClass}`}
                 >
-                  <LazyAiExposureReviewCard route="/recon" />
-                </OpsField>
-              </OpsRail>
-              <OpsField
-                id="recon-repo-intel"
-                title="Repo intel"
-                detail="Public GitHub metadata only"
-                compact
-              >
-                <LazyRepoIntelPanel />
-              </OpsField>
-            </OpsWorkplane>
+                  <OpsField
+                    title="OSINT lookup"
+                    detail="Domain, IP, email, username, and hash"
+                  >
+                    <LazyReconLookup />
+                  </OpsField>
+                </OpsWorkplane>
+                <OpsRail
+                  className={`nexus-surface-chamber-shell__support ${reconLayout.railClass}`}
+                >
+                  <TrustOperationsRail
+                    title={reconLayout.trustLabel}
+                    detail="Connector posture, step-up state, and protected-action cues stay in the collection lane."
+                    compact
+                  />
+                  <OpsField
+                    title="AI exposure packs"
+                    detail="Passive AI posture review"
+                    tone="muted"
+                    compact
+                  >
+                    <LazyAiExposureReviewCard route="/recon" />
+                  </OpsField>
+                  <details className="nexus-surface-disclosure">
+                    <summary>Open repo intel</summary>
+                    <div className="nexus-surface-disclosure__body">
+                      <OpsField
+                        id="recon-repo-intel"
+                        title="Repo intel"
+                        detail="Public GitHub metadata only"
+                        compact
+                      >
+                        <LazyRepoIntelPanel />
+                      </OpsField>
+                    </div>
+                  </details>
+                  <details className="nexus-surface-disclosure">
+                    <summary>Open idea link intake</summary>
+                    <div className="nexus-surface-disclosure__body">
+                      <OpsField
+                        title="Idea link intake"
+                        detail="Register GitHub/X links for assimilation triage"
+                        tone="muted"
+                        compact
+                      >
+                        <LazyIdeaLinkIntakePanel />
+                      </OpsField>
+                    </div>
+                  </details>
+                  <details className="nexus-surface-disclosure">
+                    <summary>Open geocoding tools</summary>
+                    <div className="nexus-surface-disclosure__body">
+                      <OpsField
+                        title="Coordinate lookup"
+                        detail="Bounded place search and reverse geocoding"
+                        tone="muted"
+                        compact
+                      >
+                        <LazyGeocodingPlaygroundCard />
+                      </OpsField>
+                    </div>
+                  </details>
+                </OpsRail>
+              </div>
+            </div>
           </div>
         )}
 
         {view === "pdns" && (
           <OpsWorkplane className={reconLayout.workplaneClass}>
-            <OpsField title="Passive DNS" detail="Historical records and reverse-IP context">
+            <OpsField
+              title="Passive DNS"
+              detail="Historical records and reverse-IP context"
+            >
               <LazyPassiveDns />
             </OpsField>
           </OpsWorkplane>
@@ -269,7 +325,10 @@ export default function ReconPage() {
         {view === "headers" && (
           <div id="recon-headers" style={{ scrollMarginTop: "120px" }}>
             <OpsWorkplane className={reconLayout.workplaneClass}>
-              <OpsField title="HTTP headers audit" detail="Security header posture">
+              <OpsField
+                title="HTTP headers audit"
+                detail="Security header posture"
+              >
                 <LazyHeadersAudit />
               </OpsField>
             </OpsWorkplane>
@@ -287,7 +346,10 @@ export default function ReconPage() {
         {view === "binary" && (
           <div id="recon-binary" style={{ scrollMarginTop: "120px" }}>
             <OpsWorkplane className={reconLayout.workplaneClass}>
-              <OpsField title="Binary triage" detail="Local-only reverse-engineering prep">
+              <OpsField
+                title="Binary triage"
+                detail="Local-only reverse-engineering prep"
+              >
                 <LazyBinaryTriagePanel />
               </OpsField>
             </OpsWorkplane>
@@ -297,7 +359,11 @@ export default function ReconPage() {
         {view === "opsec" && (
           <div id="recon-opsec" style={{ scrollMarginTop: "120px" }}>
             <OpsRail className={reconLayout.railClass}>
-              <OpsField title="OPSEC panel" detail="Fingerprint and exposure checks" tone="muted">
+              <OpsField
+                title="OPSEC panel"
+                detail="Fingerprint and exposure checks"
+                tone="muted"
+              >
                 <LazyOpsecPanel />
               </OpsField>
             </OpsRail>

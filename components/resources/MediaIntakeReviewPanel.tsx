@@ -12,6 +12,8 @@ import {
   type MediaEscapeKind,
 } from "@/lib/subscriptionEscape";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
+import { ActionDialog } from "@/components/ui/ActionDialog";
+import { useActionDialog } from "@/hooks/useActionDialog";
 
 interface MediaIntakeReviewPanelProps {
   items: MediaEscapeItem[];
@@ -150,10 +152,10 @@ export default function MediaIntakeReviewPanel({
   const [pasteText, setPasteText] = useState("");
   const [fallbackKind, setFallbackKind] = useState<MediaEscapeKind>("movie");
   const [message, setMessage] = useState("");
+  const actionDialog = useActionDialog();
 
   const activeQueue = useMemo(
-    () =>
-      intakeItems.filter((item) => ACTIVE_INTAKE_STATUSES.has(item.status)),
+    () => intakeItems.filter((item) => ACTIVE_INTAKE_STATUSES.has(item.status)),
     [intakeItems],
   );
   const importedCount = intakeItems.filter(
@@ -231,7 +233,7 @@ export default function MediaIntakeReviewPanel({
     );
   }
 
-  function importItem(item: MediaEscapeIntakeItem) {
+  async function importItem(item: MediaEscapeIntakeItem) {
     if (!item.suggestedTitle.trim()) {
       setMessage("Add a title before importing.");
       return;
@@ -242,14 +244,14 @@ export default function MediaIntakeReviewPanel({
       year: item.suggestedYear,
       creator: item.suggestedCreator,
     });
-    if (
-      duplicate &&
-      typeof window !== "undefined" &&
-      !window.confirm(
-        `"${duplicate.title}" looks like the same ${MEDIA_ESCAPE_KIND_LABELS[item.kind].toLowerCase()}. Import anyway?`,
-      )
-    ) {
-      return;
+    if (duplicate) {
+      const confirmed = await actionDialog.requestActionDialog({
+        eyebrow: "Duplicate review",
+        title: "Import possible duplicate?",
+        description: `"${duplicate.title}" looks like the same ${MEDIA_ESCAPE_KIND_LABELS[item.kind].toLowerCase()}. Importing will keep both entries.`,
+        confirmLabel: "Import anyway",
+      });
+      if (!confirmed) return;
     }
     const mediaItem = itemFromIntake(item);
     const now = new Date().toISOString();
@@ -344,7 +346,11 @@ export default function MediaIntakeReviewPanel({
                 <option value="book">Book</option>
               </select>
             </label>
-            <button type="button" onClick={addToReview} style={buttonStyle(true)}>
+            <button
+              type="button"
+              onClick={addToReview}
+              style={buttonStyle(true)}
+            >
               Add to review
             </button>
           </div>
@@ -374,7 +380,11 @@ export default function MediaIntakeReviewPanel({
                   ? "Save failed"
                   : "Local review"}
           </ShellBadge>
-          {message ? <ShellBadge tone="accent">{message}</ShellBadge> : null}
+          {message ? (
+            <ShellBadge role="status" tone="accent">
+              {message}
+            </ShellBadge>
+          ) : null}
         </div>
       </div>
 
@@ -421,7 +431,9 @@ export default function MediaIntakeReviewPanel({
                       {item.rawName}
                     </p>
                   </div>
-                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <div
+                    style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}
+                  >
                     <ShellBadge tone="muted">
                       {MEDIA_ESCAPE_KIND_LABELS[item.kind]}
                     </ShellBadge>
@@ -541,7 +553,7 @@ export default function MediaIntakeReviewPanel({
                   </button>
                   <button
                     type="button"
-                    onClick={() => importItem(item)}
+                    onClick={() => void importItem(item)}
                     style={buttonStyle(true)}
                   >
                     Import
@@ -588,6 +600,7 @@ export default function MediaIntakeReviewPanel({
           </div>
         </div>
       ) : null}
+      <ActionDialog controller={actionDialog} />
     </section>
   );
 }

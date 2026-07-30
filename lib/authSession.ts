@@ -9,6 +9,8 @@ export const NEXUS_STEP_UP_MAX_AGE_SECONDS = 60 * 20;
 export const NEXUS_INTERNAL_AUTH_HEADER = "x-nexus-internal-auth";
 const NEXUS_AUTH_TOKEN_VERSION = "v1";
 
+export type NexusSessionAuthTier = "master" | "phone";
+
 type SessionRecord = {
   cookieValue: string;
   sessionId: string;
@@ -27,7 +29,7 @@ type StepUpRecord = {
 function buildSessionCookieOptions(maxAge: number) {
   return {
     httpOnly: true,
-    sameSite: "lax" as const,
+    sameSite: "strict" as const,
     secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge,
@@ -45,7 +47,9 @@ function buildStepUpCookieOptions(maxAge: number) {
 }
 
 function bytesToHex(bytes: Uint8Array) {
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join(
+    "",
+  );
 }
 
 function mintOpaqueToken(prefix: "sess" | "step") {
@@ -88,7 +92,9 @@ async function verifyAuthSignature(
 ) {
   const normalizedSignature = normalizeTokenCandidate(expectedSignature ?? "");
   if (!normalizedSignature) return false;
-  const actualSignature = await signAuthPayload(buildSignedPayload(kind, parts));
+  const actualSignature = await signAuthPayload(
+    buildSignedPayload(kind, parts),
+  );
   return Boolean(actualSignature && actualSignature === normalizedSignature);
 }
 
@@ -110,11 +116,14 @@ function parseSignedToken(rawValue?: string | null) {
   };
 }
 
-export async function createNexusSession() {
+export async function createNexusSession(
+  authTier: NexusSessionAuthTier = "master",
+) {
   const issuedAt = Date.now();
   const expiresAt = issuedAt + NEXUS_SESSION_MAX_AGE_SECONDS * 1000;
   const sessionId = mintOpaqueToken("sess");
-  const body = [sessionId, String(issuedAt), String(expiresAt)];
+  const tier = authTier === "phone" ? "phone" : "master";
+  const body = [sessionId, String(issuedAt), String(expiresAt), tier];
   const signature = await signAuthPayload(buildSignedPayload("session", body));
   if (!signature) return null;
   return {
@@ -122,6 +131,7 @@ export async function createNexusSession() {
     sessionId,
     issuedAt,
     expiresAt,
+    authTier: tier,
   };
 }
 
@@ -144,16 +154,37 @@ export async function createNexusStepUp(sessionId: string) {
 
 export async function getNexusSessionState(rawSessionCookie?: string | null) {
   const parsed = parseSignedToken(rawSessionCookie);
-  if (!parsed || parsed.body.length !== 3) return null;
-  const [sessionId, issuedAtRaw, expiresAtRaw] = parsed.body;
+  if (!parsed) return null;
+
+  let sessionId = "";
+  let issuedAtRaw = "";
+  let expiresAtRaw = "";
+  let authTier: NexusSessionAuthTier = "master";
+  let signBody: string[];
+
+  if (parsed.body.length === 3) {
+    [sessionId, issuedAtRaw, expiresAtRaw] = parsed.body;
+    signBody = parsed.body;
+  } else if (parsed.body.length === 4) {
+    const [sid, issued, expires, tierRaw] = parsed.body;
+    sessionId = sid;
+    issuedAtRaw = issued;
+    expiresAtRaw = expires;
+    authTier = tierRaw === "phone" ? "phone" : "master";
+    signBody = parsed.body;
+  } else {
+    return null;
+  }
+
   const issuedAt = parseTokenTimestamp(issuedAtRaw);
   const expiresAt = parseTokenTimestamp(expiresAtRaw);
-  if (!sessionId || !issuedAt || !expiresAt || expiresAt <= issuedAt) return null;
+  if (!sessionId || !issuedAt || !expiresAt || expiresAt <= issuedAt)
+    return null;
   const now = Date.now();
   if (expiresAt <= now) return null;
   const validSignature = await verifyAuthSignature(
     "session",
-    [sessionId, issuedAtRaw, expiresAtRaw],
+    signBody,
     parsed.signature,
   );
   if (!validSignature) return null;
@@ -162,6 +193,7 @@ export async function getNexusSessionState(rawSessionCookie?: string | null) {
     cookieValue: parsed.token,
     issuedAt,
     expiresAt,
+    authTier,
     ageSeconds: Math.max(0, Math.floor((now - issuedAt) / 1000)),
     remainingSeconds: Math.max(0, Math.ceil((expiresAt - now) / 1000)),
   };
@@ -173,6 +205,7 @@ export async function getNexusStepUpState(
 ) {
   const sessionState = await getNexusSessionState(rawSessionCookie);
   if (!sessionState) return null;
+  if (sessionState.authTier === "phone") return null;
   const parsed = parseSignedToken(rawStepUpCookie);
   if (!parsed || parsed.body.length !== 4) return null;
   const [sessionId, stepUpId, issuedAtRaw, expiresAtRaw] = parsed.body;
@@ -207,7 +240,9 @@ export async function getNexusStepUpState(
   };
 }
 
-export async function hasAuthenticatedNexusSession(rawSessionCookie?: string | null) {
+export async function hasAuthenticatedNexusSession(
+  rawSessionCookie?: string | null,
+) {
   return Boolean(await getNexusSessionState(rawSessionCookie));
 }
 
@@ -220,6 +255,33 @@ export async function hasActiveNexusStepUp(
 
 export function getConfiguredNexusToken() {
   return normalizeTokenCandidate(process.env.NEXUS_TOKEN ?? "");
+}
+
+export function getConfiguredNexusPhoneToken() {
+  return normalizeTokenCandidate(process.env.NEXUS_PHONE_TOKEN ?? "");
+}
+
+export function isNexusPhoneTokenConfigured() {
+  const phone = getConfiguredNexusPhoneToken();
+  const master = getConfiguredNexusToken();
+  return Boolean(phone && phone !== master);
+}
+
+export function resolveConfiguredLoginToken(rawCandidate?: string | null): {
+  ok: boolean;
+  tier: NexusSessionAuthTier;
+} {
+  const candidate = normalizeTokenCandidate(rawCandidate ?? "");
+  if (!candidate) return { ok: false, tier: "master" };
+  const master = getConfiguredNexusToken();
+  if (master && candidate === master) {
+    return { ok: true, tier: "master" };
+  }
+  const phone = getConfiguredNexusPhoneToken();
+  if (phone && phone !== master && candidate === phone) {
+    return { ok: true, tier: "phone" };
+  }
+  return { ok: false, tier: "master" };
 }
 
 export function isNexusAuthEnabled() {
@@ -243,7 +305,10 @@ function normalizeHostCandidate(rawValue?: string | null) {
   } catch {
     // Fall through to plain host normalization below.
   }
-  return value.replace(/^https?:\/\//i, "").replace(/\/.*$/, "").toLowerCase();
+  return value
+    .replace(/^https?:\/\//i, "")
+    .replace(/\/.*$/, "")
+    .toLowerCase();
 }
 
 export function isTrustedInternalHost(rawHost?: string | null) {
@@ -338,16 +403,8 @@ export function applyAuthNoStoreHeaders(headers: Headers) {
 }
 
 export function clearNexusSessionCookie(response: NextResponse) {
-  response.cookies.set(
-    NEXUS_SESSION_COOKIE,
-    "",
-    buildSessionCookieOptions(0),
-  );
-  response.cookies.set(
-    NEXUS_STEP_UP_COOKIE,
-    "",
-    buildStepUpCookieOptions(0),
-  );
+  response.cookies.set(NEXUS_SESSION_COOKIE, "", buildSessionCookieOptions(0));
+  response.cookies.set(NEXUS_STEP_UP_COOKIE, "", buildStepUpCookieOptions(0));
   applyAuthNoStoreHeaders(response.headers);
 }
 

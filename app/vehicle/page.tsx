@@ -28,9 +28,12 @@ const BenchBringUpChecklist = dynamic(
 const CameraArray = dynamic(() => import("@/components/vehicle/CameraArray"), {
   ssr: false,
 });
-const ControlPanel = dynamic(() => import("@/components/vehicle/ControlPanel"), {
-  ssr: false,
-});
+const ControlPanel = dynamic(
+  () => import("@/components/vehicle/ControlPanel"),
+  {
+    ssr: false,
+  },
+);
 const DroneOpsLaunchpad = dynamic(
   () => import("@/components/vehicle/DroneOpsLaunchpad"),
   { ssr: false },
@@ -42,9 +45,12 @@ const FirstHardwareDayCard = dynamic(
 const RadarSweep = dynamic(() => import("@/components/vehicle/RadarSweep"), {
   ssr: false,
 });
-const SensorFusion = dynamic(() => import("@/components/vehicle/SensorFusion"), {
-  ssr: false,
-});
+const SensorFusion = dynamic(
+  () => import("@/components/vehicle/SensorFusion"),
+  {
+    ssr: false,
+  },
+);
 const SensorHealthRadial = dynamic(
   () => import("@/components/vehicle/SensorHealthRadial"),
   { ssr: false },
@@ -180,23 +186,33 @@ export default function VehiclePage() {
 
         <div className="nexus-surface-chamber-shell">
           <div className="nexus-surface-chamber-shell__body">
-            <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${vehicleLayout.workplaneClass}`}>
+            <OpsWorkplane
+              className={`nexus-surface-chamber-shell__lead ${vehicleLayout.workplaneClass}`}
+            >
               <OpsField
                 title="Readiness brief"
                 detail="What this lane becomes once the drone arrives"
               >
                 <div className="nexus-shell-copy">
                   <p>
-                    The F450 gives us room for a real flight stack, telemetry, GPS,
-                    and later companion compute. Nexus should meet it as an operator
-                    console first, then grow into replay and mission review once the aircraft is stable.
+                    The F450 gives us room for a real flight stack, telemetry,
+                    GPS, and later companion compute. Nexus should meet it as an
+                    operator console first, then grow into replay and mission
+                    review once the aircraft is stable.
                   </p>
                 </div>
-                <div className="nexus-shell-lab-grid" aria-label="Vehicle readiness phases">
+                <div
+                  className="nexus-shell-lab-grid"
+                  aria-label="Vehicle readiness phases"
+                >
                   {READINESS_PHASES.map((phase) => (
                     <div key={phase.title} className="nexus-shell-lab-card">
-                      <span className="nexus-shell-lab-card__eyebrow">{phase.eyebrow}</span>
-                      <div className="nexus-shell-lab-card__title">{phase.title}</div>
+                      <span className="nexus-shell-lab-card__eyebrow">
+                        {phase.eyebrow}
+                      </span>
+                      <div className="nexus-shell-lab-card__title">
+                        {phase.title}
+                      </div>
                       <p className="nexus-shell-lab-card__description">
                         {phase.description}
                       </p>
@@ -206,18 +222,35 @@ export default function VehiclePage() {
               </OpsField>
             </OpsWorkplane>
 
-            <OpsRail className={`nexus-surface-chamber-shell__support ${vehicleLayout.railClass}`}>
+            <OpsRail
+              className={`nexus-surface-chamber-shell__support ${vehicleLayout.railClass}`}
+            >
               <ShellStack>
-                <OpsField title="Flight architecture" detail="How the future system stays safe" tone="muted" compact>
-                  <ul className="nexus-shell-kicker-list" aria-label="Flight architecture">
+                <OpsField
+                  title="Flight architecture"
+                  detail="How the future system stays safe"
+                  tone="muted"
+                  compact
+                >
+                  <ul
+                    className="nexus-shell-kicker-list"
+                    aria-label="Flight architecture"
+                  >
                     {STACK_LAYERS.map((item) => (
                       <li key={item}>{item}</li>
                     ))}
                   </ul>
                 </OpsField>
 
-                <OpsField title="Guardrails" detail="No-repeat rules for later hardware work" compact>
-                  <ul className="nexus-shell-kicker-list" aria-label="Vehicle guardrails">
+                <OpsField
+                  title="Guardrails"
+                  detail="No-repeat rules for later hardware work"
+                  compact
+                >
+                  <ul
+                    className="nexus-shell-kicker-list"
+                    aria-label="Vehicle guardrails"
+                  >
                     {GUARDRAILS.map((item) => (
                       <li key={item}>{item}</li>
                     ))}
@@ -252,12 +285,19 @@ export default function VehiclePage() {
                   tone="muted"
                   compact
                 >
-                  <div className="nexus-shell-copy nexus-shell-copy--compact" style={{ marginBottom: "10px" }}>
+                  <div
+                    className="nexus-shell-copy nexus-shell-copy--compact"
+                    style={{ marginBottom: "10px" }}
+                  >
                     <p>
-                      Simulation, replay, and fresh bridge frames now resolve through one telemetry shape.
+                      Simulation, replay, and fresh bridge frames now resolve
+                      through one telemetry shape.
                     </p>
                   </div>
-                  <div className="nexus-shell-inline-list" aria-label="Telemetry contract">
+                  <div
+                    className="nexus-shell-inline-list"
+                    aria-label="Telemetry contract"
+                  >
                     {VEHICLE_CONTRACT_FIELDS.map((item) => (
                       <span key={item} className="nexus-shell-inline-chip">
                         {item}
@@ -272,7 +312,9 @@ export default function VehiclePage() {
 
         <div className="nexus-surface-chamber-shell">
           <div className="nexus-surface-chamber-shell__body">
-            <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${vehicleLayout.workplaneClass}`}>
+            <OpsWorkplane
+              className={`nexus-surface-chamber-shell__lead ${vehicleLayout.workplaneClass}`}
+            >
               <ShellStack gap="12px">
                 <OpsField
                   title="Sensor table"
@@ -287,14 +329,17 @@ export default function VehiclePage() {
                 >
                   <RadarSweep />
                   <div className="nexus-shell-copy nexus-shell-copy--compact">
-                    Radar stays a future passive lane here: {RADAR_READINESS_SEQUENCE.join(" → ")}.
-                    Use it to stage readiness and archive notes, not RF control.
+                    Radar stays a future passive lane here:{" "}
+                    {RADAR_READINESS_SEQUENCE.join(" → ")}. Use it to stage
+                    readiness and archive notes, not RF control.
                   </div>
                 </OpsField>
               </ShellStack>
             </OpsWorkplane>
 
-            <OpsRail className={`nexus-surface-chamber-shell__support ${vehicleLayout.railClass}`}>
+            <OpsRail
+              className={`nexus-surface-chamber-shell__support ${vehicleLayout.railClass}`}
+            >
               <ShellStack gap="12px">
                 <OpsField
                   title="Telemetry trend"
@@ -321,8 +366,9 @@ export default function VehiclePage() {
                   compact
                 >
                   <div className="nexus-shell-copy nexus-shell-copy--compact">
-                    Keep telemetry, control, and launch decisions on one systems table.
-                    Bench validation and archive packaging stay adjacent to the live stack.
+                    Keep telemetry, control, and launch decisions on one systems
+                    table. Bench validation and archive packaging stay adjacent
+                    to the live stack.
                   </div>
                 </OpsField>
               </ShellStack>
@@ -357,7 +403,9 @@ export default function VehiclePage() {
                   </OpsField>
                 </ShellStack>
               </div>
-              <OpsInspector className={`nexus-surface-chamber-shell__support ${vehicleLayout.inspectorClass}`}>
+              <OpsInspector
+                className={`nexus-surface-chamber-shell__support ${vehicleLayout.inspectorClass}`}
+              >
                 <ShellStack gap="12px">
                   <OpsField
                     id="vehicle-bench-checklist"

@@ -64,7 +64,9 @@ export default function EspectreWifiViewer() {
       if (!response.ok) return;
       const next = (await response.json()) as EspectrePayload;
       setPayload(next);
-      setSelectedId((current) => current || next.sensors?.[0]?.telemetry.sensorId || "");
+      setSelectedId(
+        (current) => current || next.sensors?.[0]?.telemetry.sensorId || "",
+      );
     } catch {
       // External sensing is optional and must not break the IoT route.
     }
@@ -97,7 +99,11 @@ export default function EspectreWifiViewer() {
           patch,
         }),
       });
-      const result = (await response.json()) as { note?: string; error?: string };
+      if (!response.ok) throw new Error("ESPectre command rejected");
+      const result = (await response.json()) as {
+        note?: string;
+        error?: string;
+      };
       setMessage(result.note ?? result.error ?? "Command envelope prepared.");
     } catch {
       setMessage("Unable to prepare command envelope.");
@@ -110,7 +116,10 @@ export default function EspectreWifiViewer() {
   const readiness = selected?.readiness;
 
   return (
-    <section data-testid="espectre-wifi-viewer" style={{ display: "grid", gap: "12px" }}>
+    <section
+      data-testid="espectre-wifi-viewer"
+      style={{ display: "grid", gap: "12px" }}
+    >
       <SurfaceCallout
         tone="info"
         compact
@@ -151,7 +160,14 @@ export default function EspectreWifiViewer() {
             <strong style={{ fontSize: "18px" }}>
               {sensor.telemetry.motionState === "motion" ? "MOTION" : "IDLE"}
             </strong>
-            <div style={{ display: "flex", gap: "6px", marginTop: "8px", flexWrap: "wrap" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: "6px",
+                marginTop: "8px",
+                flexWrap: "wrap",
+              }}
+            >
               <ShellBadge tone={readinessTone(sensor.readiness.status)}>
                 {sensor.readiness.status}
               </ShellBadge>
@@ -174,9 +190,20 @@ export default function EspectreWifiViewer() {
               ["Movement score", telemetry.movementScore.toFixed(1)],
               ["Threshold", telemetry.threshold.toFixed(1)],
               ["Detector", telemetry.detector.toUpperCase()],
-              ["Hit filter", `${telemetry.motionOnHits} on / ${telemetry.motionOffHits} off`],
-              ["Filters", `${telemetry.nbviEnabled ? "NBVI " : ""}${telemetry.hampelEnabled ? "Hampel " : ""}${telemetry.lowPassEnabled ? "Low-pass" : ""}`.trim() || "Off"],
-              ["Locks", `${telemetry.gainLocked ? "Gain " : ""}${telemetry.fftLocked ? "FFT" : ""}`.trim() || "Off"],
+              [
+                "Hit filter",
+                `${telemetry.motionOnHits} on / ${telemetry.motionOffHits} off`,
+              ],
+              [
+                "Filters",
+                `${telemetry.nbviEnabled ? "NBVI " : ""}${telemetry.hampelEnabled ? "Hampel " : ""}${telemetry.lowPassEnabled ? "Low-pass" : ""}`.trim() ||
+                  "Off",
+              ],
+              [
+                "Locks",
+                `${telemetry.gainLocked ? "Gain " : ""}${telemetry.fftLocked ? "FFT" : ""}`.trim() ||
+                  "Off",
+              ],
             ].map(([label, value]) => (
               <div
                 key={label}
@@ -209,7 +236,9 @@ export default function EspectreWifiViewer() {
                 defaultValue={telemetry.threshold}
                 style={controlStyle}
                 onBlur={(event) =>
-                  void send("configure", { threshold: Number(event.target.value) })
+                  void send("configure", {
+                    threshold: Number(event.target.value),
+                  })
                 }
               />
             </label>
@@ -244,12 +273,21 @@ export default function EspectreWifiViewer() {
                 <option value="external">External UDP</option>
               </select>
             </label>
-            <label style={{ ...fieldStyle, display: "flex", alignItems: "center", gap: "8px" }}>
+            <label
+              style={{
+                ...fieldStyle,
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
               <input
                 type="checkbox"
                 checked={telemetry.consentConfirmed}
                 onChange={(event) =>
-                  void send("configure", { consentConfirmed: event.target.checked })
+                  void send("configure", {
+                    consentConfirmed: event.target.checked,
+                  })
                 }
               />
               <span>Consent confirmed for this zone</span>
@@ -264,13 +302,17 @@ export default function EspectreWifiViewer() {
             </ShellButton>
           </div>
 
-          <div style={{ color: "var(--text2)", fontSize: "12px", lineHeight: 1.5 }}>
-            <strong>Consent and readiness:</strong> {readiness.summary} {message}
+          <div
+            style={{ color: "var(--text2)", fontSize: "12px", lineHeight: 1.5 }}
+          >
+            <strong>Consent and readiness:</strong> {readiness.summary}{" "}
+            {message}
           </div>
         </>
       ) : (
         <p style={{ margin: 0, color: "var(--text2)" }}>
-          ESPectre posture is unavailable. The rest of the IoT desk remains operational.
+          ESPectre posture is unavailable. The rest of the IoT desk remains
+          operational.
         </p>
       )}
     </section>

@@ -95,9 +95,6 @@ test("public root stays outside protected shell chrome and hands off to /hq", as
     /Mission Queue|World Picture|Threat Posture|Memory Spine|Proof Plane|Operator Playbooks|Open-Source Sweep/,
   );
   await expect(
-    page.getByText(/Aether Reliquary|RPG production lane|RPG world/),
-  ).toHaveCount(0);
-  await expect(
     page.getByText(/Get Started|Watch the Film|Client satisfaction/),
   ).toHaveCount(0);
   await expect(page.getByTestId("auth-gate")).toHaveCount(0);

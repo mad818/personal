@@ -22,8 +22,7 @@
       "proof": [
         "lib/networkHealthTargets.ts",
         "components/command/NetworkHealth.tsx",
-        "app/command/page.tsx",
-        "scripts/validate-homelable-network-health.mjs"
+        "app/command/page.tsx"
       ],
       "adaptationNotes": "Bounded HTTP health probes against Nexus routes plus optional external URLs."
     },
@@ -35,8 +34,7 @@
       "proof": [
         "lib/networkTopology.ts",
         "components/command/NetworkTopologyPanel.tsx",
-        "components/command/NetworkHealth.tsx",
-        "scripts/validate-homelable-network-health.mjs"
+        "components/command/NetworkHealth.tsx"
       ],
       "adaptationNotes": "Read-only hub-and-spoke route topology canvas derived from health probe targets; no LAN discovery or nmap."
     },

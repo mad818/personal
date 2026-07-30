@@ -20,6 +20,7 @@ import type {
   WorkflowDefinition,
   WorkflowRun,
 } from "@/lib/assimilation/types";
+import { mergeMissingWorkflowDefinitions } from "@/lib/workflowDefinition";
 
 const DATA_DIR =
   process.env.NEXUS_DATA_DIR ??
@@ -41,12 +42,22 @@ function defaultState(): AssimilationState {
   };
 }
 
+export function mergeMissingDefaultWorkflows(
+  workflows: WorkflowDefinition[],
+): WorkflowDefinition[] {
+  return mergeMissingWorkflowDefinitions(workflows, DEFAULT_WORKFLOWS);
+}
+
 async function ensureStateFile() {
   await mkdir(DATA_DIR, { recursive: true });
   try {
     await readFile(DATA_FILE, "utf-8");
   } catch {
-    await writeFile(DATA_FILE, JSON.stringify(defaultState(), null, 2), "utf-8");
+    await writeFile(
+      DATA_FILE,
+      JSON.stringify(defaultState(), null, 2),
+      "utf-8",
+    );
   }
 }
 
@@ -59,15 +70,16 @@ export async function readAssimilationState(): Promise<AssimilationState> {
     return {
       version: parsed.version ?? fallback.version,
       updatedAt: parsed.updatedAt ?? fallback.updatedAt,
-      workflows: parsed.workflows ?? fallback.workflows,
+      workflows: mergeMissingDefaultWorkflows(
+        parsed.workflows ?? fallback.workflows,
+      ),
       workflowRuns: parsed.workflowRuns ?? fallback.workflowRuns,
       registryItems: parsed.registryItems ?? fallback.registryItems,
       assetKits: parsed.assetKits ?? fallback.assetKits,
       securityScenarios: parsed.securityScenarios ?? fallback.securityScenarios,
       securityRuns: parsed.securityRuns ?? fallback.securityRuns,
       modelLabRuns: parsed.modelLabRuns ?? fallback.modelLabRuns,
-      geoDeltaSnapshots:
-        parsed.geoDeltaSnapshots ?? fallback.geoDeltaSnapshots,
+      geoDeltaSnapshots: parsed.geoDeltaSnapshots ?? fallback.geoDeltaSnapshots,
     };
   } catch {
     const fallback = defaultState();
@@ -135,7 +147,9 @@ export async function listAssetKits(): Promise<AssetKit[]> {
   return (await readAssimilationState()).assetKits;
 }
 
-export async function saveRegistryItem(item: RegistryItem): Promise<RegistryItem> {
+export async function saveRegistryItem(
+  item: RegistryItem,
+): Promise<RegistryItem> {
   const state = await readAssimilationState();
   const next: RegistryItem = {
     ...item,

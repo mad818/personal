@@ -17,9 +17,7 @@ import {
   parseRepoCompareMarkdown,
   type RepoCompareSections,
 } from "@/lib/repoCompare";
-import {
-  buildRepoAssimilationOrbitPrompt,
-} from "@/lib/repoAssimilation";
+import { buildRepoAssimilationOrbitPrompt } from "@/lib/repoAssimilation";
 import {
   buildRepoIntelOrbitPrompt,
   normalizeRepoIntelReference,
@@ -41,11 +39,9 @@ interface RepoComparePage {
 
 interface RepoComparePanelProps {
   currentProfile: RepoIntelProfile | null;
-  latestAssimilation:
-    | {
-        content?: string;
-      }
-    | null;
+  latestAssimilation: {
+    content?: string;
+  } | null;
   correctionConstraintLines: string[];
   correctionMemoryIds: string[];
 }
@@ -73,11 +69,15 @@ function findMatchingComparisonPage(
   pages: RepoComparePage[],
   compareRefs: string[],
 ) {
-  const sorted = [...pages].sort((left, right) => right.updatedAt - left.updatedAt);
+  const sorted = [...pages].sort(
+    (left, right) => right.updatedAt - left.updatedAt,
+  );
   if (compareRefs.length < 2) return sorted[0] ?? null;
   const requiredTags = compareRefs.map(buildRepoReferenceTag);
   return (
-    sorted.find((page) => requiredTags.every((tag) => page.tags.includes(tag))) ??
+    sorted.find((page) =>
+      requiredTags.every((tag) => page.tags.includes(tag)),
+    ) ??
     sorted[0] ??
     null
   );
@@ -99,9 +99,8 @@ export default function RepoComparePanel({
   const [compareStatus, setCompareStatus] = useState<CompareStatus>("idle");
   const [compareError, setCompareError] = useState<string | null>(null);
   const [comparePages, setComparePages] = useState<RepoComparePage[]>([]);
-  const [compareResult, setCompareResult] = useState<RepoCompareSections | null>(
-    null,
-  );
+  const [compareResult, setCompareResult] =
+    useState<RepoCompareSections | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -168,9 +167,10 @@ export default function RepoComparePanel({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ repo: repoRef }),
     });
-    const payload = (await response.json().catch(() => null)) as
-      | { repo?: RepoIntelProfile; error?: string }
-      | null;
+    const payload = (await response.json().catch(() => null)) as {
+      repo?: RepoIntelProfile;
+      error?: string;
+    } | null;
     if (!response.ok || !payload?.repo) {
       throw new Error(
         payload?.error ??
@@ -199,9 +199,10 @@ export default function RepoComparePanel({
           input: { repo_refs: compareRefs },
         }),
       });
-      const toolPayload = (await toolResponse.json().catch(() => null)) as
-        | { result?: string; error?: string }
-        | null;
+      const toolPayload = (await toolResponse.json().catch(() => null)) as {
+        result?: string;
+        error?: string;
+      } | null;
       const brief = toolPayload?.result?.trim() ?? "";
       if (!toolResponse.ok || !brief || !brief.includes("## Candidates")) {
         throw new Error(
@@ -213,7 +214,8 @@ export default function RepoComparePanel({
 
       const profiles = await Promise.all(
         compareRefs.map(async (repoRef) => {
-          if (currentProfile?.normalizedRepoId === repoRef) return currentProfile;
+          if (currentProfile?.normalizedRepoId === repoRef)
+            return currentProfile;
           return loadRepoProfile(repoRef);
         }),
       );
@@ -313,7 +315,9 @@ export default function RepoComparePanel({
   return (
     <div style={{ display: "grid", gap: "10px" }}>
       <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}>
-        Compare 2 or 3 public repos from the same metadata-first lane, then file one durable recommendation into VAULT before ORBIT plans any local implementation.
+        Compare 2 or 3 public repos from the same metadata-first lane, then file
+        one durable recommendation into VAULT before ORBIT plans any local
+        implementation.
       </div>
 
       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -342,6 +346,7 @@ export default function RepoComparePanel({
 
       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
         <input
+          aria-label="Repository to add to comparison"
           type="text"
           value={compareInput}
           onChange={(event) => setCompareInput(event.target.value)}
@@ -356,7 +361,9 @@ export default function RepoComparePanel({
           style={inputStyle()}
         />
         {currentProfile ? (
-          <ShellButton onClick={() => addCompareRef(currentProfile.normalizedRepoId)}>
+          <ShellButton
+            onClick={() => addCompareRef(currentProfile.normalizedRepoId)}
+          >
             Add to compare
           </ShellButton>
         ) : null}
@@ -379,17 +386,22 @@ export default function RepoComparePanel({
               : "Compare repos"}
         </ShellButton>
         {latestComparison ? (
-          <ShellButton onClick={() => router.push(buildCompiledPageHref(latestComparison))}>
+          <ShellButton
+            onClick={() => router.push(buildCompiledPageHref(latestComparison))}
+          >
             Open latest comparison
           </ShellButton>
         ) : null}
-        {(latestComparison || currentProfile) ? (
+        {latestComparison || currentProfile ? (
           <ShellButton onClick={briefOrbit}>Brief ORBIT</ShellButton>
         ) : null}
       </div>
 
       {compareError ? (
-        <div style={{ fontSize: "10px", color: "var(--flo)", lineHeight: 1.45 }}>
+        <div
+          role="alert"
+          style={{ fontSize: "10px", color: "var(--flo)", lineHeight: 1.45 }}
+        >
           {compareError}
         </div>
       ) : null}
@@ -416,17 +428,31 @@ export default function RepoComparePanel({
           >
             Latest comparison cue
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.45 }}>
+          <div
+            style={{
+              fontSize: "11px",
+              color: "var(--text3)",
+              lineHeight: 1.45,
+            }}
+          >
             <strong style={{ color: "var(--text)" }}>Recommended pick:</strong>{" "}
             {truncateInline(
-              visibleCompareResult.recommendedPick || "No recommendation recorded yet.",
+              visibleCompareResult.recommendedPick ||
+                "No recommendation recorded yet.",
               184,
             )}
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.45 }}>
+          <div
+            style={{
+              fontSize: "11px",
+              color: "var(--text3)",
+              lineHeight: 1.45,
+            }}
+          >
             <strong style={{ color: "var(--text)" }}>Boundary:</strong>{" "}
             {truncateInline(
-              visibleCompareResult.boundariesAndRisks || "No boundary cue recorded yet.",
+              visibleCompareResult.boundariesAndRisks ||
+                "No boundary cue recorded yet.",
               184,
             )}
           </div>
@@ -440,7 +466,9 @@ export default function RepoComparePanel({
                 paddingTop: "8px",
               }}
             >
-              <strong style={{ color: "var(--text)" }}>Local constraints:</strong>{" "}
+              <strong style={{ color: "var(--text)" }}>
+                Local constraints:
+              </strong>{" "}
               {truncateInline(correctionConstraintLines.join(" · "), 220)}
             </div>
           ) : null}

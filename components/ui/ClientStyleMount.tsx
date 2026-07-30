@@ -18,7 +18,9 @@ export default function ClientStyleMount({
   useEffect(() => {
     if (typeof document === "undefined") return;
 
-    let styleEl = document.head.querySelector<HTMLStyleElement>(styleSelector(id));
+    let styleEl = document.head.querySelector<HTMLStyleElement>(
+      styleSelector(id),
+    );
     if (!styleEl) {
       styleEl = document.createElement("style");
       styleEl.setAttribute("data-nexus-style", id);

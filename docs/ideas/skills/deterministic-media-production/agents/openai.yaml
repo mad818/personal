@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deterministic Media Production"
+  short_description: "Plan and verify local deterministic media"
+  default_prompt: "Use $deterministic-media-production to plan this video or motion deliverable safely."

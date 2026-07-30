@@ -34,9 +34,7 @@ export interface VaultArchiveBacklink {
 function normalizeList(values: Array<string | null | undefined>, max = 8) {
   return Array.from(
     new Set(
-      values
-        .map((value) => value?.trim().toLowerCase() ?? "")
-        .filter(Boolean),
+      values.map((value) => value?.trim().toLowerCase() ?? "").filter(Boolean),
     ),
   ).slice(0, max);
 }
@@ -67,7 +65,9 @@ function toArticleSignals(article: Article): ArchiveTargetSignals {
   };
 }
 
-function toCompiledSignals(page: CompiledMemoryPageSummary): ArchiveTargetSignals {
+function toCompiledSignals(
+  page: CompiledMemoryPageSummary,
+): ArchiveTargetSignals {
   return {
     id: `page:${page.id}`,
     title: page.title,
@@ -88,11 +88,7 @@ function toCompiledSignals(page: CompiledMemoryPageSummary): ArchiveTargetSignal
             6,
           ),
     domainHints: normalizeList(
-      [
-        page.domain,
-        summarizeRoute(page.route) ?? "",
-        page.workflowId ?? "",
-      ],
+      [page.domain, summarizeRoute(page.route) ?? "", page.workflowId ?? ""],
       5,
     ),
     route: page.route,
@@ -109,7 +105,8 @@ function classifyLinkKind(input: {
   sameRoute: boolean;
 }): VaultArchiveLinkKind {
   if (input.sameWorkflow || input.sameRoute) return "workflow";
-  if (input.sharedTags.length > 0 || input.sharedDomains.length > 0) return "topic";
+  if (input.sharedTags.length > 0 || input.sharedDomains.length > 0)
+    return "topic";
   return "semantic";
 }
 
@@ -118,7 +115,10 @@ function scoreArchiveLink(
   target: ArchiveTargetSignals,
 ) {
   const sharedTags = scoreSharedStrings(source.tags, target.tags).slice(0, 3);
-  const sharedEntities = scoreSharedStrings(source.entities, target.entities).slice(0, 3);
+  const sharedEntities = scoreSharedStrings(
+    source.entities,
+    target.entities,
+  ).slice(0, 3);
   const sharedDomains = scoreSharedStrings(
     source.domainHints,
     target.domainHints,
@@ -134,8 +134,10 @@ function scoreArchiveLink(
 
   let score = 0;
   if (sharedTags.length > 0) score += Math.min(0.36, sharedTags.length * 0.12);
-  if (sharedEntities.length > 0) score += Math.min(0.36, sharedEntities.length * 0.12);
-  if (sharedDomains.length > 0) score += Math.min(0.18, sharedDomains.length * 0.09);
+  if (sharedEntities.length > 0)
+    score += Math.min(0.36, sharedEntities.length * 0.12);
+  if (sharedDomains.length > 0)
+    score += Math.min(0.18, sharedDomains.length * 0.09);
   if (sameWorkflow) score += 0.14;
   if (sameRoute) score += 0.12;
 
@@ -204,7 +206,8 @@ export function deriveVaultArchiveLinks(input: {
       const existing = existingByTarget.get(target.id);
       return {
         targetId: target.id,
-        reason: existing?.state === "confirmed" ? existing.reason : scored.reason,
+        reason:
+          existing?.state === "confirmed" ? existing.reason : scored.reason,
         strength: clamp(
           existing?.state === "confirmed"
             ? Math.max(existing.strength, scored.strength)
@@ -291,13 +294,16 @@ export function buildVaultArchiveLinkGraphEdges(input: {
 
   for (const article of savedArticles) {
     for (const link of article.archiveLinks ?? []) {
-      if (!validIds.has(link.targetId) || link.targetId === article.id) continue;
+      if (!validIds.has(link.targetId) || link.targetId === article.id)
+        continue;
       const key = `${article.id}->${link.targetId}`;
       const next: VaultEdge = {
         source: article.id,
         target: link.targetId,
         weight: clamp(
-          link.state === "confirmed" ? Math.max(link.strength, 0.45) : link.strength,
+          link.state === "confirmed"
+            ? Math.max(link.strength, 0.45)
+            : link.strength,
           0.18,
           0.98,
         ),

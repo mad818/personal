@@ -1,0 +1,207 @@
+{
+  "capturedAt": "2026-07-29",
+  "repository": "mad818/personal",
+  "branch": "codex/company-map-polish-2026-07-13",
+  "evidence": {
+    "dependabot": {
+      "source": "Mario-provided GitHub Dependabot screenshot",
+      "openAlertCount": 8,
+      "severityCounts": {
+        "high": 5,
+        "moderate": 3
+      },
+      "manifestCounts": {
+        "package-lock.json": 7,
+        "desktop/src-tauri/Cargo.lock": 1
+      },
+      "limitations": [
+        "The screenshot does not expose vulnerable ranges, GHSA identifiers, CVE identifiers for every alert, or first-patched versions.",
+        "GitHub browser inspection was unavailable under the active browser security policy.",
+        "No alert is marked closed or dismissed by this artifact."
+      ]
+    },
+    "githubWork": {
+      "source": "Connected GitHub repository, issue, and pull-request metadata",
+      "openIssues": [],
+      "openPullRequests": [
+        {
+          "number": 65,
+          "title": "Polish Nexus Company Map",
+          "draft": false,
+          "mergeable": true,
+          "headBranch": "codex/company-map-polish-2026-07-13",
+          "note": "The local branch is 20 commits ahead of the connected remote head."
+        },
+        {
+          "number": 42,
+          "title": "[codex] fix persisted store hydration",
+          "draft": true,
+          "mergeable": false
+        },
+        {
+          "number": 33,
+          "title": "docs: replay canonical repo contract from preserved branch",
+          "draft": true,
+          "mergeable": false
+        },
+        {
+          "number": 12,
+          "title": "Harden token validation and runtime UX; add security CI and dependency automation",
+          "draft": false,
+          "mergeable": false
+        }
+      ]
+    }
+  },
+  "repositoryPosture": {
+    "originMainComparedWithHead": {
+      "originMainOnlyCommits": 2,
+      "headOnlyCommits": 107
+    },
+    "originFeatureComparedWithHead": {
+      "originFeatureOnlyCommits": 0,
+      "headOnlyCommits": 20
+    },
+    "publicationBoundary": "Branch-local dependency fixes cannot close default-branch alerts. The feature branch must be pushed, reconciled with current main, merged, and rescanned by GitHub."
+  },
+  "alerts": [
+    {
+      "number": 123,
+      "package": "ws",
+      "title": "Memory exhaustion DoS from tiny fragments and data chunks",
+      "severity": "high",
+      "scope": "development",
+      "manifest": "package-lock.json",
+      "originMainVersion": "8.20.0",
+      "branchLockVersion": "8.21.0",
+      "installedVersion": "8.20.0",
+      "status": "branch_lock_patched_default_and_install_pending"
+    },
+    {
+      "number": 131,
+      "package": "brace-expansion",
+      "title": "DoS via exponential-time expansion of consecutive non-expanding {} groups",
+      "severity": "high",
+      "scope": "development",
+      "manifest": "package-lock.json",
+      "originMainVersions": ["1.1.13", "2.1.1", "5.0.6"],
+      "branchLockVersions": ["1.1.16", "2.1.2", "5.0.7"],
+      "installedVersionsInclude": ["1.1.13", "2.1.1", "5.0.6"],
+      "status": "branch_lock_patched_default_and_install_pending"
+    },
+    {
+      "number": 127,
+      "package": "brace-expansion",
+      "title": "DoS via exponential-time expansion of consecutive non-expanding {} groups",
+      "severity": "high",
+      "scope": "development",
+      "manifest": "package-lock.json",
+      "originMainVersions": ["1.1.13", "2.1.1", "5.0.6"],
+      "branchLockVersions": ["1.1.16", "2.1.2", "5.0.7"],
+      "installedVersionsInclude": ["1.1.13", "2.1.1", "5.0.6"],
+      "status": "branch_lock_patched_default_and_install_pending"
+    },
+    {
+      "number": 130,
+      "package": "js-yaml",
+      "title": "YAML merge-key chains can force quadratic CPU consumption",
+      "severity": "high",
+      "scope": "development",
+      "manifest": "package-lock.json",
+      "originMainVersion": "4.1.1",
+      "branchLockVersion": "4.2.0",
+      "installedVersion": "4.2.0",
+      "status": "branch_and_install_patched_default_pending"
+    },
+    {
+      "number": 128,
+      "package": "sharp",
+      "title": "Inherited vulnerabilities in libvips: CVE-2026-33327, CVE-2026-33328, CVE-2026-35590, CVE-2026-35591",
+      "severity": "high",
+      "scope": "runtime-transitive",
+      "manifest": "package-lock.json",
+      "originMainVersion": "0.34.5",
+      "branchLockVersion": "0.34.5",
+      "installedVersion": "0.34.5",
+      "status": "unresolved_current_dependency_alert_runtime_optimizer_disabled",
+      "blockedBy": "The screenshot does not expose a compatible first-patched Sharp/libvips version.",
+      "mitigation": "next.config.js keeps the built-in image optimizer disabled. Sharp remains available only to fixed local media-generation scripts and is not accepted as an untrusted upload processor."
+    },
+    {
+      "number": 129,
+      "package": "next",
+      "title": "Denial of Service in the Image Optimization API using SVGs",
+      "severity": "moderate",
+      "scope": "runtime-direct",
+      "manifest": "package-lock.json",
+      "originMainVersion": "15.5.18",
+      "branchLockVersion": "15.5.18",
+      "installedVersion": "15.5.18",
+      "status": "unresolved_current_dependency_alert_runtime_optimizer_disabled",
+      "blockedBy": "The screenshot does not expose a compatible first-patched Next.js version; a speculative semver-major upgrade was not attempted.",
+      "mitigation": "next.config.js keeps the built-in image optimizer disabled and explicitly sets dangerouslyAllowSVG to false."
+    },
+    {
+      "number": 125,
+      "package": "js-yaml",
+      "title": "Quadratic-complexity DoS in merge key handling via repeated aliases",
+      "severity": "moderate",
+      "scope": "development",
+      "manifest": "package-lock.json",
+      "originMainVersion": "4.1.1",
+      "branchLockVersion": "4.2.0",
+      "installedVersion": "4.2.0",
+      "status": "branch_and_install_patched_default_pending"
+    },
+    {
+      "number": 126,
+      "package": "serde_with",
+      "title": "KeyValueMap serialization panics on empty sequence or map entries",
+      "severity": "moderate",
+      "scope": "desktop-transitive",
+      "manifest": "desktop/src-tauri/Cargo.lock",
+      "originMainVersion": "3.18.0",
+      "branchLockVersion": "3.21.0",
+      "installedVersion": null,
+      "status": "branch_lock_patched_default_pending",
+      "note": "cargo-audit is not installed, so no installed-crate audit is claimed."
+    }
+  ],
+  "localSecurityChecks": {
+    "passed": [
+      "npm run dependency:security:check",
+      "npm run dependency:risk:check",
+      "npm run security-scan",
+      "npm run agentshield:check",
+      "npm run security:tauri",
+      "npm run dependabot:next-runtime-patch:check",
+      "npm run dependabot:audit:check"
+    ],
+    "unavailable": [
+      {
+        "check": "npm audit --package-lock-only --json",
+        "reason": "The npm audit endpoint was unreachable from this environment."
+      },
+      {
+        "check": "cargo audit",
+        "reason": "The cargo-audit subcommand is not installed."
+      },
+      {
+        "check": "npm cache inspection outside the workspace",
+        "reason": "The host npm cache is outside the permitted workspace and returned EPERM."
+      }
+    ],
+    "installedTree": {
+      "status": "stale",
+      "evidence": "npm ls reports ELSPROBLEMS for ws and brace-expansion because node_modules still contains pre-floor versions.",
+      "releaseMeaning": "Use the tracked lockfiles and a clean install/CI run as reproducible release evidence; do not treat this node_modules tree as aligned."
+    }
+  },
+  "remainingActions": [
+    "Obtain exact current advisory metadata for alerts 128 and 129 before selecting a compatible Sharp/libvips or Next.js patch.",
+    "Refresh node_modules from the patched lockfile in a normal network-enabled shell, then require npm ls to return without ELSPROBLEMS.",
+    "Push the 20 local feature-branch commits, reconcile the two origin/main-only commits, merge PR 65, and wait for GitHub Dependabot to rescan.",
+    "Recheck alerts only after the default branch contains the fixes; do not dismiss them merely because a feature-branch lockfile is patched.",
+    "Review stale PRs 42, 33, and 12 separately before any close or supersede action."
+  ]
+}

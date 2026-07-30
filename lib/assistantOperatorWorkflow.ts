@@ -10,7 +10,8 @@ export type AssistantWorkflowPhase =
   | "plan"
   | "review"
   | "apply_ready"
-  | "blocked";
+  | "blocked"
+  | "recovery";
 
 export type AssistantOperatorWorkflowFocus =
   | "task_plan"
@@ -75,6 +76,7 @@ interface BuildAssistantOperatorWorkflowOptions {
   capabilityId: string;
   preparedWorkspace: PreparedWorkspaceTarget | null;
   toolCatalog: AgentToolCatalog;
+  localInferenceDegraded?: boolean;
 }
 
 const EDIT_INTENT_RE =
@@ -88,6 +90,26 @@ function buildTaskPlan(options: {
   phase: AssistantWorkflowPhase;
   preparedWorkspace: PreparedWorkspaceTarget | null;
 }): AssistantTaskPlanItem[] {
+  if (options.phase === "recovery") {
+    return [
+      {
+        id: "serve",
+        label: "Start Ollama (`ollama serve`).",
+        status: "active",
+      },
+      {
+        id: "model",
+        label: "Install or select a local model in Settings.",
+        status: "queued",
+      },
+      {
+        id: "proof",
+        label: "Run Check local AI from HQ or COMMAND.",
+        status: "queued",
+      },
+    ];
+  }
+
   if (options.phase === "review") {
     return [
       {
@@ -193,6 +215,14 @@ function buildSkillInvocations(options: {
       source: "tool_catalog",
     });
   }
+  if (hasTool(options.toolCatalog, "delegate_specialist")) {
+    entries.push({
+      id: "central-orchestrator-workers",
+      label: "Bounded specialist handoffs",
+      status: "planned",
+      source: "tool_catalog",
+    });
+  }
 
   return entries;
 }
@@ -222,6 +252,25 @@ function buildChangeLog(options: {
 export function buildAssistantOperatorWorkflowState(
   options: BuildAssistantOperatorWorkflowOptions,
 ): AssistantOperatorWorkflowState {
+  if (options.localInferenceDegraded) {
+    const taskPlan = buildTaskPlan({
+      phase: "recovery",
+      preparedWorkspace: null,
+    });
+    return {
+      phase: "recovery",
+      reviewRequired: false,
+      phaseLabel: "Local AI recovery",
+      summary:
+        "Intel dashboards remain available. Restore Ollama before running agent tools or model-backed chat.",
+      defaultFocus: "task_plan",
+      taskPlan,
+      proposedEdits: [],
+      changeLog: [],
+      skillInvocations: [],
+    };
+  }
+
   const editIntent =
     EDIT_INTENT_RE.test(options.input) || options.intent === "repo_work";
   const reviewRequired =

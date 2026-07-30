@@ -132,15 +132,19 @@ const AGENT_RE =
   /\b(?:agent|prompt|runtime|tool call|assistant|hq|chronicle|memory|context|skill|workflow pack)\b/i;
 
 function isReleaseLane(input: ContextSelectionInput) {
-  return RELEASE_RE.test(input.query) ||
-    input.capabilityId === "scheduler-governance";
+  return (
+    RELEASE_RE.test(input.query) ||
+    input.capabilityId === "scheduler-governance"
+  );
 }
 
 function isProductDirectionalResearch(query: string) {
   return PRODUCT_DIRECTION_RE.test(query);
 }
 
-function selectRepoDomainSlice(input: ContextSelectionInput): ProjectContextSlice<"standards"> {
+function selectRepoDomainSlice(
+  input: ContextSelectionInput,
+): ProjectContextSlice<"standards"> {
   const normalizedFile = input.filePath?.replace(/\\/g, "/") ?? "";
   if (
     normalizedFile.startsWith("scripts/") ||
@@ -178,7 +182,8 @@ function pushAsset(
   if (!isBaseline && nonBaselineLimit.value >= 5) {
     skipped.push({
       id: request.id,
-      reason: "Skipped because the lane already selected 5 non-baseline context blocks.",
+      reason:
+        "Skipped because the lane already selected 5 non-baseline context blocks.",
     });
     return;
   }
@@ -189,16 +194,26 @@ function pushAsset(
 export function resolveContextLane(
   input: Pick<
     ContextSelectionInput,
-    "answerStyle" | "assistantIntent" | "capabilityId" | "query" | "learningMission"
+    | "answerStyle"
+    | "assistantIntent"
+    | "capabilityId"
+    | "query"
+    | "learningMission"
   >,
 ): ContextLaneId {
   if (isReleaseLane({ ...input, routeHint: null })) {
     return "release_ops";
   }
-  if (input.answerStyle === "live_current" || input.assistantIntent === "live_current") {
+  if (
+    input.answerStyle === "live_current" ||
+    input.assistantIntent === "live_current"
+  ) {
     return "live_current";
   }
-  if (input.answerStyle === "repo_work" || input.assistantIntent === "repo_work") {
+  if (
+    input.answerStyle === "repo_work" ||
+    input.assistantIntent === "repo_work"
+  ) {
     return "repo_work";
   }
   if (
@@ -227,9 +242,11 @@ export function resolveContextLane(
   return "baseline";
 }
 
-export function selectContextAssets(input: ContextSelectionInput & {
-  workflowPackId: WorkflowPackId | null;
-}): ContextManifest {
+export function selectContextAssets(
+  input: ContextSelectionInput & {
+    workflowPackId: WorkflowPackId | null;
+  },
+): ContextManifest {
   const lane = resolveContextLane(input);
   const assets: ContextAssetRequest[] = [];
   const skippedAssets: ContextAssetSkip[] = [];
@@ -285,7 +302,8 @@ export function selectContextAssets(input: ContextSelectionInput & {
         {
           id: "assistant_context",
           bucket: "lane",
-          reason: "One assistant capability/context pack stays attached to the live turn.",
+          reason:
+            "One assistant capability/context pack stays attached to the live turn.",
         },
         nonBaselineLimit,
       );
@@ -320,7 +338,8 @@ export function selectContextAssets(input: ContextSelectionInput & {
           {
             id: "prepared_workspace",
             bucket: "lane",
-            reason: "Workspace-action turns stage one prepared exact workspace.",
+            reason:
+              "Workspace-action turns stage one prepared exact workspace.",
           },
           nonBaselineLimit,
         );
@@ -333,7 +352,8 @@ export function selectContextAssets(input: ContextSelectionInput & {
         {
           id: "standards",
           bucket: "lane",
-          reason: "Repo work loads process, engineering, and one domain standard slice.",
+          reason:
+            "Repo work loads process, engineering, and one domain standard slice.",
           section: "standards",
           slices: ["process", "engineering", selectRepoDomainSlice(input)],
         },
@@ -355,7 +375,8 @@ export function selectContextAssets(input: ContextSelectionInput & {
         {
           id: "assistant_context",
           bucket: "lane",
-          reason: "Repo work keeps one contextual attachment pack instead of many prompt fragments.",
+          reason:
+            "Repo work keeps one contextual attachment pack instead of many prompt fragments.",
         },
         nonBaselineLimit,
       );
@@ -378,7 +399,8 @@ export function selectContextAssets(input: ContextSelectionInput & {
           {
             id: "continuation",
             bucket: "continuity",
-            reason: "Repo work may load one resume/continuity layer when prior implementation work exists.",
+            reason:
+              "Repo work may load one resume/continuity layer when prior implementation work exists.",
           },
           nonBaselineLimit,
         );
@@ -390,7 +412,8 @@ export function selectContextAssets(input: ContextSelectionInput & {
           {
             id: "lessons",
             bucket: "lane",
-            reason: "Repo work may load one compact lessons block from standards.",
+            reason:
+              "Repo work may load one compact lessons block from standards.",
           },
           nonBaselineLimit,
         );
@@ -462,7 +485,8 @@ export function selectContextAssets(input: ContextSelectionInput & {
           {
             id: "bible",
             bucket: "lane",
-            reason: "Product-direction research may load one PROJECT_BIBLE slice.",
+            reason:
+              "Product-direction research may load one PROJECT_BIBLE slice.",
             section: "bible",
             slices: ["direction"],
           },
@@ -471,7 +495,8 @@ export function selectContextAssets(input: ContextSelectionInput & {
       } else {
         skippedAssets.push({
           id: "bible",
-          reason: "Skipped because the research turn is not product-directional.",
+          reason:
+            "Skipped because the research turn is not product-directional.",
         });
       }
       break;
@@ -495,7 +520,8 @@ export function selectContextAssets(input: ContextSelectionInput & {
           {
             id: "workflow_pack",
             bucket: "lane",
-            reason: "Study turns can load one workflow pack behind the mission.",
+            reason:
+              "Study turns can load one workflow pack behind the mission.",
           },
           nonBaselineLimit,
         );
@@ -577,7 +603,8 @@ export function selectContextAssets(input: ContextSelectionInput & {
           {
             id: "prepared_workspace",
             bucket: "lane",
-            reason: "Archive turns stage one exact workspace behind the assistant.",
+            reason:
+              "Archive turns stage one exact workspace behind the assistant.",
           },
           nonBaselineLimit,
         );
@@ -639,7 +666,8 @@ export function selectContextAssets(input: ContextSelectionInput & {
         {
           id: "assistant_context",
           bucket: "lane",
-          reason: "Baseline conversation keeps one compact assistant context pack when it helps.",
+          reason:
+            "Baseline conversation keeps one compact assistant context pack when it helps.",
         },
         nonBaselineLimit,
       );
@@ -717,7 +745,9 @@ export function renderContextBundle(args: {
   let baselineChars = 0;
   let laneChars = 0;
 
-  for (const request of args.manifest.assets.filter((entry) => entry.bucket === "baseline")) {
+  for (const request of args.manifest.assets.filter(
+    (entry) => entry.bucket === "baseline",
+  )) {
     const next = pushWithinBudget({
       items: selectedAssets,
       skipped: skippedAssets,
@@ -730,7 +760,9 @@ export function renderContextBundle(args: {
     if (next.text) baselineChunks.push(next.text);
   }
 
-  for (const request of args.manifest.assets.filter((entry) => entry.bucket !== "baseline")) {
+  for (const request of args.manifest.assets.filter(
+    (entry) => entry.bucket !== "baseline",
+  )) {
     const next = pushWithinBudget({
       items: selectedAssets,
       skipped: skippedAssets,

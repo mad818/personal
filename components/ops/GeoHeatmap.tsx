@@ -142,6 +142,7 @@ function SlidePanel({ title, subtitle, color, onClose, children }: PanelProps) {
           </div>
           <button
             onClick={onClose}
+            aria-label="Close location details"
             style={{
               background: "transparent",
               border: "none",
@@ -409,9 +410,7 @@ export default function GeoHeatmap() {
                 ? event.link
                 : "",
           impact:
-            typeof event.title === "string"
-              ? scoreImpact(event.title)
-              : "low",
+            typeof event.title === "string" ? scoreImpact(event.title) : "low",
           date:
             typeof event.seendate === "string"
               ? event.seendate
@@ -419,8 +418,8 @@ export default function GeoHeatmap() {
                 ? event.date
                 : "",
         }))
-        .filter(
-          (event): event is ConflictItem => Boolean(event.title && event.url),
+        .filter((event): event is ConflictItem =>
+          Boolean(event.title && event.url),
         );
       setItems(parsed.length > 0 ? parsed : fallback);
     } catch {

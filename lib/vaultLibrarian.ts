@@ -50,7 +50,10 @@ export function formatVaultLibrarianBrief(
     ["Highest-priority repairs", sections.highestPriorityRepairs],
     ["Strongest next session", sections.strongestNextSession],
   ]
-    .map(([heading, value]) => `## ${heading}\n${value.trim() || "Pending input."}`)
+    .map(
+      ([heading, value]) =>
+        `## ${heading}\n${value.trim() || "Pending input."}`,
+    )
     .join("\n\n");
 }
 
@@ -112,7 +115,10 @@ export function buildVaultLibrarianNextSession(input: {
       href: "/vault?focus=vault-compiled-pages&compiledFilter=untagged",
     };
   }
-  if (input.snapshot.noBacklinkCount > 0 || input.snapshot.underlinkedCount > 0) {
+  if (
+    input.snapshot.noBacklinkCount > 0 ||
+    input.snapshot.underlinkedCount > 0
+  ) {
     return {
       label: "Repair archive compounding links.",
       detail:
@@ -235,12 +241,15 @@ export function buildVaultLibrarianBriefSections(input: {
       input.snapshot.summary,
       `Linked coverage: ${input.snapshot.linkedCoverage}% · Tagged coverage: ${input.snapshot.taggedCoverage}% · Route coverage: ${input.snapshot.routeCoverage}%.`,
       `Archive compounding: ${input.snapshot.underlinkedCount} underlinked · ${input.snapshot.noBacklinkCount} without backlinks.`,
-      input.synthesis?.summary ? `Synthesis: ${cleanInline(input.synthesis.summary)}` : "",
+      input.synthesis?.summary
+        ? `Synthesis: ${cleanInline(input.synthesis.summary)}`
+        : "",
     ]
       .filter(Boolean)
       .join("\n\n"),
     topClusters:
-      clusterLines || "- No dominant clusters recorded in the current audit slice.",
+      clusterLines ||
+      "- No dominant clusters recorded in the current audit slice.",
     topGaps:
       gapLines ||
       (input.lint?.gapTopics.length
@@ -250,7 +259,8 @@ export function buildVaultLibrarianBriefSections(input: {
             .join("\n")
         : "- No thin-topic gaps are currently leading the repair queue."),
     highestPriorityRepairs:
-      repairLines || "- Archive posture is currently clean enough that no repair lane is leading.",
+      repairLines ||
+      "- Archive posture is currently clean enough that no repair lane is leading.",
     strongestNextSession: `- ${nextSession.label}\n- ${nextSession.detail}\n- Exact session: ${nextSession.href}`,
   };
 }
@@ -283,11 +293,17 @@ export function buildVaultLibrarianTags(snapshot: VaultStewardshipSnapshot) {
     snapshot.routeLessCompiledCount > 0 ? "route-repair" : null,
     snapshot.untaggedCount > 0 ? "tag-repair" : null,
     snapshot.underlinkedCount > 0 ? "underlinked" : null,
-    snapshot.underlinkedCount > 0 ? `underlinked-count:${snapshot.underlinkedCount}` : null,
+    snapshot.underlinkedCount > 0
+      ? `underlinked-count:${snapshot.underlinkedCount}`
+      : null,
     snapshot.noBacklinkCount > 0 ? "no-backlinks" : null,
-    snapshot.noBacklinkCount > 0 ? `no-backlink-count:${snapshot.noBacklinkCount}` : null,
+    snapshot.noBacklinkCount > 0
+      ? `no-backlink-count:${snapshot.noBacklinkCount}`
+      : null,
     snapshot.gapTopicCount > 0 ? "gap-topics" : null,
-    snapshot.gapTopicCount > 0 ? `gap-topic-count:${snapshot.gapTopicCount}` : null,
+    snapshot.gapTopicCount > 0
+      ? `gap-topic-count:${snapshot.gapTopicCount}`
+      : null,
   ].filter((tag): tag is string => Boolean(tag));
 }
 
@@ -331,7 +347,10 @@ export function buildVaultLibrarianSourceRefs(input: {
     });
   }
 
-  if (input.snapshot.noBacklinkCount > 0 || input.snapshot.underlinkedCount > 0) {
+  if (
+    input.snapshot.noBacklinkCount > 0 ||
+    input.snapshot.underlinkedCount > 0
+  ) {
     refs.push({
       id: "vault-graph-compounding",
       title: "Vault graph compounding repair",

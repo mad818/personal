@@ -55,7 +55,8 @@ export const SKILL_CATALOG: SkillMetadata[] = [
 export function summarizeSkillGovernance() {
   return {
     total: SKILL_CATALOG.length,
-    approvalRequired: SKILL_CATALOG.filter((skill) => skill.approvalRequired).length,
+    approvalRequired: SKILL_CATALOG.filter((skill) => skill.approvalRequired)
+      .length,
     byRisk: {
       tier0: SKILL_CATALOG.filter((skill) => skill.riskTier === "tier0").length,
       tier1: SKILL_CATALOG.filter((skill) => skill.riskTier === "tier1").length,

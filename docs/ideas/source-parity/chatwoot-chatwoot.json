@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "chatwoot-chatwoot",
   "name": "Chatwoot",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/chatwoot/chatwoot",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main re-reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/chatwoot/chatwoot",
@@ -26,15 +26,23 @@
       "id": "conversation-ui-patterns",
       "title": "Conversation UI patterns: thread grouping, read status, typing indicators, quick replies",
       "sourceEvidence": "Chatwoot conversation UX: polished chat interface with real-time updates",
-      "disposition": "pending",
-      "reason": "Nexus HomeChat component could reference Chatwoot's conversation UI patterns for thread grouping, read states, and quick-reply chips."
+      "disposition": "adapted",
+      "proof": [
+        "components/ui/CommandBar.tsx",
+        "components/home/office/OfficeCommandCenter.tsx",
+        "lib/assistantChatActions.ts"
+      ]
     },
     {
       "id": "ai-reply-suggestions",
       "title": "AI-powered reply suggestions and conversation summarization",
       "sourceEvidence": "Chatwoot AI: suggested replies and conversation summaries via OpenAI",
-      "disposition": "pending",
-      "reason": "Nexus HQ agent already generates responses; AI reply suggestion patterns for conversation UI are a reference for HomeChat improvements."
+      "disposition": "implemented",
+      "proof": [
+        "components/ui/CommandBar.tsx",
+        "lib/assistantDispatch.ts",
+        "lib/ai.ts"
+      ]
     },
     {
       "id": "ruby-on-rails-realtime",

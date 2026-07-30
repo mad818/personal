@@ -34,7 +34,11 @@ export interface PromotableArtifactLike {
 export interface ArtifactPromotionEvaluation {
   eligible: boolean;
   reason: string;
-  targetClass: "study_brief" | "reverse_engineering_brief" | "research_brief" | null;
+  targetClass:
+    | "study_brief"
+    | "reverse_engineering_brief"
+    | "research_brief"
+    | null;
 }
 
 export interface ArtifactPromotionDraft {
@@ -105,8 +109,12 @@ function buildResearchBriefDraft(
     ? source.researchSignals.sectionHeadings.join(" · ")
     : "No explicit sections captured";
   const nextSteps = uniqueStrings([
-    source.route ? `Return to ${source.route} for the active working lane.` : null,
-    source.workflowLabel ? `Reuse the ${source.workflowLabel} workflow when widening the brief.` : null,
+    source.route
+      ? `Return to ${source.route} for the active working lane.`
+      : null,
+    source.workflowLabel
+      ? `Reuse the ${source.workflowLabel} workflow when widening the brief.`
+      : null,
     source.continuity.workflowClass
       ? `Keep continuity in the ${source.continuity.workflowClass} lane instead of spawning a parallel note.`
       : "Keep continuity tied to the original mission instead of starting a parallel archive thread.",
@@ -147,13 +155,17 @@ function buildResearchBriefDraft(
       source.continuity.sourceType
         ? `- Source type: ${source.continuity.sourceType}`
         : "- Source type unavailable.",
-      source.sourceLabel ? `- Source lane: ${source.sourceLabel}` : "- Source lane unavailable.",
+      source.sourceLabel
+        ? `- Source lane: ${source.sourceLabel}`
+        : "- Source lane unavailable.",
       "",
       "## Recommended next steps",
       ...nextSteps.map((step) => `- ${step}`),
       "",
       "## Reopen paths",
-      source.route ? `- Origin lane: ${source.route}` : "- Origin lane unavailable.",
+      source.route
+        ? `- Origin lane: ${source.route}`
+        : "- Origin lane unavailable.",
       "- VAULT durable artifacts: /vault?focus=vault-compiled-pages",
       "- Second-brain export: /vault?focus=vault-export-second-brain",
     ].join("\n"),
@@ -214,7 +226,9 @@ function buildStudyBriefDraft(
       "## Study posture",
       ...(checkpoints.length > 0
         ? checkpoints.map((checkpoint) => `- ${checkpoint}`)
-        : ["- No explicit study posture metadata was available on the source note."]),
+        : [
+            "- No explicit study posture metadata was available on the source note.",
+          ]),
       "",
       "## Continuity",
       source.continuity.continuityId
@@ -227,7 +241,9 @@ function buildStudyBriefDraft(
       "## Recommended next steps",
       "- Reopen the lower-order learning note if the concept changes materially, then refresh this study brief instead of creating a duplicate.",
       "- Keep the next study continuation compact: one checkpoint, one quiz, or one practice step.",
-      source.route ? `- Origin lane: ${source.route}` : "- Origin lane unavailable.",
+      source.route
+        ? `- Origin lane: ${source.route}`
+        : "- Origin lane unavailable.",
       "",
       "## Reopen paths",
       "- VAULT durable artifacts: /vault?focus=vault-compiled-pages",
@@ -252,7 +268,8 @@ export function getArtifactPromotionEvaluation(
   if (!source.continuity.continuityId && !source.continuity.continuityTag) {
     return {
       eligible: false,
-      reason: "Promotion requires continuity identity so the higher-order brief can reopen safely.",
+      reason:
+        "Promotion requires continuity identity so the higher-order brief can reopen safely.",
       targetClass: promotionKind,
     };
   }
@@ -260,7 +277,8 @@ export function getArtifactPromotionEvaluation(
   if (source.contentWithheld && !source.content) {
     return {
       eligible: false,
-      reason: "Promotion needs readable durable content so the higher-order brief can stay evidence-backed.",
+      reason:
+        "Promotion needs readable durable content so the higher-order brief can stay evidence-backed.",
       targetClass: promotionKind,
     };
   }
@@ -273,14 +291,16 @@ export function getArtifactPromotionEvaluation(
     return hasEvidence
       ? {
           eligible: true,
-          reason: "Reverse-engineering prep is continuity-backed and has enough triage evidence to promote.",
+          reason:
+            "Reverse-engineering prep is continuity-backed and has enough triage evidence to promote.",
           targetClass: "reverse_engineering_brief",
         }
       : {
           eligible: false,
-          reason: "Reverse-engineering promotion needs stronger triage evidence before a brief is useful.",
+          reason:
+            "Reverse-engineering promotion needs stronger triage evidence before a brief is useful.",
           targetClass: "reverse_engineering_brief",
-      };
+        };
   }
 
   if (promotionKind === "study_brief") {
@@ -291,12 +311,14 @@ export function getArtifactPromotionEvaluation(
     return hasEvidence
       ? {
           eligible: true,
-          reason: "Learning note is continuity-backed and has enough structured context to promote into a study brief.",
+          reason:
+            "Learning note is continuity-backed and has enough structured context to promote into a study brief.",
           targetClass: "study_brief",
         }
       : {
           eligible: false,
-          reason: "Study promotion needs stronger structure before a higher-order brief is useful.",
+          reason:
+            "Study promotion needs stronger structure before a higher-order brief is useful.",
           targetClass: "study_brief",
         };
   }
@@ -316,12 +338,14 @@ export function getArtifactPromotionEvaluation(
   return hasEvidence && hasEnoughShape
     ? {
         eligible: true,
-        reason: "Research artifact has continuity, evidence, and enough structure to justify a higher-order brief.",
+        reason:
+          "Research artifact has continuity, evidence, and enough structure to justify a higher-order brief.",
         targetClass: "research_brief",
       }
     : {
         eligible: false,
-        reason: "Research promotion needs citations or stronger structure before it should produce a brief.",
+        reason:
+          "Research promotion needs citations or stronger structure before it should produce a brief.",
         targetClass: "research_brief",
       };
 }
@@ -367,7 +391,8 @@ export function findExistingPromotionTarget<T extends PromotableArtifactLike>(
   return (
     candidates.find((candidate) => {
       if (candidate.id === source.id) return false;
-      if (candidate.continuity.artifactClass !== evaluation.targetClass) return false;
+      if (candidate.continuity.artifactClass !== evaluation.targetClass)
+        return false;
       if (
         source.continuity.continuityId &&
         candidate.continuity.continuityId === source.continuity.continuityId
@@ -376,7 +401,8 @@ export function findExistingPromotionTarget<T extends PromotableArtifactLike>(
       }
       if (
         source.continuity.continuityTag &&
-        (candidate.continuity.continuityTag === source.continuity.continuityTag ||
+        (candidate.continuity.continuityTag ===
+          source.continuity.continuityTag ||
           candidate.tags.includes(source.continuity.continuityTag))
       ) {
         return true;

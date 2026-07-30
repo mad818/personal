@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "id": "ayghri-i-have-adhd",
+  "name": "ayghri/i-have-adhd",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/ayghri/i-have-adhd",
+    "version": "main snapshot reviewed 2026-07-21; no tagged release",
+    "reviewedAt": "2026-07-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/ayghri/i-have-adhd/blob/main/README.md",
+      "https://github.com/ayghri/i-have-adhd/blob/main/skills/i-have-adhd/SKILL.md",
+      "https://github.com/ayghri/i-have-adhd/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "action-first",
+      "title": "Lead with the action or answer instead of a preamble",
+      "sourceEvidence": "skills/i-have-adhd/SKILL.md action-first output rules",
+      "disposition": "adapted",
+      "proof": [
+        "lib/personaEngine.ts",
+        "components/home/office/PersonaModeBar.tsx"
+      ],
+      "adaptationNotes": "Available through the existing opt-in Direct persona."
+    },
+    {
+      "id": "bounded-numbered-steps",
+      "title": "Use numbered steps and keep lists short",
+      "sourceEvidence": "skills/i-have-adhd/SKILL.md structure rules",
+      "disposition": "adapted",
+      "proof": [
+        "lib/personaEngine.ts",
+        "scripts/validate-focus-motion-divergent-council.mjs"
+      ],
+      "adaptationNotes": "Direct mode uses numbered sequence when order matters and caps lists at five."
+    },
+    {
+      "id": "one-next-action",
+      "title": "End with one concrete next action",
+      "sourceEvidence": "skills/i-have-adhd/SKILL.md next-action rule",
+      "disposition": "adapted",
+      "proof": [
+        "lib/personaEngine.ts",
+        "scripts/validate-focus-motion-divergent-council.mjs"
+      ],
+      "adaptationNotes": "The Direct response contract exposes one resumption point."
+    },
+    {
+      "id": "tangent-suppression",
+      "title": "Suppress tangents unless they block the task",
+      "sourceEvidence": "skills/i-have-adhd/SKILL.md tangent handling",
+      "disposition": "adapted",
+      "proof": ["lib/personaEngine.ts"],
+      "adaptationNotes": "Direct mode keeps blockers but removes optional branches."
+    },
+    {
+      "id": "state-and-win-visibility",
+      "title": "Restate current state and make completed progress visible",
+      "sourceEvidence": "skills/i-have-adhd/SKILL.md interruption and visible-win rules",
+      "disposition": "adapted",
+      "proof": ["lib/personaEngine.ts"],
+      "adaptationNotes": "Direct mode makes recovery state visible without forced praise."
+    },
+    {
+      "id": "concrete-estimates",
+      "title": "Use concrete estimates and matter-of-fact errors",
+      "sourceEvidence": "skills/i-have-adhd/SKILL.md estimation and error rules",
+      "disposition": "adapted",
+      "proof": ["lib/personaEngine.ts"],
+      "adaptationNotes": "Nexus only permits estimates grounded in available evidence and forbids invented precision."
+    },
+    {
+      "id": "global-health-labeled-mode",
+      "title": "Apply the skill globally under a health-related label",
+      "sourceEvidence": "Repository name and installation model",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus keeps the behavior opt-in and explicitly does not infer, mention, or persist a diagnosis."
+    },
+    {
+      "id": "external-skill-install",
+      "title": "Install the upstream Markdown skill as a separate package",
+      "sourceEvidence": "README installation guidance",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The useful behavior fits the existing Direct persona and does not require an external installation."
+    }
+  ]
+}

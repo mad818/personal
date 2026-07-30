@@ -4,7 +4,8 @@
 
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
+import { takeSelectedFile } from "@/components/ui/fileInput";
 
 interface MetaRow {
   key: string;
@@ -138,12 +139,18 @@ function genericMeta(file: File): MetaRow[] {
 }
 
 export default function MetadataExtractor() {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const processingInFlightRef = useRef(false);
   const [rows, setRows] = useState<MetaRow[]>([]);
   const [fname, setFname] = useState("");
   const [dragging, setDragging] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
 
   const process = useCallback(async (file: File) => {
+    if (processingInFlightRef.current) return;
+    processingInFlightRef.current = true;
+    setProcessing(true);
     setError("");
     setFname(file.name);
     const base = genericMeta(file);
@@ -169,11 +176,14 @@ export default function MetadataExtractor() {
     } catch (e) {
       setRows(base);
       setError(`Could not parse metadata: ${String(e)}`);
+    } finally {
+      processingInFlightRef.current = false;
+      setProcessing(false);
     }
   }, []);
 
   const onDrop = useCallback(
-    (e: React.DragEvent) => {
+    (e: React.DragEvent<HTMLButtonElement>) => {
       e.preventDefault();
       setDragging(false);
       const file = e.dataTransfer.files[0];
@@ -184,7 +194,7 @@ export default function MetadataExtractor() {
 
   const onFile = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
+      const file = takeSelectedFile(e.currentTarget);
       if (file) void process(file);
     },
     [process],
@@ -193,7 +203,11 @@ export default function MetadataExtractor() {
   return (
     <div>
       {/* Drop zone */}
-      <label
+      <button
+        type="button"
+        aria-busy={processing}
+        disabled={processing}
+        onClick={() => fileInputRef.current?.click()}
         onDragOver={(e) => {
           e.preventDefault();
           setDragging(true);
@@ -208,32 +222,58 @@ export default function MetadataExtractor() {
           gap: "6px",
           padding: "28px",
           borderRadius: "10px",
-          cursor: "pointer",
+          color: "inherit",
+          cursor: processing ? "progress" : "pointer",
+          font: "inherit",
+          opacity: processing ? 0.78 : 1,
           border: `2px dashed ${dragging ? "var(--accent)" : "var(--border)"}`,
           background: dragging ? "rgba(79,110,247,0.06)" : "var(--surf2)",
           transition: "all 0.15s",
           marginBottom: "14px",
+          textAlign: "center",
+          width: "100%",
         }}
       >
-        <input
-          type="file"
-          accept="image/*,.pdf"
-          style={{ display: "none" }}
-          onChange={onFile}
-        />
-        <span style={{ fontSize: "24px" }}>📎</span>
+        <span aria-hidden="true" style={{ fontSize: "24px" }}>
+          📎
+        </span>
         <span
           style={{ fontSize: "12px", color: "var(--text)", fontWeight: 700 }}
         >
-          Drop image or PDF here
+          {processing
+            ? "Reading metadata locally"
+            : "Choose or drop an image or PDF"}
         </span>
         <span style={{ fontSize: "10px", color: "var(--text3)" }}>
-          or click to browse — nothing is uploaded, all processing is local
+          Nothing is uploaded; all processing stays in this browser.
         </span>
-      </label>
+      </button>
+      <input
+        aria-label="Choose an image or PDF for local metadata extraction"
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,.pdf"
+        style={{ display: "none" }}
+        onChange={onFile}
+      />
+
+      {processing && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            color: "var(--text3)",
+            fontSize: "11px",
+            marginBottom: "10px",
+          }}
+        >
+          Reading file metadata locally…
+        </div>
+      )}
 
       {error && (
         <div
+          role="alert"
           style={{
             color: "var(--fmd)",
             fontSize: "11px",
@@ -256,40 +296,49 @@ export default function MetadataExtractor() {
           >
             {fname}
           </div>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: "11px",
-            }}
-          >
-            <tbody>
-              {rows.map((r, i) => (
-                <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
-                  <td
-                    style={{
-                      padding: "5px 10px 5px 0",
-                      color: "var(--text3)",
-                      whiteSpace: "nowrap",
-                      verticalAlign: "top",
-                      width: "140px",
-                    }}
+          <div style={{ overflowX: "auto" }}>
+            <table
+              aria-label={`Metadata for ${fname}`}
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: "11px",
+              }}
+            >
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr
+                    key={i}
+                    style={{ borderBottom: "1px solid var(--border)" }}
                   >
-                    {r.key}
-                  </td>
-                  <td
-                    style={{
-                      padding: "5px 0",
-                      color: "var(--text)",
-                      wordBreak: "break-all",
-                    }}
-                  >
-                    {r.value}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <th
+                      scope="row"
+                      style={{
+                        padding: "5px 10px 5px 0",
+                        color: "var(--text3)",
+                        fontWeight: 600,
+                        textAlign: "left",
+                        whiteSpace: "nowrap",
+                        verticalAlign: "top",
+                        width: "140px",
+                      }}
+                    >
+                      {r.key}
+                    </th>
+                    <td
+                      style={{
+                        padding: "5px 0",
+                        color: "var(--text)",
+                        wordBreak: "break-all",
+                      }}
+                    >
+                      {r.value}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {rows.length <= 4 && (
             <div
               style={{

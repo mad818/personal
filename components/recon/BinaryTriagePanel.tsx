@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { takeSelectedFile } from "@/components/ui/fileInput";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
 import MissionContinuationActions from "@/components/ui/MissionContinuationActions";
 import { apiFetch } from "@/lib/apiFetch";
@@ -9,6 +10,7 @@ import {
   buildBinaryTriageVaultDraft,
   buildBinaryTriageNotes,
   computeByteEntropy,
+  detectBinaryMediaTailIndicators,
   detectBinaryFormat,
   extractIocCandidates,
   extractPrintableStrings,
@@ -24,10 +26,7 @@ function bytesToHex(buffer: ArrayBuffer) {
     .join("");
 }
 
-async function digestHex(
-  algorithm: "SHA-1" | "SHA-256",
-  buffer: ArrayBuffer,
-) {
+async function digestHex(algorithm: "SHA-1" | "SHA-256", buffer: ArrayBuffer) {
   if (typeof crypto === "undefined" || !crypto.subtle) {
     throw new Error("Web Crypto is unavailable in this browser.");
   }
@@ -52,6 +51,14 @@ function buildCopyReport(report: BinaryTriageReport) {
     `SHA-256: ${report.sha256}`,
     `SHA-1: ${report.sha1}`,
     "",
+    "Media-tail indicators:",
+    ...(report.mediaTailIndicators.length > 0
+      ? report.mediaTailIndicators.map(
+          (indicator) =>
+            `- ${indicator.label}: ${indicator.trailingBytes} trailing byte${indicator.trailingBytes === 1 ? "" : "s"} at offset ${indicator.offset}${indicator.embeddedFormat ? `; nested signature: ${indicator.embeddedFormat}` : ""}`,
+        )
+      : ["- none"]),
+    "",
     "Notes:",
     ...report.notes.map((note) => `- ${note}`),
     "",
@@ -75,10 +82,18 @@ function StatCard({ label, value }: { label: string; value: string }) {
         gap: "4px",
       }}
     >
-      <span style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase" }}>
+      <span
+        style={{
+          fontSize: "10px",
+          color: "var(--text3)",
+          textTransform: "uppercase",
+        }}
+      >
         {label}
       </span>
-      <span style={{ fontSize: "12px", color: "var(--text)", fontWeight: 700 }}>{value}</span>
+      <span style={{ fontSize: "12px", color: "var(--text)", fontWeight: 700 }}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -103,41 +118,51 @@ function InlineList({
         gap: "8px",
       }}
     >
-      <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>{title}</div>
+      <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+        {title}
+      </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-        {items.length > 0
-          ? items.map((item) => (
-              <span
-                key={item}
-                style={{
-                  padding: "4px 8px",
-                  borderRadius: "999px",
-                  border: "1px solid rgba(107, 164, 255, 0.28)",
-                  background: "rgba(56, 122, 255, 0.12)",
-                  color: "var(--text2)",
-                  fontSize: "11px",
-                }}
-              >
-                {item}
-              </span>
-            ))
-          : (
-            <span style={{ fontSize: "11px", color: "var(--text3)" }}>{emptyLabel}</span>
-            )}
+        {items.length > 0 ? (
+          items.map((item) => (
+            <span
+              key={item}
+              style={{
+                padding: "4px 8px",
+                borderRadius: "999px",
+                border: "1px solid rgba(107, 164, 255, 0.28)",
+                background: "rgba(56, 122, 255, 0.12)",
+                color: "var(--text2)",
+                fontSize: "11px",
+              }}
+            >
+              {item}
+            </span>
+          ))
+        ) : (
+          <span style={{ fontSize: "11px", color: "var(--text3)" }}>
+            {emptyLabel}
+          </span>
+        )}
       </div>
     </div>
   );
 }
 
 export default function BinaryTriagePanel() {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const analysisInFlightRef = useRef(false);
   const [dragging, setDragging] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
   const [copyStatus, setCopyStatus] = useState("");
-  const [vaultStatus, setVaultStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [vaultStatus, setVaultStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
   const [report, setReport] = useState<BinaryTriageReport | null>(null);
 
   const handleFile = useCallback(async (file: File) => {
+    if (analysisInFlightRef.current) return;
+    analysisInFlightRef.current = true;
     setAnalyzing(true);
     setDragging(false);
     setError("");
@@ -156,6 +181,7 @@ export default function BinaryTriagePanel() {
       const entropy = computeByteEntropy(sample);
       const printableStrings = extractPrintableStrings(sample, 6, 80);
       const iocs = extractIocCandidates(printableStrings);
+      const mediaTailIndicators = detectBinaryMediaTailIndicators(bytes);
       const notes = buildBinaryTriageNotes({
         format,
         entropy,
@@ -163,6 +189,7 @@ export default function BinaryTriagePanel() {
         iocs,
         sampleBytes: sample.length,
         totalBytes: file.size,
+        mediaTailIndicators,
       });
 
       setReport({
@@ -176,6 +203,7 @@ export default function BinaryTriagePanel() {
         sampleBytes: sample.length,
         printableStrings,
         iocs,
+        mediaTailIndicators,
         notes,
       });
     } catch (nextError) {
@@ -186,12 +214,13 @@ export default function BinaryTriagePanel() {
           : "Binary triage failed for this file.",
       );
     } finally {
+      analysisInFlightRef.current = false;
       setAnalyzing(false);
     }
   }, []);
 
   const onDrop = useCallback(
-    (event: React.DragEvent<HTMLLabelElement>) => {
+    (event: React.DragEvent<HTMLButtonElement>) => {
       event.preventDefault();
       setDragging(false);
       const file = event.dataTransfer.files[0];
@@ -204,7 +233,7 @@ export default function BinaryTriagePanel() {
 
   const onInput = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
+      const file = takeSelectedFile(event.currentTarget);
       if (file) {
         void handleFile(file);
       }
@@ -271,7 +300,11 @@ export default function BinaryTriagePanel() {
         description="This is a fast local triage lane inspired by reverse-engineering workflows, not a browser decompiler. Files stay in the browser while Nexus extracts hashes, format hints, entropy, strings, and IOC candidates."
       />
 
-      <label
+      <button
+        type="button"
+        aria-busy={analyzing}
+        disabled={analyzing}
+        onClick={() => fileInputRef.current?.click()}
         onDragOver={(event) => {
           event.preventDefault();
           setDragging(true);
@@ -285,29 +318,46 @@ export default function BinaryTriagePanel() {
           borderRadius: "12px",
           border: `2px dashed ${dragging ? "var(--accent)" : "var(--border)"}`,
           background: dragging ? "rgba(56, 122, 255, 0.08)" : "var(--surf2)",
-          cursor: "pointer",
+          color: "inherit",
+          cursor: analyzing ? "progress" : "pointer",
+          font: "inherit",
+          opacity: analyzing ? 0.78 : 1,
+          textAlign: "left",
+          width: "100%",
         }}
       >
-        <input
-          type="file"
-          style={{ display: "none" }}
-          onChange={onInput}
-        />
-        <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--text)" }}>
-          Drop a suspicious file or click to browse
+        <div
+          style={{ fontSize: "13px", fontWeight: 700, color: "var(--text)" }}
+        >
+          {analyzing
+            ? "Analyzing the selected file locally"
+            : "Choose or drop a suspicious file"}
         </div>
         <div style={{ fontSize: "11px", color: "var(--text3)" }}>
-          Local-only triage for executables, archives, scripts, and documents. Nothing is uploaded.
+          Local-only triage for executables, archives, scripts, and documents.
+          Nothing is uploaded.
         </div>
-      </label>
+      </button>
+      <input
+        aria-label="Choose a file for local binary triage"
+        ref={fileInputRef}
+        type="file"
+        style={{ display: "none" }}
+        onChange={onInput}
+      />
 
       {analyzing ? (
         <SurfaceCallout tone="info" compact>
-          Analyzing file locally. Hashing the artifact first, then sampling entropy, strings, and IOC candidates.
+          Analyzing file locally. Hashing the artifact first, then sampling
+          entropy, strings, and IOC candidates.
         </SurfaceCallout>
       ) : null}
 
-      {error ? <SurfaceCallout tone="warning" compact>{error}</SurfaceCallout> : null}
+      {error ? (
+        <SurfaceCallout role="alert" tone="warning" compact>
+          {error}
+        </SurfaceCallout>
+      ) : null}
 
       {report ? (
         <>
@@ -321,7 +371,10 @@ export default function BinaryTriagePanel() {
             <StatCard label="Format" value={report.format.label} />
             <StatCard label="Category" value={report.format.category} />
             <StatCard label="Size" value={formatBinarySize(report.fileSize)} />
-            <StatCard label="Entropy" value={`${report.entropy.toFixed(2)} / 8.00`} />
+            <StatCard
+              label="Entropy"
+              value={`${report.entropy.toFixed(2)} / 8.00`}
+            />
           </div>
 
           <div
@@ -344,10 +397,22 @@ export default function BinaryTriagePanel() {
               }}
             >
               <div style={{ display: "grid", gap: "4px" }}>
-                <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    color: "var(--text)",
+                  }}
+                >
                   {report.fileName}
                 </div>
-                <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "var(--text3)",
+                    lineHeight: 1.5,
+                  }}
+                >
                   {report.format.detail}
                 </div>
               </div>
@@ -394,20 +459,49 @@ export default function BinaryTriagePanel() {
             </div>
 
             {copyStatus ? (
-              <div style={{ fontSize: "11px", color: "var(--text3)" }}>{copyStatus}</div>
+              <div
+                role="status"
+                style={{ fontSize: "11px", color: "var(--text3)" }}
+              >
+                {copyStatus}
+              </div>
             ) : null}
             {vaultStatus === "error" ? (
-              <div style={{ fontSize: "11px", color: "var(--flo)" }}>
-                Vault filing failed. The triage report stayed local to this browser session.
+              <div
+                role="alert"
+                style={{ fontSize: "11px", color: "var(--flo)" }}
+              >
+                Vault filing failed. The triage report stayed local to this
+                browser session.
               </div>
             ) : null}
 
             <div style={{ display: "grid", gap: "6px" }}>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>Hashes</div>
-              <div style={{ fontSize: "11px", color: "var(--text2)", wordBreak: "break-all" }}>
+              <div
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  color: "var(--text)",
+                }}
+              >
+                Hashes
+              </div>
+              <div
+                style={{
+                  fontSize: "11px",
+                  color: "var(--text2)",
+                  wordBreak: "break-all",
+                }}
+              >
                 <strong>SHA-256:</strong> {report.sha256}
               </div>
-              <div style={{ fontSize: "11px", color: "var(--text2)", wordBreak: "break-all" }}>
+              <div
+                style={{
+                  fontSize: "11px",
+                  color: "var(--text2)",
+                  wordBreak: "break-all",
+                }}
+              >
                 <strong>SHA-1:</strong> {report.sha1}
               </div>
             </div>
@@ -423,11 +517,24 @@ export default function BinaryTriagePanel() {
               gap: "8px",
             }}
           >
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+            <div
+              style={{
+                fontSize: "11px",
+                fontWeight: 700,
+                color: "var(--text)",
+              }}
+            >
               Triage notes
             </div>
             {report.notes.map((note) => (
-              <div key={note} style={{ fontSize: "11px", color: "var(--text2)", lineHeight: 1.5 }}>
+              <div
+                key={note}
+                style={{
+                  fontSize: "11px",
+                  color: "var(--text2)",
+                  lineHeight: 1.5,
+                }}
+              >
                 - {note}
               </div>
             ))}
@@ -444,22 +551,38 @@ export default function BinaryTriagePanel() {
                 gap: "8px",
               }}
             >
-              <div style={{ fontSize: "11px", color: "var(--text2)", lineHeight: 1.5 }}>
-                Binary triage is now durable memory. It will also export as a reverse-engineering prep note in the Obsidian-ready second-brain pack, so this RECON session can compound instead of disappearing.
+              <div
+                style={{
+                  fontSize: "11px",
+                  color: "var(--text2)",
+                  lineHeight: 1.5,
+                }}
+              >
+                Binary triage is now durable memory. It will also export as a
+                reverse-engineering prep note in the Obsidian-ready second-brain
+                pack, so this RECON session can compound instead of
+                disappearing.
               </div>
               <MissionContinuationActions
                 memoryQuery={memoryQuery}
                 routeHint="/vault"
                 extraTargets={[
                   {
-                    href: buildMissionHref("/vault?focus=vault-compiled-pages", "archive"),
+                    href: buildMissionHref(
+                      "/vault?focus=vault-compiled-pages",
+                      "archive",
+                    ),
                     label: "Continue in VAULT",
                     tab: "vault",
                   },
                   {
-                    href: buildMissionHref("/recon?view=binary&focus=recon-binary", "investigate", {
-                      source: "recon",
-                    }),
+                    href: buildMissionHref(
+                      "/recon?view=binary&focus=recon-binary",
+                      "investigate",
+                      {
+                        source: "recon",
+                      },
+                    ),
                     label: "Continue in RECON",
                     tab: "recon",
                   },
@@ -475,10 +598,26 @@ export default function BinaryTriagePanel() {
               gap: "10px",
             }}
           >
-            <InlineList title="URLs" items={report.iocs.urls} emptyLabel="No URL candidates in the sampled strings." />
-            <InlineList title="Domains" items={report.iocs.domains} emptyLabel="No domain candidates in the sampled strings." />
-            <InlineList title="IPv4" items={report.iocs.ipv4} emptyLabel="No IPv4 candidates in the sampled strings." />
-            <InlineList title="Emails" items={report.iocs.emails} emptyLabel="No email candidates in the sampled strings." />
+            <InlineList
+              title="URLs"
+              items={report.iocs.urls}
+              emptyLabel="No URL candidates in the sampled strings."
+            />
+            <InlineList
+              title="Domains"
+              items={report.iocs.domains}
+              emptyLabel="No domain candidates in the sampled strings."
+            />
+            <InlineList
+              title="IPv4"
+              items={report.iocs.ipv4}
+              emptyLabel="No IPv4 candidates in the sampled strings."
+            />
+            <InlineList
+              title="Emails"
+              items={report.iocs.emails}
+              emptyLabel="No email candidates in the sampled strings."
+            />
           </div>
 
           <div
@@ -491,11 +630,18 @@ export default function BinaryTriagePanel() {
               gap: "8px",
             }}
           >
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text)" }}>
+            <div
+              style={{
+                fontSize: "11px",
+                fontWeight: 700,
+                color: "var(--text)",
+              }}
+            >
               Printable strings sample
             </div>
             <div style={{ fontSize: "11px", color: "var(--text3)" }}>
-              Showing up to {firstInterestingStrings.length} strings from the first {formatBinarySize(report.sampleBytes)} of the file.
+              Showing up to {firstInterestingStrings.length} strings from the
+              first {formatBinarySize(report.sampleBytes)} of the file.
             </div>
             <div
               style={{

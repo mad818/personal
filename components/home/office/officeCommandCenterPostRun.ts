@@ -95,7 +95,8 @@ function detectWorkflowPackId(workflow: HQWorkflowResolution) {
     return "research-workflow";
   }
   if (workflow.id === "vault-weekly") return "second-brain";
-  const text = `${workflow.id} ${workflow.label} ${workflow.topic} ${workflow.route}`.toLowerCase();
+  const text =
+    `${workflow.id} ${workflow.label} ${workflow.topic} ${workflow.route}`.toLowerCase();
   return (
     inferWorkflowPackIdFromText(text) ??
     (/\b(research|review|source|synthesis|compare|evidence|intel)\b/i.test(text)
@@ -107,7 +108,11 @@ function detectWorkflowPackId(workflow: HQWorkflowResolution) {
 function detectWorkflowMemoryCompartment(workflow: HQWorkflowResolution) {
   const packId = detectWorkflowPackId(workflow);
   if (packId === "research-workflow") return "research";
-  if (/\b(study|quiz|practice|teach|explain)\b/i.test(`${workflow.id} ${workflow.label} ${workflow.topic}`)) {
+  if (
+    /\b(study|quiz|practice|teach|explain)\b/i.test(
+      `${workflow.id} ${workflow.label} ${workflow.topic}`,
+    )
+  ) {
     return "study";
   }
   return "conversation";
@@ -268,7 +273,10 @@ export function queueOfficeRunSideEffects({
 
   const workflowPackId =
     artifactOverrides?.workflowPackId ?? detectWorkflowPackId(workflow);
-  const repoAssimilationMetadata = resolveRepoAssimilationMetadata(workflow, result);
+  const repoAssimilationMetadata = resolveRepoAssimilationMetadata(
+    workflow,
+    result,
+  );
   const repoCompareMetadata = resolveRepoCompareMetadata(workflow);
   const sourceRefs =
     artifactOverrides?.sourceRefs ??
@@ -279,17 +287,21 @@ export function queueOfficeRunSideEffects({
         : workflowPackId === "research-workflow"
           ? buildCitationSourceRefs([result])
           : []);
-  const evidenceStrength = artifactOverrides?.evidenceStrength ?? (repoAssimilationMetadata
-    ? repoAssimilationMetadata.evidenceStrength
-    : repoCompareMetadata
-      ? repoCompareMetadata.evidenceStrength
-    : workflowPackId === "research-workflow"
-      ? inferEvidenceStrength({
-          sourceType: "memory-spine",
-          sourceCount: sourceRefs.length,
-          citationCount: sourceRefs.filter((sourceRef) => sourceRef.sourceType === "citation").length,
-        })
-      : "unverified");
+  const evidenceStrength =
+    artifactOverrides?.evidenceStrength ??
+    (repoAssimilationMetadata
+      ? repoAssimilationMetadata.evidenceStrength
+      : repoCompareMetadata
+        ? repoCompareMetadata.evidenceStrength
+        : workflowPackId === "research-workflow"
+          ? inferEvidenceStrength({
+              sourceType: "memory-spine",
+              sourceCount: sourceRefs.length,
+              citationCount: sourceRefs.filter(
+                (sourceRef) => sourceRef.sourceType === "citation",
+              ).length,
+            })
+          : "unverified");
   const feynmanTags =
     workflow.source === "feynman"
       ? ["feynman-native", "claim-audit", "provenance"]
@@ -301,7 +313,8 @@ export function queueOfficeRunSideEffects({
       title:
         artifactOverrides?.title ??
         `${workflow.label} — ${workflow.topic.slice(0, 96)}`,
-      summary: artifactOverrides?.summary ?? deriveWorkflowArtifactSummary(result),
+      summary:
+        artifactOverrides?.summary ?? deriveWorkflowArtifactSummary(result),
       content: result,
       source: "workflow",
       sourceLabel:
@@ -345,7 +358,9 @@ export function buildOfficeRunSessionSummary({
   steps,
   target,
 }: OfficeRunArgs) {
-  const toolCallCount = steps.filter((step) => step.type === "tool_call").length;
+  const toolCallCount = steps.filter(
+    (step) => step.type === "tool_call",
+  ).length;
   const firstLine = getFirstSubstantiveLine(result);
   return `${target.toUpperCase()} handled "${query.slice(0, 60).trim()}…" with ${toolCallCount} tool call${toolCallCount === 1 ? "" : "s"}. ${firstLine.trim().slice(0, 150)}`;
 }
@@ -356,7 +371,9 @@ export function buildOfficeRunLessonProposal({
   steps,
   target,
 }: OfficeRunArgs) {
-  const toolCallCount = steps.filter((step) => step.type === "tool_call").length;
+  const toolCallCount = steps.filter(
+    (step) => step.type === "tool_call",
+  ).length;
   if (toolCallCount < 2 || result.length < 150) return null;
   const firstLine = getFirstSubstantiveLine(result);
   return `When handling "${query.slice(0, 60).trim()}…" style queries, ${target.toUpperCase()} used ${toolCallCount} tool calls. Key pattern: ${firstLine.trim().slice(0, 120)}`;
@@ -381,7 +398,9 @@ export function buildOfficeRunCorrectionProposal({
   preparedWorkspace,
 }: OfficeCorrectionProposalArgs): OfficeCorrectionProposalDraft | null {
   const normalizedQuery = query.trim();
-  const toolCallCount = steps.filter((step) => step.type === "tool_call").length;
+  const toolCallCount = steps.filter(
+    (step) => step.type === "tool_call",
+  ).length;
   const firstLine = getFirstSubstantiveLine(result).trim();
   if (!normalizedQuery || (!firstLine && toolCallCount === 0)) {
     return null;
@@ -398,18 +417,14 @@ export function buildOfficeRunCorrectionProposal({
   };
   const lower = `${normalizedQuery}\n${firstLine}`.toLowerCase();
 
-  if (
-    assistantIntent === "repo_work" ||
-    Boolean(filePath)
-  ) {
+  if (assistantIntent === "repo_work" || Boolean(filePath)) {
     return {
       scope,
       sensitivity: "internal",
       content: {
-        rule:
-          filePath
-            ? `For repo-work turns touching ${filePath}, keep the run anchored to the named file or lane before widening scope.`
-            : "For repo-work turns, ground the run in the named file, surface, or implementation lane before widening scope.",
+        rule: filePath
+          ? `For repo-work turns touching ${filePath}, keep the run anchored to the named file or lane before widening scope.`
+          : "For repo-work turns, ground the run in the named file, surface, or implementation lane before widening scope.",
         preferredBehavior:
           "Read the referenced code path first, keep edits bounded to the named lane, and only widen into adjacent files when the operator or the evidence clearly requires it.",
       },
@@ -428,8 +443,7 @@ export function buildOfficeRunCorrectionProposal({
       scope,
       sensitivity: "safe",
       content: {
-        rule:
-          "For evidence-heavy research turns, keep observed facts and inferred reasoning separated instead of blending them into one confidence lane.",
+        rule: "For evidence-heavy research turns, keep observed facts and inferred reasoning separated instead of blending them into one confidence lane.",
         preferredBehavior:
           "Lead with the verified answer, cite the strongest retrieved evidence, and keep verify-next actions compact instead of burying them in the body.",
       },
@@ -445,8 +459,7 @@ export function buildOfficeRunCorrectionProposal({
       scope,
       sensitivity: "restricted",
       content: {
-        rule:
-          "For privacy-sensitive turns, keep cloud dispatch constrained and protect local identifiers before anything leaves the box.",
+        rule: "For privacy-sensitive turns, keep cloud dispatch constrained and protect local identifiers before anything leaves the box.",
         preferredBehavior:
           "Prefer local inference when available, redact local hosts and protected paths on cloud-bound turns, and fail closed when the payload still carries sensitive evidence.",
       },
@@ -464,8 +477,7 @@ export function buildOfficeRunCorrectionProposal({
       scope,
       sensitivity: "internal",
       content: {
-        rule:
-          "For continuity turns, preserve the active lane and the prepared workspace instead of resetting the operator back to a broad route.",
+        rule: "For continuity turns, preserve the active lane and the prepared workspace instead of resetting the operator back to a broad route.",
         preferredBehavior:
           "Keep the answer tied to the prepared session, state the next move clearly, and only widen into other surfaces when the operator explicitly asks for it.",
       },

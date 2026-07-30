@@ -196,6 +196,7 @@ export default function ChangeLogPanel() {
             <button
               type="button"
               onClick={() => setOpen(false)}
+              aria-label="Close change log"
               style={{
                 fontSize: "12px",
                 color: "var(--text2)",

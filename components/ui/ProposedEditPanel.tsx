@@ -493,6 +493,7 @@ export default function ProposedEditPanel() {
             <button
               type="button"
               onClick={() => setOpen(false)}
+              aria-label="Close proposed edits"
               style={{
                 fontSize: "12px",
                 color: "var(--text2)",

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
 import { fetchJsonCached } from "@/lib/apiCache";
 import { evalGradeColor, gradeFromEvalScore } from "@/lib/helpers";
 import {
@@ -66,10 +67,15 @@ export default function RuntimeEvalTrend() {
             : 0;
           const eligibleNow = nextEligibleAt <= Date.now();
           if (staleNow && eligibleNow) {
-            await apiFetch("/api/metrics/runtime-eval/run", {
+            const response = await apiFetch("/api/metrics/runtime-eval/run", {
               method: "POST",
               body: JSON.stringify({}),
             });
+            if (!response.ok) {
+              throw new Error(
+                `Runtime evaluation failed (${response.status}).`,
+              );
+            }
             await refresh();
           }
         } catch {
@@ -184,16 +190,18 @@ export default function RuntimeEvalTrend() {
       failures: data?.failures ?? null,
       runner: data?.runner ?? null,
     };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
-      type: "application/json",
+    const requested = requestTextDownload({
+      filename: `runtime-eval-diagnostics-${Date.now()}.json`,
+      content: JSON.stringify(payload, null, 2),
+      label: "Runtime diagnostics",
+      mimeType: "application/json",
+      announce: false,
     });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `runtime-eval-diagnostics-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setRunMsg("Diagnostics exported.");
+    setRunMsg(
+      requested
+        ? "Diagnostics download requested."
+        : "Diagnostics download failed.",
+    );
   };
 
   const refreshStatusDrawer = useCallback(async () => {
@@ -478,8 +486,8 @@ export default function RuntimeEvalTrend() {
                 {latestExperiment.title}
               </div>
               <div style={{ fontSize: 10, color: "var(--text3)" }}>
-                {latestExperiment.variantKind?.replaceAll("_", " ")} · score delta{" "}
-                {Number(latestExperiment.scoreDelta ?? 0) >= 0 ? "+" : ""}
+                {latestExperiment.variantKind?.replaceAll("_", " ")} · score
+                delta {Number(latestExperiment.scoreDelta ?? 0) >= 0 ? "+" : ""}
                 {latestExperiment.scoreDelta ?? 0}
               </div>
               <div style={{ fontSize: 10, color: "var(--text3)" }}>
@@ -608,7 +616,10 @@ export default function RuntimeEvalTrend() {
               Open Status
             </button>
             {runMsg && (
-              <span style={{ fontSize: 10, color: "var(--text3)" }}>
+              <span
+                role="status"
+                style={{ fontSize: 10, color: "var(--text3)" }}
+              >
                 {runMsg}
               </span>
             )}

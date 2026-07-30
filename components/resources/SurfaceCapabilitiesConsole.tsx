@@ -8,7 +8,10 @@ import { SectionLabel, ShellBadge } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
 import { HQ_WORKFLOW_CATALOG } from "@/components/home/office/workflowCommands";
 import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
-import { getSessionTargetLabel, isExactSessionHref } from "@/lib/exactSessionLinks";
+import {
+  getSessionTargetLabel,
+  isExactSessionHref,
+} from "@/lib/exactSessionLinks";
 import {
   getSurfaceCapability,
   SURFACE_CAPABILITIES,
@@ -20,7 +23,9 @@ function pillStyle(active = false) {
   return {
     padding: "8px 10px",
     borderRadius: "999px",
-    border: active ? "1px solid rgba(120, 196, 255, 0.55)" : "1px solid var(--border)",
+    border: active
+      ? "1px solid rgba(120, 196, 255, 0.55)"
+      : "1px solid var(--border)",
     background: active ? "rgba(56, 122, 255, 0.18)" : "rgba(10, 15, 30, 0.58)",
     color: "var(--text)",
     fontSize: "11px",
@@ -141,23 +146,31 @@ export default function SurfaceCapabilitiesConsole() {
           </div>
 
           <div style={{ display: "grid", gap: "10px" }}>
-            <SectionLabel detail={`${selectedSurface.strongestAbilities.length} strengths`}>
+            <SectionLabel
+              detail={`${selectedSurface.strongestAbilities.length} strengths`}
+            >
               Strongest abilities
             </SectionLabel>
             {selectedSurface.strongestAbilities.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>
 
           <div style={{ display: "grid", gap: "10px" }}>
-            <SectionLabel detail={`${selectedSurface.bestFor.length} best-fit uses`}>
+            <SectionLabel
+              detail={`${selectedSurface.bestFor.length} best-fit uses`}
+            >
               Best for
             </SectionLabel>
             {selectedSurface.bestFor.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>
@@ -172,8 +185,16 @@ export default function SurfaceCapabilitiesConsole() {
         >
           <article style={listCardStyle()}>
             <div style={{ display: "grid", gap: "6px" }}>
-              <SectionLabel detail="Default economics">Free-first posture</SectionLabel>
-              <div style={{ fontSize: "12px", color: "var(--text2)", lineHeight: 1.6 }}>
+              <SectionLabel detail="Default economics">
+                Free-first posture
+              </SectionLabel>
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "var(--text2)",
+                  lineHeight: 1.6,
+                }}
+              >
                 {selectedSurface.costPosture}
               </div>
             </div>
@@ -183,7 +204,13 @@ export default function SurfaceCapabilitiesConsole() {
               <SectionLabel detail="How to read the surface when connectivity degrades">
                 Offline posture
               </SectionLabel>
-              <div style={{ fontSize: "12px", color: "var(--text2)", lineHeight: 1.6 }}>
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "var(--text2)",
+                  lineHeight: 1.6,
+                }}
+              >
                 {selectedSurface.offlinePosture}
               </div>
             </div>
@@ -202,7 +229,10 @@ export default function SurfaceCapabilitiesConsole() {
             }}
           >
             {selectedSurface.subsections.map((entry) => (
-              <article key={`${entry.label}-${entry.href ?? "local"}`} style={listCardStyle()}>
+              <article
+                key={`${entry.label}-${entry.href ?? "local"}`}
+                style={listCardStyle()}
+              >
                 <div style={{ display: "grid", gap: "8px" }}>
                   <div
                     style={{
@@ -213,14 +243,26 @@ export default function SurfaceCapabilitiesConsole() {
                       flexWrap: "wrap",
                     }}
                   >
-                    <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry.label}</div>
+                    <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                      {entry.label}
+                    </div>
                     {entry.href ? (
-                      <ShellBadge tone={isExactSessionHref(entry.href) ? "accent" : "muted"}>
+                      <ShellBadge
+                        tone={
+                          isExactSessionHref(entry.href) ? "accent" : "muted"
+                        }
+                      >
                         {getSessionTargetLabel(entry.href)}
                       </ShellBadge>
                     ) : null}
                   </div>
-                  <div style={{ fontSize: "11px", color: "var(--text2)", lineHeight: 1.5 }}>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "var(--text2)",
+                      lineHeight: 1.5,
+                    }}
+                  >
                     {entry.detail}
                   </div>
                 </div>
@@ -239,7 +281,9 @@ export default function SurfaceCapabilitiesConsole() {
         </div>
 
         <div style={{ display: "grid", gap: "10px" }}>
-          <SectionLabel detail={`${selectedSurface.jumpActions.length} jump-offs`}>
+          <SectionLabel
+            detail={`${selectedSurface.jumpActions.length} jump-offs`}
+          >
             Open the right thing next
           </SectionLabel>
           <ActionSessionCluster
@@ -251,7 +295,9 @@ export default function SurfaceCapabilitiesConsole() {
         </div>
 
         <div style={{ display: "grid", gap: "10px" }}>
-          <SectionLabel detail={`${selectedSurface.upgradeActions.length} launch points`}>
+          <SectionLabel
+            detail={`${selectedSurface.upgradeActions.length} launch points`}
+          >
             Improve from here
           </SectionLabel>
           <ActionSessionCluster
@@ -263,7 +309,9 @@ export default function SurfaceCapabilitiesConsole() {
         </div>
 
         <div style={{ display: "grid", gap: "10px" }}>
-          <SectionLabel detail={`${selectedSurface.upgradePriorities.length} next moves`}>
+          <SectionLabel
+            detail={`${selectedSurface.upgradePriorities.length} next moves`}
+          >
             Strengthen next
           </SectionLabel>
           <div
@@ -275,7 +323,9 @@ export default function SurfaceCapabilitiesConsole() {
           >
             {selectedSurface.upgradePriorities.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>

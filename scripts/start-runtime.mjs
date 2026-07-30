@@ -16,6 +16,8 @@ const standaloneRoot = join(root, nextDistDir, "standalone");
 const nextCli = join(root, "node_modules", "next", "dist", "bin", "next");
 const buildIdPath = join(root, nextDistDir, "BUILD_ID");
 const runtimeIdentityPath = join(root, ".nexus-runtime-identity.json");
+const managedByOperationalStart =
+  process.env.NEXUS_MANAGED_PARENT === "operational-start";
 
 function syncRuntimeAsset(relativeSource, relativeTarget = relativeSource) {
   const source = join(root, relativeSource);
@@ -72,7 +74,9 @@ const child = spawn(
   {
     cwd: useStandalone ? standaloneRoot : root,
     env,
-    stdio: "inherit",
+    stdio: managedByOperationalStart
+      ? ["ignore", "inherit", "inherit"]
+      : "inherit",
   },
 );
 
@@ -84,9 +88,25 @@ const onSigterm = () => forwardSignal("SIGTERM");
 process.once("SIGINT", onSigint);
 process.once("SIGTERM", onSigterm);
 
+let managedInput = "";
+const onManagedInput = (chunk) => {
+  managedInput += String(chunk);
+  const lines = managedInput.split(/\r?\n/);
+  managedInput = lines.pop() ?? "";
+  if (lines.includes("NEXUS_SHUTDOWN")) {
+    console.log("[runtime] managed shutdown requested");
+    forwardSignal("SIGTERM");
+  }
+};
+if (managedByOperationalStart) {
+  process.stdin.setEncoding("utf8");
+  process.stdin.on("data", onManagedInput);
+}
+
 child.on("exit", (code, signal) => {
   process.off("SIGINT", onSigint);
   process.off("SIGTERM", onSigterm);
+  process.stdin.off("data", onManagedInput);
   if (signal) {
     process.exitCode = signal === "SIGINT" ? 130 : 143;
     return;

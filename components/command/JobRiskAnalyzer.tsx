@@ -183,6 +183,7 @@ The actions should be concrete steps this specific person can take right now to 
       {/* Input row */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
         <input
+          aria-label="Job title or role"
           type="text"
           value={jobInput}
           onChange={(e) => setJobInput(e.target.value)}

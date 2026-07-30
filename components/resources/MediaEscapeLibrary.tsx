@@ -19,6 +19,9 @@ import {
 } from "@/lib/subscriptionEscape";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { ActionDialog } from "@/components/ui/ActionDialog";
+import { takeSelectedFile } from "@/components/ui/fileInput";
+import { useActionDialog } from "@/hooks/useActionDialog";
 
 interface MediaEscapeLibraryProps {
   items: MediaEscapeItem[];
@@ -275,6 +278,7 @@ export default function MediaEscapeLibrary({
   const [coverUploadStatus, setCoverUploadStatus] = useState<
     "idle" | "uploading" | "uploaded" | "error"
   >("idle");
+  const actionDialog = useActionDialog();
 
   const counts = useMemo(() => getMediaEscapeCounts(items), [items]);
   const visibleItems = useMemo(
@@ -340,7 +344,7 @@ export default function MediaEscapeLibrary({
     setMessage("");
   }
 
-  function saveDraft() {
+  async function saveDraft() {
     if (!draft.title.trim()) {
       setMessage("Add a title first.");
       return;
@@ -351,14 +355,14 @@ export default function MediaEscapeLibrary({
     const duplicate = editingId
       ? null
       : findMediaEscapeDuplicate(items, nextItem);
-    if (
-      duplicate &&
-      typeof window !== "undefined" &&
-      !window.confirm(
-        `"${duplicate.title}" looks like the same ${MEDIA_ESCAPE_KIND_LABELS[nextItem.kind].toLowerCase()}. Add it anyway?`,
-      )
-    ) {
-      return;
+    if (duplicate) {
+      const confirmed = await actionDialog.requestActionDialog({
+        eyebrow: "Duplicate review",
+        title: "Add possible duplicate?",
+        description: `"${duplicate.title}" looks like the same ${MEDIA_ESCAPE_KIND_LABELS[nextItem.kind].toLowerCase()}. Adding it will keep both entries.`,
+        confirmLabel: "Add anyway",
+      });
+      if (!confirmed) return;
     }
     onChangeItems((currentItems) => {
       if (editingId) {
@@ -374,13 +378,17 @@ export default function MediaEscapeLibrary({
     setMessage(editingId ? "Saved changes." : "Added to library.");
   }
 
-  function removeItem(item: MediaEscapeItem) {
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(`Remove "${item.title}" from the local library?`)
-    ) {
-      return;
-    }
+  async function removeItem(item: MediaEscapeItem) {
+    const confirmed = await actionDialog.requestActionDialog({
+      eyebrow: "Local library",
+      title: `Remove "${item.title}"?`,
+      description:
+        "This removes the catalog entry and its Nexus metadata. It does not delete the original media file.",
+      confirmLabel: "Remove item",
+      tone: "danger",
+    });
+    if (!confirmed) return;
+
     onChangeItems((currentItems) =>
       currentItems.filter((entry) => entry.id !== item.id),
     );
@@ -703,7 +711,7 @@ export default function MediaEscapeLibrary({
                 </button>
                 <button
                   type="button"
-                  onClick={() => removeItem(selectedItem)}
+                  onClick={() => void removeItem(selectedItem)}
                   style={buttonStyle()}
                 >
                   Remove
@@ -869,7 +877,7 @@ export default function MediaEscapeLibrary({
                 type="file"
                 accept="image/png,image/jpeg,image/gif,image/webp"
                 onChange={(event) =>
-                  void uploadCover(event.currentTarget.files?.[0] ?? null)
+                  void uploadCover(takeSelectedFile(event.currentTarget))
                 }
                 style={controlStyle()}
               />
@@ -938,7 +946,7 @@ export default function MediaEscapeLibrary({
               ) : null}
               <button
                 type="button"
-                onClick={saveDraft}
+                onClick={() => void saveDraft()}
                 style={buttonStyle(true)}
               >
                 {editingId ? "Save changes" : "Add to library"}
@@ -971,7 +979,11 @@ export default function MediaEscapeLibrary({
                     ? "Save failed"
                     : "Local file"}
             </ShellBadge>
-            {message ? <ShellBadge tone="accent">{message}</ShellBadge> : null}
+            {message ? (
+              <ShellBadge role="status" tone="accent">
+                {message}
+              </ShellBadge>
+            ) : null}
             {coverUploadStatus !== "idle" ? (
               <ShellBadge
                 tone={
@@ -1041,6 +1053,7 @@ export default function MediaEscapeLibrary({
           {renderShelf("Books", books, `${books.length} titles`)}
         </>
       )}
+      <ActionDialog controller={actionDialog} />
     </div>
   );
 }

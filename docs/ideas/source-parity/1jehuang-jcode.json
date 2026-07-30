@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "1jehuang-jcode",
   "name": "jcode",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/1jehuang/jcode",
     "version": "main-2026-06-21",
@@ -26,15 +26,23 @@
       "id": "context-window-code-chunking",
       "title": "Context-window-aware code chunking: split large files into semantic chunks for LLM context",
       "sourceEvidence": "jcode: file chunking strategy for large codebase LLM context",
-      "disposition": "pending",
-      "reason": "Nexus RECON repo assimilation reads full files; semantic chunking for large file LLM context is a useful pattern to adapt."
+      "disposition": "adapted",
+      "proof": [
+        "lib/projectFileContext.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-project-file-context-runtime.mjs"
+      ]
     },
     {
       "id": "inline-diff-presentation",
       "title": "Inline diff presentation: show before/after for suggested code changes",
       "sourceEvidence": "jcode: diff-first UI for code suggestion review",
-      "disposition": "pending",
-      "reason": "Nexus ORBIT edits files directly; an inline diff UI for change preview in the dashboard is not yet implemented."
+      "disposition": "implemented",
+      "proof": [
+        "components/ui/ProposedEditPanel.tsx",
+        "components/ui/RootLayoutChrome.tsx",
+        "lib/agent.ts"
+      ]
     }
   ]
 }

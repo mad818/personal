@@ -1,8 +1,53 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-06-21T09:57:14.797Z",
+  "updatedAt": "2026-06-22T08:12:23.068Z",
   "notes": "Paste GitHub/X links here, use RECON → Idea intake, or run: npm run ideas:register -- <url> [url...]",
   "items": [
+    {
+      "id": "dmore-agency-ai-agents-crafted-personali-danger-hidden-content-via-css",
+      "source": "https://github.com/dmore/agency-ai-agents-crafted-personali-danger-hidden-content-via-CSS",
+      "kind": "github",
+      "status": "triaged",
+      "addedAt": "2026-06-22T08:12:23.062Z",
+      "triagedAt": "2026-06-22T08:15:00.000Z",
+      "lane": "CYBER/skills-adversarial",
+      "priority": "low",
+      "note": "CSS-hidden prompt channel excluded; use only for SkillSpector/CIPHER adversarial review.",
+      "targetMatrix": "docs/ideas/source-parity/dmore-agency-ai-agents-crafted-personali-danger-hidden-content-via-css.json"
+    },
+    {
+      "id": "fainir-most-capable-agent-system-prompt",
+      "source": "https://github.com/fainir/most-capable-agent-system-prompt",
+      "kind": "github",
+      "status": "triaged",
+      "addedAt": "2026-06-22T08:12:23.062Z",
+      "triagedAt": "2026-06-22T08:15:00.000Z",
+      "lane": "agent-platform/ORBIT",
+      "priority": "medium",
+      "targetMatrix": "docs/ideas/source-parity/fainir-most-capable-agent-system-prompt.json"
+    },
+    {
+      "id": "pear-devs-pear-desktop",
+      "source": "https://github.com/pear-devs/pear-desktop",
+      "kind": "github",
+      "status": "triaged",
+      "addedAt": "2026-06-22T08:12:23.062Z",
+      "triagedAt": "2026-06-22T08:15:00.000Z",
+      "lane": "resources/reference-only",
+      "priority": "low",
+      "targetMatrix": "docs/ideas/source-parity/pear-devs-pear-desktop.json"
+    },
+    {
+      "id": "simplifaisoul-osiris",
+      "source": "https://github.com/simplifaisoul/osiris",
+      "kind": "github",
+      "status": "triaged",
+      "addedAt": "2026-06-22T08:12:23.062Z",
+      "triagedAt": "2026-06-22T08:15:00.000Z",
+      "lane": "INTEL/RECON",
+      "priority": "high",
+      "targetMatrix": "docs/ideas/source-parity/simplifaisoul-osiris.json"
+    },
     {
       "id": "dietrichgebert-ponytail",
       "source": "https://github.com/DietrichGebert/ponytail",

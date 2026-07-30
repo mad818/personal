@@ -143,7 +143,11 @@ export async function POST(req: NextRequest) {
       } satisfies VerificationResponse,
       { status: 429 },
     );
-    applyRateLimitHeaders(response, VERIFY_RATE_LIMIT, rateLimited.retryAfterSec);
+    applyRateLimitHeaders(
+      response,
+      VERIFY_RATE_LIMIT,
+      rateLimited.retryAfterSec,
+    );
     return response;
   }
 

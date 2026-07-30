@@ -47,7 +47,13 @@ export interface CompiledMemoryPageSummary {
   contentWithheld?: boolean;
 }
 
-const GRAPH_AGENT_IDS: AgentId[] = ["jansky", "orbit", "nova", "cipher", "flux"];
+const GRAPH_AGENT_IDS: AgentId[] = [
+  "jansky",
+  "orbit",
+  "nova",
+  "cipher",
+  "flux",
+];
 
 export type GraphSourceFilter = "all" | "clips" | "compiled";
 export type GraphVisibilityFilter = "all" | "safe" | "sensitive" | "restricted";
@@ -62,7 +68,10 @@ export const GRAPH_TYPE_COLORS: Record<string, string> = {
   other: "#6875a0",
 };
 
-export const GRAPH_VISIBILITY_COLORS: Record<"safe" | "internal" | "restricted", string> = {
+export const GRAPH_VISIBILITY_COLORS: Record<
+  "safe" | "internal" | "restricted",
+  string
+> = {
   safe: "#10b981",
   internal: "#f59e0b",
   restricted: "#ef4444",
@@ -76,8 +85,18 @@ export const GRAPH_FILTER_PRESETS: Array<{
 }> = [
   { id: "balanced", label: "Balanced", source: "all", visibility: "all" },
   { id: "safe-only", label: "Safe only", source: "all", visibility: "safe" },
-  { id: "compiled-research", label: "Compiled research", source: "compiled", visibility: "all" },
-  { id: "restricted-topology", label: "Restricted topology", source: "all", visibility: "restricted" },
+  {
+    id: "compiled-research",
+    label: "Compiled research",
+    source: "compiled",
+    visibility: "all",
+  },
+  {
+    id: "restricted-topology",
+    label: "Restricted topology",
+    source: "all",
+    visibility: "restricted",
+  },
 ];
 
 export function buildVaultGraphFocusHref(input?: {
@@ -101,7 +120,9 @@ function isGraphSourceFilter(value: unknown): value is GraphSourceFilter {
   return value === "all" || value === "clips" || value === "compiled";
 }
 
-function isGraphVisibilityFilter(value: unknown): value is GraphVisibilityFilter {
+function isGraphVisibilityFilter(
+  value: unknown,
+): value is GraphVisibilityFilter {
   return (
     value === "all" ||
     value === "safe" ||
@@ -243,8 +264,12 @@ export function buildCompiledPageGraphText(page: CompiledMemoryPageSummary) {
     page.artifactClassification.artifactType,
     page.artifactClassification.parserHint,
     page.artifactClassification.sensitivity,
-    page.documentMetadata?.metadataWithheld ? "" : page.documentMetadata?.originLabel ?? "",
-    page.documentMetadata?.metadataWithheld ? "" : page.documentMetadata?.mimeType ?? "",
+    page.documentMetadata?.metadataWithheld
+      ? ""
+      : (page.documentMetadata?.originLabel ?? ""),
+    page.documentMetadata?.metadataWithheld
+      ? ""
+      : (page.documentMetadata?.mimeType ?? ""),
     page.documentMetadata?.metadataWithheld || !page.documentMetadata?.pageCount
       ? ""
       : `${page.documentMetadata.pageCount} pages`,

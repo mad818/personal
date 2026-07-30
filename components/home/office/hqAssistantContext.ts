@@ -9,7 +9,10 @@ import {
 } from "@/lib/assistantCapabilityRegistry";
 import { governanceApprovalLabel } from "@/lib/governanceCatalog";
 import { resolveAssistantIndexedRetrieval } from "@/lib/assistantIndexedRetrieval";
-import { buildPreparedWorkspaceTarget, resolveAssistantWorkspaceForRoute } from "@/lib/assistantSessionRegistry";
+import {
+  buildPreparedWorkspaceTarget,
+  resolveAssistantWorkspaceForRoute,
+} from "@/lib/assistantSessionRegistry";
 import { getEngineeringPlaybook } from "@/lib/engineeringPlaybooks";
 import { hasDeepResearchIntent } from "@/lib/deepResearch";
 import { normalizeSessionHref } from "@/lib/exactSessionLinks";
@@ -29,7 +32,10 @@ import {
   TUTOR_PROFILES,
   type LearningMission,
 } from "@/lib/learningMissions";
-import { getSurfaceCapability, SURFACE_CAPABILITIES } from "@/lib/surfaceCapabilities";
+import {
+  getSurfaceCapability,
+  SURFACE_CAPABILITIES,
+} from "@/lib/surfaceCapabilities";
 import { getSystemDesignMap, SYSTEM_DESIGN_MAPS } from "@/lib/systemDesignMaps";
 import {
   buildRepoComparePreparedWorkspace,
@@ -40,7 +46,10 @@ import {
   buildRepoAssimilationPreparedWorkspace,
   hasRepoAssimilationSignal,
 } from "@/lib/repoAssimilation";
-import { buildRepoIntelPreparedWorkspace, hasRepoIntelSignal } from "@/lib/repoIntel";
+import {
+  buildRepoIntelPreparedWorkspace,
+  hasRepoIntelSignal,
+} from "@/lib/repoIntel";
 import type { HQAnswerStyle } from "./types";
 import type {
   AssistantGuidance,
@@ -157,7 +166,9 @@ function detectSurfaceIdFromPrompt(input: string) {
     return (
       lower.includes(surface.id) ||
       surface.title.toLowerCase() === lower.trim() ||
-      surface.subsections.some((section) => lower.includes(section.label.toLowerCase()))
+      surface.subsections.some((section) =>
+        lower.includes(section.label.toLowerCase()),
+      )
     );
   });
   return match?.id ?? null;
@@ -173,13 +184,17 @@ function detectAssistantIntent(
   if (answerStyle === "live_current") return "live_current";
   if (answerStyle === "repo_work") return "repo_work";
   if (answerStyle === "product_help") {
-    return WORKSPACE_ACTION_RE.test(input) && (routeHint || detectSurfaceIdFromPrompt(input))
+    return WORKSPACE_ACTION_RE.test(input) &&
+      (routeHint || detectSurfaceIdFromPrompt(input))
       ? "workspace_action"
       : "product_help";
   }
   if (ARCHIVE_CONTINUITY_RE.test(input)) return "archive_continuity";
   if (MEMORY_RECALL_RE.test(input)) return "memory_recall";
-  if (WORKSPACE_ACTION_RE.test(input) && (routeHint || detectSurfaceIdFromPrompt(input))) {
+  if (
+    WORKSPACE_ACTION_RE.test(input) &&
+    (routeHint || detectSurfaceIdFromPrompt(input))
+  ) {
     return "workspace_action";
   }
   if (RESEARCH_RE.test(input)) return "research";
@@ -189,7 +204,9 @@ function detectAssistantIntent(
 function findSystemMapBySurfaceId(surfaceId: string | null) {
   if (!surfaceId) return null;
   const bySurface = SYSTEM_DESIGN_MAPS.find((entry) =>
-    entry.surfaces.some((surface) => surface.toLowerCase() === surfaceId.toLowerCase()),
+    entry.surfaces.some(
+      (surface) => surface.toLowerCase() === surfaceId.toLowerCase(),
+    ),
   );
   if (bySurface) return bySurface;
   switch (surfaceId) {
@@ -323,10 +340,15 @@ function selectPlaybookId(
   if (!filePath && hasRepoIntelSignal(input)) {
     return "repo-intel-briefing";
   }
-  if (/\b(?:radar|sensor fusion|sensor-fusion|vehicle session bundle)\b/i.test(input)) {
+  if (
+    /\b(?:radar|sensor fusion|sensor-fusion|vehicle session bundle)\b/i.test(
+      input,
+    )
+  ) {
     return "radar-readiness-session";
   }
-  if (REVERSE_ENGINEERING_RE.test(input)) return "reverse-engineering-follow-through";
+  if (REVERSE_ENGINEERING_RE.test(input))
+    return "reverse-engineering-follow-through";
   if (SECOND_BRAIN_RE.test(input)) return "second-brain-heartbeat";
   if (intent === "repo_work" && API_OR_BOUNDARY_RE.test(input)) {
     return "security-boundary-audit";
@@ -442,15 +464,18 @@ function selectPreparedWorkspace(
   }
 
   if (ARCHITECTURE_INTELLIGENCE_RE.test(input)) {
-    const impactMode = /security|secret|eval|shell|xss|ssrf|token|credential/i.test(input)
-      ? "security"
-      : "graph";
+    const impactMode =
+      /security|secret|eval|shell|xss|ssrf|token|credential/i.test(input)
+        ? "security"
+        : "graph";
     const href = filePath
       ? `/resources?view=impact&file=${encodeURIComponent(filePath)}&impactMode=${impactMode}`
       : `/resources?view=impact&impactMode=${impactMode}`;
     return buildPreparedWorkspaceTarget(
       href,
-      impactMode === "security" ? "Open Impact security lane" : "Open Impact graph lane",
+      impactMode === "security"
+        ? "Open Impact security lane"
+        : "Open Impact graph lane",
       impactMode === "security"
         ? "Prepared the local architecture-security lane so sinks, secrets, and risky boundaries can be reviewed without sending code outside the repo."
         : "Prepared the architecture-intelligence lane so graph shape, ownership, hotspots, and likely blast radius are visible before implementation starts.",
@@ -572,7 +597,10 @@ function selectPreparedWorkspace(
         "Prepared the local binary-triage lane so investigation can widen there.",
       );
     }
-    if (/opsec|header|headers|dns|lookup|osint/i.test(input) || OSINT_CASEFILE_RE.test(input)) {
+    if (
+      /opsec|header|headers|dns|lookup|osint/i.test(input) ||
+      OSINT_CASEFILE_RE.test(input)
+    ) {
       if (routeHint?.startsWith("/cyber")) {
         return resolveAssistantWorkspaceForRoute("/cyber", intent);
       }
@@ -603,14 +631,20 @@ function selectPreparedWorkspace(
         "Prepared the scheduler lane so automation posture and saved review views are ready.",
       );
     }
-    return resolveAssistantWorkspaceForRoute(routeHint ?? (surfaceId ? `/${surfaceId}` : null), intent);
+    return resolveAssistantWorkspaceForRoute(
+      routeHint ?? (surfaceId ? `/${surfaceId}` : null),
+      intent,
+    );
   }
 
   if (intent === "workflow" && SCHEDULER_RE.test(input)) {
     return resolveAssistantWorkspaceForRoute("/hq", intent);
   }
 
-  return resolveAssistantWorkspaceForRoute(routeHint ?? (surfaceId ? `/${surfaceId}` : null), intent);
+  return resolveAssistantWorkspaceForRoute(
+    routeHint ?? (surfaceId ? `/${surfaceId}` : null),
+    intent,
+  );
 }
 
 function summarizeAttachment(attachment: HQAssistantContextAttachment) {
@@ -720,7 +754,8 @@ function buildGovernanceCue(
   if (!profile.approvalRequired) return null;
   return {
     kind: "execution",
-    tone: profile.continuationMode === "human_gated_workflow" ? "caution" : "info",
+    tone:
+      profile.continuationMode === "human_gated_workflow" ? "caution" : "info",
     title:
       profile.continuationMode === "human_gated_workflow"
         ? "Operator approval required"
@@ -755,11 +790,12 @@ export function resolveHQAssistantContext(opts: {
   answerStyle: HQAnswerStyle;
   routeHint?: string | null;
   unfinishedSessions?: UnfinishedSessionMemory[];
-}) : HQAssistantContextResolution {
+}): HQAssistantContextResolution {
   const routeHint = opts.routeHint ?? detectRouteFromPrompt(opts.input);
   const learningMission = detectLearningMission(opts.input);
   const surfaceId =
-    detectSurfaceIdFromRoute(routeHint) ?? detectSurfaceIdFromPrompt(opts.input);
+    detectSurfaceIdFromRoute(routeHint) ??
+    detectSurfaceIdFromPrompt(opts.input);
   const filePath = opts.input.match(FILE_PATH_RE)?.[0] ?? null;
   const intent = detectAssistantIntent(opts.input, opts.answerStyle, routeHint);
   const indexedRetrieval = resolveAssistantIndexedRetrieval({
@@ -813,10 +849,13 @@ export function resolveHQAssistantContext(opts: {
         ? buildSurfaceAttachment(surfaceId ?? "intel")
         : null,
     intent === "repo_work" ? impactAttachment : null,
-    playbookId ? buildPlaybookAttachment(playbookId, intent === "repo_work" ? 74 : 66) : null,
-    specId ? buildSpecAttachment(specId, intent === "repo_work" ? 71 : 64) : null,
-  ]
-    .filter((entry): entry is HQAssistantContextAttachment => Boolean(entry));
+    playbookId
+      ? buildPlaybookAttachment(playbookId, intent === "repo_work" ? 74 : 66)
+      : null,
+    specId
+      ? buildSpecAttachment(specId, intent === "repo_work" ? 71 : 64)
+      : null,
+  ].filter((entry): entry is HQAssistantContextAttachment => Boolean(entry));
 
   const rankedAttachments = [...indexedAttachments, ...manualAttachments]
     .reduce<HQAssistantContextAttachment[]>((acc, attachment) => {
@@ -919,7 +958,8 @@ export function resolveHQAssistantContext(opts: {
       capability.title,
       indexedRetrieval.capabilityConfidence,
     ),
-    preparedWorkspaceBlock: buildPreparedWorkspacePromptBlock(preparedWorkspace),
+    preparedWorkspaceBlock:
+      buildPreparedWorkspacePromptBlock(preparedWorkspace),
     continuationBlock: buildContinuationPromptBlock(
       unfinishedContinuation,
       preparedWorkspace,

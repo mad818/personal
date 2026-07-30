@@ -9,8 +9,8 @@
 // it never changes between runs, so file-reading adds no value.
 
 export interface ProjectContext {
-  stack:       string[];
-  patterns:    { name: string; description: string }[];
+  stack: string[];
+  patterns: { name: string; description: string }[];
   constraints: string[];
   generatedAt: number;
 }
@@ -29,24 +29,29 @@ const NEXUS_CONTEXT: ProjectContext = {
   ],
   patterns: [
     {
-      name:        "AI calls",
-      description: "Always use callAI(prompt) or streamAI(...) from lib/ai.ts. NEVER call provider APIs directly.",
+      name: "AI calls",
+      description:
+        "Always use callAI(prompt) or streamAI(...) from lib/ai.ts. NEVER call provider APIs directly.",
     },
     {
-      name:        "Formatting helpers",
-      description: "fmtPrice(n) / fmtVol(n) / timeAgo(ts) from lib/helpers.ts. NEVER inline number formatting.",
+      name: "Formatting helpers",
+      description:
+        "fmtPrice(n) / fmtVol(n) / timeAgo(ts) from lib/helpers.ts. NEVER inline number formatting.",
     },
     {
-      name:        "Store access",
-      description: "useStore(s => s.field) selector form. NEVER useStore().field (breaks reactivity).",
+      name: "Store access",
+      description:
+        "useStore(s => s.field) selector form. NEVER useStore().field (breaks reactivity).",
     },
     {
-      name:        "Async fetches",
-      description: "All external fetches wrapped in try/catch with silent failure. Never let unhandled rejections crash the page.",
+      name: "Async fetches",
+      description:
+        "All external fetches wrapped in try/catch with silent failure. Never let unhandled rejections crash the page.",
     },
     {
-      name:        "Fear & Greed",
-      description: "Always signals.fg.value and signals.fg.label. NEVER read fg as a plain number.",
+      name: "Fear & Greed",
+      description:
+        "Always signals.fg.value and signals.fg.label. NEVER read fg as a plain number.",
     },
   ],
   constraints: [
@@ -76,13 +81,11 @@ export async function detectProjectContext(): Promise<ProjectContext> {
 export function buildStackContextBlock(): string {
   try {
     const ctx = NEXUS_CONTEXT;
-    const stackLine       = ctx.stack.join(" | ");
-    const patternLines    = ctx.patterns
+    const stackLine = ctx.stack.join(" | ");
+    const patternLines = ctx.patterns
       .map((p) => `    ${p.name}: ${p.description}`)
       .join("\n");
-    const constraintLines = ctx.constraints
-      .map((c) => `    • ${c}`)
-      .join("\n");
+    const constraintLines = ctx.constraints.map((c) => `    • ${c}`).join("\n");
 
     return [
       "[NEXUS STACK CONTEXT]",

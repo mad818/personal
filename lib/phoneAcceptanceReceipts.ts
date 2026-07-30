@@ -186,7 +186,8 @@ export function classifyPhoneAcceptanceDevice(
   const normalized = (userAgent ?? "").toLowerCase();
   if (!normalized) return "unknown";
   if (/ipad|tablet/.test(normalized)) return "tablet";
-  if (/macintosh/.test(normalized) && /mobile/.test(normalized)) return "tablet";
+  if (/macintosh/.test(normalized) && /mobile/.test(normalized))
+    return "tablet";
   if (/iphone|ipod|windows phone/.test(normalized)) return "phone";
   if (/android/.test(normalized)) {
     return /mobile/.test(normalized) ? "phone" : "tablet";
@@ -214,7 +215,9 @@ export async function readPhoneAcceptanceReceipts() {
   }
 }
 
-async function writePhoneAcceptanceReceipts(receipts: PhoneAcceptanceReceipt[]) {
+async function writePhoneAcceptanceReceipts(
+  receipts: PhoneAcceptanceReceipt[],
+) {
   const filePath = receiptFilePath();
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   const payload: ReceiptFileShape = {
@@ -233,9 +236,10 @@ export async function appendPhoneAcceptanceReceipt(
   const capturedAt = new Date();
   const receipt: PhoneAcceptanceReceipt = {
     version: PHONE_ACCEPTANCE_RECEIPT_VERSION,
-    id: `phone-acceptance-${capturedAt.toISOString().replace(/[:.]/g, "-")}-${
-      randomUUID().slice(0, 8)
-    }`,
+    id: `phone-acceptance-${capturedAt.toISOString().replace(/[:.]/g, "-")}-${randomUUID().slice(
+      0,
+      8,
+    )}`,
     capturedAt: capturedAt.toISOString(),
     route: sanitizeRoute(input.route),
     source: sanitizeSource(input.source),

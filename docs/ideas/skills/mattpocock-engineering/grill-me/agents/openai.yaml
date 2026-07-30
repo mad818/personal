@@ -1,0 +1,6 @@
+interface:
+  display_name: "Grill Me"
+  short_description: "Resolve a standalone plan through explicit decisions."
+  default_prompt: "Use $grill-me to resolve this standalone plan one consequential choice at a time."
+policy:
+  allow_implicit_invocation: false

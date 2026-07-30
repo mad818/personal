@@ -4,10 +4,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import {
-  motion,
-  useReducedMotion,
-} from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import type { CSSProperties, ReactNode } from "react";
 import { useStore } from "@/store/useStore";
 import {
@@ -46,11 +43,24 @@ export default function PageTransition({
   );
   const preset = resolveSurfaceTransitionPreset(surface, effectiveProfile);
   const sequence = resolveSurfaceSequencePreset(surface);
+  const reduced = prefersReducedMotion || effectiveProfile === "reduced";
   const motionProps = {
-    initial: preset.initial,
-    animate: preset.animate,
-    exit: preset.exit,
-    transition: preset.transition,
+    initial: reduced
+      ? false
+      : {
+          opacity: 0,
+          y: 10,
+        },
+    animate: {
+      opacity: 1,
+      y: 0,
+    },
+    transition: reduced
+      ? { duration: 0 }
+      : {
+          duration: Math.min(0.28, preset.transition?.duration ?? 0.22),
+          ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+        },
   } as const;
   const mergedStyle = {
     ...style,
@@ -62,8 +72,10 @@ export default function PageTransition({
 
   return (
     <motion.div
-      {...(motionProps as any)}
-      initial={false}
+      key={pathname}
+      initial={motionProps.initial}
+      animate={motionProps.animate}
+      transition={motionProps.transition}
       className={className}
       style={mergedStyle}
       data-nexus-ingress={sequence.ingress.kind}

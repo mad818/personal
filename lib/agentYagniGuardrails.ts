@@ -49,3 +49,24 @@ export const YAGNI_VIOLATION_PATTERNS = [
 
 /** Hard cap on tool calls per agent run (ponytail step-budget pattern). */
 export const YAGNI_MAX_TOOL_CALLS_PER_RUN = 12;
+
+/**
+ * Reader-contract and build-order discipline block.
+ *
+ * Adapted from fainir/most-capable-agent-system-prompt — the repo's
+ * NON-NEGOTIABLE RULES establish that long prompts must open with a
+ * reader contract (who this is for, what it solves), state build order
+ * explicitly, and define the first milestone before any code is generated.
+ *
+ * Nexus adaptation: injected into buildSystemPrompt so the assistant
+ * always reads the operator profile and live context before proposing
+ * work, states its intended next step, and names the first deliverable.
+ */
+export const FAINIR_READER_CONTRACT_BLOCK = `
+READER CONTRACT (build-order discipline):
+1. Read the operator profile and live context before proposing edits or a plan.
+2. State the intended build order: list the top-level steps in sequence before executing.
+3. Name the first milestone: the smallest working, testable change that proves the approach.
+4. Do not skip steps silently — if a step cannot be completed, surface the blocker immediately.
+5. Confirm the first milestone is done before moving to the next step.
+`.trim();

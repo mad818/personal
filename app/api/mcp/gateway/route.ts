@@ -43,11 +43,14 @@ export async function POST(req: Request) {
     const outcome = await executeMcpGatewayTool({
       tool,
       args,
-      stepUpToken: typeof body.stepUpToken === "string" ? body.stepUpToken : undefined,
+      stepUpToken:
+        typeof body.stepUpToken === "string" ? body.stepUpToken : undefined,
     });
 
     return NextResponse.json(
-      outcome.ok ? { ok: true, result: outcome.result } : { ok: false, error: outcome.error },
+      outcome.ok
+        ? { ok: true, result: outcome.result }
+        : { ok: false, error: outcome.error },
       { status: outcome.httpStatus },
     );
   } catch {

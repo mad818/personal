@@ -16,6 +16,26 @@ export async function seedAuthenticatedShell(page: Page) {
   expect(response.ok(), "seedAuthenticatedShell should mint a valid local session").toBe(true);
 }
 
+/** HQ e2e uses the expanded command workspace instead of compact chat-first. */
+export async function seedExpandedHqLayout(page: Page) {
+  await page.addInitScript(() => {
+    try {
+      const raw = window.localStorage.getItem("nexus-settings");
+      const parsed = raw ? JSON.parse(raw) : { state: {} };
+      const state = parsed.state && typeof parsed.state === "object" ? parsed.state : {};
+      state.settings = {
+        ...(state.settings && typeof state.settings === "object" ? state.settings : {}),
+        hqCompactOperatorLayout: false,
+        hqConsoleFocusMode: "command",
+      };
+      parsed.state = state;
+      window.localStorage.setItem("nexus-settings", JSON.stringify(parsed));
+    } catch {
+      // Silent: tests fall back to compact HQ if storage is blocked.
+    }
+  });
+}
+
 async function buildShellDiagnostics(page: Page) {
   const authGate = page.getByTestId("auth-gate");
   const authStatus = page.getByTestId("auth-status");

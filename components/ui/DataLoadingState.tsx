@@ -26,6 +26,9 @@ export default function DataLoadingState({
       description="Preparing the local/free-first operating picture."
       style={{ minHeight: `${height}px`, ...style }}
       data-cinematic-state="loading"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
     >
       <div className="nexus-surface-loading-state__pulse" aria-hidden="true">
         <span />

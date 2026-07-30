@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "id": "uditakhourii-adhd",
+  "name": "UditAkhourii/adhd",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/UditAkhourii/adhd",
+    "version": "main snapshot reviewed 2026-07-21; no tagged release",
+    "reviewedAt": "2026-07-21",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/UditAkhourii/adhd/blob/main/README.md",
+      "https://github.com/UditAkhourii/adhd/blob/main/skills/adhd/SKILL.md",
+      "https://github.com/UditAkhourii/adhd/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "explicit-preflight",
+      "title": "Treat divergent ideation as an explicit, higher-cost method",
+      "sourceEvidence": "README usage and cost disclosure",
+      "disposition": "adapted",
+      "proof": [
+        "lib/councilDivergence.ts",
+        "components/home/office/PersonaModeBar.tsx"
+      ],
+      "adaptationNotes": "Council must be enabled and the request must contain one of five explicit divergence phrases."
+    },
+    {
+      "id": "isolated-frame-selection",
+      "title": "Select materially different frames before generation",
+      "sourceEvidence": "skills/adhd/SKILL.md angle selection",
+      "disposition": "adapted",
+      "proof": ["lib/councilDivergence.ts", "lib/personaEngine.ts"],
+      "adaptationNotes": "Nexus uses three fixed, product-relevant frames: evidence auditor, inversion, and zero budget."
+    },
+    {
+      "id": "parallel-independent-generation",
+      "title": "Run frame branches independently in parallel",
+      "sourceEvidence": "README divergent generation method",
+      "disposition": "adapted",
+      "proof": [
+        "lib/personaEngine.ts",
+        "scripts/validate-focus-motion-divergent-council.mjs"
+      ],
+      "adaptationNotes": "The existing Council Promise.allSettled dispatch remains capped at three members and tells each member not to simulate the others."
+    },
+    {
+      "id": "critic-score-cluster-traps",
+      "title": "Use a separate critic to score options, cluster duplicates, and identify traps",
+      "sourceEvidence": "skills/adhd/SKILL.md critic phase",
+      "disposition": "adapted",
+      "proof": [
+        "lib/personaEngine.ts",
+        "components/home/office/CouncilResultsPanel.tsx"
+      ],
+      "adaptationNotes": "The optional merge draft pins one JANSKY call with novelty, viability, evidence, fit, clustering, trap, trade-off, shortlist, and first-step criteria."
+    },
+    {
+      "id": "frame-and-cost-visibility",
+      "title": "Make frames and method cost visible to the operator",
+      "sourceEvidence": "README call-count disclosure and output schema",
+      "disposition": "adapted",
+      "proof": [
+        "components/home/office/PersonaModeBar.tsx",
+        "components/home/office/CouncilResultsPanel.tsx",
+        "components/home/office/OfficeCommandCenter.tsx"
+      ],
+      "adaptationNotes": "Tooltips disclose three calls plus one optional merge, and every divergent result shows its frame."
+    },
+    {
+      "id": "large-angle-catalog",
+      "title": "Select from the larger upstream angle catalog",
+      "sourceEvidence": "skills/adhd/SKILL.md angle inventory",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "A fixed set of three Nexus-relevant frames is more predictable and avoids prompt/catalog overhead."
+    },
+    {
+      "id": "roughly-ten-call-runtime",
+      "title": "Run the full roughly ten-call divergent and critic workflow",
+      "sourceEvidence": "README cost section",
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "Nexus caps generation at three calls and makes the one-call critic optional to protect usage."
+    },
+    {
+      "id": "automatic-broad-trigger",
+      "title": "Automatically activate divergent ideation for broad brainstorming requests",
+      "sourceEvidence": "README when-to-use guidance",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Normal brainstorming must remain one call unless the operator explicitly opts into Council divergence."
+    },
+    {
+      "id": "upstream-cli-library",
+      "title": "Install and expose the upstream TypeScript CLI and library",
+      "sourceEvidence": "README CLI and library usage",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The existing Nexus Council seam provides the selected behavior without another dependency, provider boundary, or runtime."
+    }
+  ]
+}

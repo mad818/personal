@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-07-30",
+  "sources": {
+    "packageLock": "https://docs.npmjs.com/cli/v11/configuring-npm/package-lock-json/",
+    "lifecycleScripts": "https://docs.npmjs.com/cli/v11/using-npm/scripts/"
+  },
+  "policy": "Review lockfile-backed preinstall, install, and postinstall consumer hooks by exact package path, version, integrity, platform posture, and allowed installed hook names. Treat package-author publishing metadata as separate context.",
+  "packages": [
+    {
+      "packagePath": "node_modules/fsevents",
+      "version": "2.3.3",
+      "decision": "reviewed-expected",
+      "dependencyRole": "Optional Darwin file-watching dependency carried by development tooling; it is intentionally absent from Windows and Linux installs.",
+      "expected": {
+        "integrity": "sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==",
+        "devOnly": true,
+        "optional": true,
+        "os": ["darwin"],
+        "lockfileInstallScript": true,
+        "allowedInstalledConsumerScripts": ["install"]
+      },
+      "rationale": "The lockfile declares a consumer install script and pins the registry tarball. Platform and optional constraints prevent execution on unsupported hosts; any path, version, integrity, or hook-name drift requires review."
+    },
+    {
+      "packagePath": "node_modules/playwright/node_modules/fsevents",
+      "version": "2.3.2",
+      "decision": "reviewed-expected",
+      "dependencyRole": "Optional Darwin file-watching dependency nested under Playwright browser tooling; it is intentionally absent from Windows and Linux installs.",
+      "expected": {
+        "integrity": "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==",
+        "devOnly": false,
+        "optional": true,
+        "os": ["darwin"],
+        "lockfileInstallScript": true,
+        "allowedInstalledConsumerScripts": ["install"]
+      },
+      "rationale": "The nested lock entry is optional and Darwin-only even though npm does not mark it dev-only. The exact registry tarball and allowed install hook are pinned for drift detection."
+    },
+    {
+      "packagePath": "node_modules/unrs-resolver",
+      "version": "1.11.1",
+      "decision": "reviewed-expected",
+      "dependencyRole": "Development-only native resolver reached through eslint-config-next and eslint-import-resolver-typescript.",
+      "expected": {
+        "integrity": "sha512-bSjt9pjaEBnNiGgc9rUiHGKv5l4/TGzDmYw3RhnkJGtLhbnnA/5qJj7x3dNDCRx/PJxu774LlH8lCOlB4hEfKg==",
+        "devOnly": true,
+        "optional": false,
+        "os": [],
+        "lockfileInstallScript": true,
+        "allowedInstalledConsumerScripts": ["postinstall"]
+      },
+      "rationale": "The postinstall hook validates the platform-specific native resolver binding used by the lint toolchain. Exact path, version, integrity, and hook name are pinned."
+    }
+  ]
+}

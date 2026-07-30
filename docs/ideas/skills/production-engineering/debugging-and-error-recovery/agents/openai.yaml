@@ -1,0 +1,4 @@
+interface:
+  display_name: "Debugging And Error Recovery"
+  short_description: "Reproduce localize and guard Nexus failures."
+  default_prompt: "Use $debugging-and-error-recovery to trace this exact failure and prove its correction."

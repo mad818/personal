@@ -1,0 +1,4 @@
+interface:
+  display_name: "API And Interface Design"
+  short_description: "Design stable bounded Nexus interfaces first."
+  default_prompt: "Use $api-and-interface-design to define this Nexus boundary before implementing it."

@@ -75,7 +75,8 @@ export default function CronSchedulerJobsSection({
       ) : (
         sortedJobs.map((job) => {
           const workflow = getHQWorkflowCatalogItem(job.templateId);
-          const routeHint = workflow?.route && workflow.route !== "/hq" ? workflow.route : null;
+          const routeHint =
+            workflow?.route && workflow.route !== "/hq" ? workflow.route : null;
           const continuationTargets: MissionContinuationTarget[] = [];
           if (
             job.outputTarget === "vault" ||
@@ -96,10 +97,10 @@ export default function CronSchedulerJobsSection({
           const lastExecutionAge = fmtAgeSince(job.lastExecutionAt);
           const showLastExecutionHint = Boolean(
             job.lastExecutionOrigin &&
-              job.lastExecutionAt &&
-              (!job.lastArtifactOrigin ||
-                !job.lastArtifactAt ||
-                job.lastExecutionAt !== job.lastArtifactAt),
+            job.lastExecutionAt &&
+            (!job.lastArtifactOrigin ||
+              !job.lastArtifactAt ||
+              job.lastExecutionAt !== job.lastArtifactAt),
           );
           const filteredRecentRuns = filterScheduledJobRecentExecutions(
             job,
@@ -122,9 +123,7 @@ export default function CronSchedulerJobsSection({
             <div
               key={job.id}
               style={{
-                border: `1px solid ${
-                  job.enabled ? "#00DDFF33" : "#1A2040"
-                }`,
+                border: `1px solid ${job.enabled ? "#00DDFF33" : "#1A2040"}`,
                 borderRadius: 8,
                 background: "#080d18",
                 padding: "10px 12px",
@@ -233,8 +232,8 @@ export default function CronSchedulerJobsSection({
                       padding: "2px 8px",
                     }}
                   >
-                    Last artifact: {fmtExecutionOrigin(job.lastArtifactOrigin)} →{" "}
-                    {job.lastArtifactTarget} · {lastArtifactAge}
+                    Last artifact: {fmtExecutionOrigin(job.lastArtifactOrigin)}{" "}
+                    → {job.lastArtifactTarget} · {lastArtifactAge}
                   </span>
                 ) : null}
                 {showLastExecutionHint ? (
@@ -295,12 +294,13 @@ export default function CronSchedulerJobsSection({
                     }}
                   >
                     Automation posture:{" "}
-                    {workflow.automationPosture ===
-                    "candidate_with_human_gate"
+                    {workflow.automationPosture === "candidate_with_human_gate"
                       ? "candidate with human gate"
                       : "review only"}
                   </div>
-                  <div style={{ color: "#6875a0", fontSize: 10, lineHeight: 1.45 }}>
+                  <div
+                    style={{ color: "#6875a0", fontSize: 10, lineHeight: 1.45 }}
+                  >
                     {truncateInline(workflow.automationGuidance, 132)}
                   </div>
                 </div>
@@ -362,7 +362,10 @@ export default function CronSchedulerJobsSection({
                     </span>
                     <span style={{ color: "#6875a0", fontSize: 10 }}>
                       {missionReview.targetAgent?.toUpperCase() ?? "ORBIT"} ·{" "}
-                      {missionReview.outputTarget ?? job.outputTarget ?? "review"} ·{" "}
+                      {missionReview.outputTarget ??
+                        job.outputTarget ??
+                        "review"}{" "}
+                      ·{" "}
                       {(
                         missionReview.approvalPolicy ??
                         job.approvalPolicy ??
@@ -374,8 +377,8 @@ export default function CronSchedulerJobsSection({
                         {missionReview.expiryHours}h window
                       </span>
                     ) : null}
-                    {(missionReview.status === "pending_review" ||
-                      missionReview.status === "expired") ? (
+                    {missionReview.status === "pending_review" ||
+                    missionReview.status === "expired" ? (
                       <button
                         type="button"
                         onClick={() => onClearMissionReview(job.id)}
@@ -395,13 +398,17 @@ export default function CronSchedulerJobsSection({
                       </button>
                     ) : null}
                   </div>
-                  <div style={{ color: "#cbd5e1", fontSize: 10, lineHeight: 1.45 }}>
+                  <div
+                    style={{ color: "#cbd5e1", fontSize: 10, lineHeight: 1.45 }}
+                  >
                     Scope:{" "}
                     {missionReview.scope
                       ? truncateInline(missionReview.scope, 160)
                       : "Add a bounded mission scope before this job becomes the overnight lane."}
                   </div>
-                  <div style={{ color: "#6875a0", fontSize: 10, lineHeight: 1.45 }}>
+                  <div
+                    style={{ color: "#6875a0", fontSize: 10, lineHeight: 1.45 }}
+                  >
                     Re-entry:{" "}
                     {missionReview.reentrySummary
                       ? truncateInline(missionReview.reentrySummary, 170)
@@ -417,15 +424,24 @@ export default function CronSchedulerJobsSection({
                       fontSize: 10,
                     }}
                   >
-                    <span>{missionReview.localOnly ? "local-first" : "external review"}</span>
                     <span>
-                      Review window: {fmtMissionReviewWindow(missionReview.expiresAt)}
+                      {missionReview.localOnly
+                        ? "local-first"
+                        : "external review"}
+                    </span>
+                    <span>
+                      Review window:{" "}
+                      {fmtMissionReviewWindow(missionReview.expiresAt)}
                     </span>
                     {missionReview.lastQueuedAt ? (
-                      <span>queued {fmtAgeSince(missionReview.lastQueuedAt)}</span>
+                      <span>
+                        queued {fmtAgeSince(missionReview.lastQueuedAt)}
+                      </span>
                     ) : null}
                     {missionReview.lastClearedAt ? (
-                      <span>cleared {fmtAgeSince(missionReview.lastClearedAt)}</span>
+                      <span>
+                        cleared {fmtAgeSince(missionReview.lastClearedAt)}
+                      </span>
                     ) : null}
                   </div>
                 </div>
@@ -477,7 +493,9 @@ export default function CronSchedulerJobsSection({
                     }}
                   >
                     <div>
-                      <div style={{ color: "#6875a0", fontSize: 10 }}>Prompt</div>
+                      <div style={{ color: "#6875a0", fontSize: 10 }}>
+                        Prompt
+                      </div>
                       <div
                         style={{
                           color: "#ccd6f6",
@@ -499,11 +517,14 @@ export default function CronSchedulerJobsSection({
                           fontFamily: "monospace",
                         }}
                       >
-                        {fmtChars(efficiency.stablePrefixChars)} · {stableShare}%
+                        {fmtChars(efficiency.stablePrefixChars)} · {stableShare}
+                        %
                       </div>
                     </div>
                     <div>
-                      <div style={{ color: "#6875a0", fontSize: 10 }}>Output</div>
+                      <div style={{ color: "#6875a0", fontSize: 10 }}>
+                        Output
+                      </div>
                       <div
                         style={{
                           color: "#ccd6f6",
@@ -526,7 +547,8 @@ export default function CronSchedulerJobsSection({
                     {efficiency.toolCatalogChars > 0
                       ? fmtChars(efficiency.toolCatalogChars)
                       : "none"}{" "}
-                    · volatile delta {fmtChars(efficiency.volatilePromptChars)} ·{" "}
+                    · volatile delta {fmtChars(efficiency.volatilePromptChars)}{" "}
+                    ·{" "}
                     {efficiency.cacheStrategy === "system_plus_user_prefix"
                       ? "split prefix active"
                       : "system-only cache"}{" "}
@@ -567,7 +589,9 @@ export default function CronSchedulerJobsSection({
                   </span>
                   {" · "}group size {job.pendingBatchSize ?? 1}
                   {" · "}queued {queuedAge}
-                  {queuedFailures > 0 ? ` · poll retries ${queuedFailures}` : ""}
+                  {queuedFailures > 0
+                    ? ` · poll retries ${queuedFailures}`
+                    : ""}
                 </div>
               ) : job.lastRunAt ? (
                 <div

@@ -68,7 +68,12 @@ export default function EvidencePosturePanel({
             Observed
           </div>
           {observed.length === 0 ? (
-            <div style={{ fontSize: compact ? "11px" : "12px", color: "var(--text2)" }}>
+            <div
+              style={{
+                fontSize: compact ? "11px" : "12px",
+                color: "var(--text2)",
+              }}
+            >
               No explicit observed facts were separated out.
             </div>
           ) : (
@@ -98,7 +103,12 @@ export default function EvidencePosturePanel({
             Inferred
           </div>
           {inferred.length === 0 ? (
-            <div style={{ fontSize: compact ? "11px" : "12px", color: "var(--text2)" }}>
+            <div
+              style={{
+                fontSize: compact ? "11px" : "12px",
+                color: "var(--text2)",
+              }}
+            >
               No explicit inference layer was returned.
             </div>
           ) : (
@@ -128,7 +138,12 @@ export default function EvidencePosturePanel({
             Verify next
           </div>
           {verifyNext.length === 0 ? (
-            <div style={{ fontSize: compact ? "11px" : "12px", color: "var(--text2)" }}>
+            <div
+              style={{
+                fontSize: compact ? "11px" : "12px",
+                color: "var(--text2)",
+              }}
+            >
               No follow-up checks suggested.
             </div>
           ) : (

@@ -2,7 +2,11 @@ import { apiFetch, probeRuntimeHealth } from "@/lib/apiFetch";
 import { readBrowserInternetAvailability } from "@/lib/offlineReadiness";
 import { detectRouteFromPrompt } from "@/lib/chatCapabilityRouting";
 import { detectAgent } from "@/components/home/office/prompts";
-import { type AgentId, type PreparedWorkspaceTarget, type SwitchOperatorStatus } from "@/components/home/office/types";
+import {
+  type AgentId,
+  type PreparedWorkspaceTarget,
+  type SwitchOperatorStatus,
+} from "@/components/home/office/types";
 import {
   buildPreparedWorkspaceTarget,
   resolveAssistantWorkspaceForRoute,
@@ -102,7 +106,9 @@ export function buildSwitchOperatorSummary(input: {
     readinessSummary,
     "",
     "2. Chosen task",
-    choice ? `${choice.id} — ${choice.label}` : "No local tranche was available.",
+    choice
+      ? `${choice.id} — ${choice.label}`
+      : "No local tranche was available.",
     "",
     "3. Dispatch plan",
     dispatchPlan,
@@ -190,11 +196,14 @@ export async function runSwitchOperator(input: {
 
   const now = input.now ?? Date.now();
   const snapshot =
-    (await (input.loadSnapshot ?? loadProviderSnapshot)().catch(() => null)) ?? null;
-  const runtimeReachable = await (input.loadRuntimeReachability ?? (() => probeRuntimeHealth()))().catch(
-    () => false,
-  );
-  const internetReachable = (input.readInternet ?? readBrowserInternetAvailability)();
+    (await (input.loadSnapshot ?? loadProviderSnapshot)().catch(() => null)) ??
+    null;
+  const runtimeReachable = await (
+    input.loadRuntimeReachability ?? (() => probeRuntimeHealth())
+  )().catch(() => false);
+  const internetReachable = (
+    input.readInternet ?? readBrowserInternetAvailability
+  )();
   const posture = buildProviderResiliencePosture({
     snapshot,
     internetReachable,
@@ -203,15 +212,19 @@ export async function runSwitchOperator(input: {
   const nextUpContent = await (input.loadNextUp ?? loadNextUpContent)().catch(
     () => "",
   );
-  const activeTasks = await (input.loadTasks ?? loadActiveTasks)().catch(() => []);
+  const activeTasks = await (input.loadTasks ?? loadActiveTasks)().catch(
+    () => [],
+  );
   const choice = extractSwitchOperatorTaskChoice(nextUpContent, activeTasks);
 
   if (!choice) {
     const summary = buildSwitchOperatorSummary({
       readinessSummary: posture.readinessSummary,
       choice: null,
-      dispatchPlan: "Hold dispatch. Canonical queue truth does not currently expose an unblocked local tranche.",
-      nextStep: "Refresh docs/SYSTEM_STATE.md before running operator mode again.",
+      dispatchPlan:
+        "Hold dispatch. Canonical queue truth does not currently expose an unblocked local tranche.",
+      nextStep:
+        "Refresh docs/SYSTEM_STATE.md before running operator mode again.",
     });
     return {
       handled: true,
@@ -227,13 +240,16 @@ export async function runSwitchOperator(input: {
         requestedAt: now,
         updatedAt: now,
         readinessSummary: posture.readinessSummary,
-        detail: "Operator mode could not find an unblocked local tranche in the canonical queue.",
-        nextStep: "Refresh canonical queue truth before retrying operator mode.",
+        detail:
+          "Operator mode could not find an unblocked local tranche in the canonical queue.",
+        nextStep:
+          "Refresh canonical queue truth before retrying operator mode.",
       },
     };
   }
 
-  const routeHint = detectRouteFromPrompt(`${choice.id} ${choice.label}`) ?? "/hq";
+  const routeHint =
+    detectRouteFromPrompt(`${choice.id} ${choice.label}`) ?? "/hq";
   const preparedWorkspace = buildOperatorPreparedWorkspace(routeHint);
   const selectedLane =
     preparedWorkspace?.label ??
@@ -244,7 +260,8 @@ export async function runSwitchOperator(input: {
     const summary = buildSwitchOperatorSummary({
       readinessSummary: posture.readinessSummary,
       choice,
-      dispatchPlan: "Hold dispatch. No AI lane is healthy enough for a one-shot operator run.",
+      dispatchPlan:
+        "Hold dispatch. No AI lane is healthy enough for a one-shot operator run.",
       nextStep: posture.repairAction,
     });
     return {
@@ -266,7 +283,8 @@ export async function runSwitchOperator(input: {
         selectedLane,
         selectedHref: preparedWorkspace?.href ?? routeHint,
         selectedAgent,
-        detail: "Operator mode held dispatch because no healthy AI lane was available.",
+        detail:
+          "Operator mode held dispatch because no healthy AI lane was available.",
         nextStep: posture.repairAction,
       },
     };

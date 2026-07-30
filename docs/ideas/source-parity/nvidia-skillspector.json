@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "nvidia-skillspector",
   "name": "NVIDIA SkillSpector",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/NVIDIA/SkillSpector",
     "version": "main-2026-06-21",
@@ -19,9 +19,7 @@
       "title": "Per-capability risk policy table for agent skill definitions",
       "sourceEvidence": "SkillSpector scans skill manifests for over-privileged capability grants",
       "disposition": "adapted",
-      "proof": [
-        "lib/skillSpectrumPolicy.ts"
-      ],
+      "proof": ["lib/skillSpectrumPolicy.ts"],
       "adaptationNotes": "SKILL_CAPABILITY_POLICIES table covers filesystem, network, process, secrets, agent-spawn, and memory capabilities with safe/review/blocked levels."
     },
     {
@@ -41,10 +39,7 @@
       "title": "Integration with YAGNI violation patterns to flag scope-creep in skill plans",
       "sourceEvidence": "SkillSpector and Ponytail complement: both target over-engineered agent behavior",
       "disposition": "adapted",
-      "proof": [
-        "lib/skillSpectrumPolicy.ts",
-        "lib/agentYagniGuardrails.ts"
-      ],
+      "proof": ["lib/skillSpectrumPolicy.ts", "lib/agentYagniGuardrails.ts"],
       "adaptationNotes": "YAGNI_VIOLATION_PATTERNS cross-referenced in skill policy documentation."
     },
     {
@@ -62,8 +57,15 @@
       "id": "skill-graph-dependency-analysis",
       "title": "Dependency graph analysis between skills to detect transitive privilege escalation",
       "sourceEvidence": "SkillSpector advanced mode traces skill-to-skill calls for privilege chains",
-      "disposition": "pending",
-      "reason": "Nexus skills are currently flat; inter-skill call graph and transitive privilege analysis not implemented."
+      "disposition": "adapted",
+      "proof": [
+        "lib/skillDependencyGraph.ts",
+        "scripts/validate-skill-capabilities.mjs",
+        "scripts/check-skill-dependency-graph-runtime.mjs",
+        "components/skills/SkillSpectrumValidatorStrip.tsx",
+        "specs/features/skill-dependency-privilege-graph.md"
+      ],
+      "adaptationNotes": "The repository scanner resolves explicit local skill references across approved roots, rejects missing dependencies and cycles, fails transitive blocked-capability escalation, and reports review-level escalation without adding execution authority."
     },
     {
       "id": "gpu-accelerated-scan-runtime",

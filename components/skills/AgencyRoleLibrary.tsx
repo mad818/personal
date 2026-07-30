@@ -10,6 +10,7 @@ import {
   type AgencyRoleAgentId,
 } from "@/lib/agentRoleTaxonomy";
 import { ShellBadge, ShellButton, ShellStack } from "@/components/ui/shell";
+import NexusCompanyMap from "@/components/skills/NexusCompanyMap";
 
 const AGENT_ACCENTS: Record<AgencyRoleAgentId, string> = {
   jansky: "var(--accent)",
@@ -44,7 +45,8 @@ function TinyLabel({ children }: { children: React.ReactNode }) {
 
 export default function AgencyRoleLibrary() {
   const summary = useMemo(() => getAgencyRoleInventorySummary(), []);
-  const [selectedAgent, setSelectedAgent] = useState<AgencyRoleAgentId>("jansky");
+  const [selectedAgent, setSelectedAgent] =
+    useState<AgencyRoleAgentId>("jansky");
   const [prompt, setPrompt] = useState(EXAMPLE_PROMPTS[0]);
   const selectedPack = getAgencyRolePack(selectedAgent);
   const matches = useMemo(() => matchAgencyRolePrompt(prompt), [prompt]);
@@ -53,6 +55,7 @@ export default function AgencyRoleLibrary() {
   return (
     <section
       data-testid="agency-role-library"
+      className="nexus-agency-role-library"
       style={{
         display: "grid",
         gap: "14px",
@@ -73,7 +76,10 @@ export default function AgencyRoleLibrary() {
             <ShellBadge tone="muted">No copied prompt bodies</ShellBadge>
             <ShellBadge tone="muted">{summary.license}</ShellBadge>
           </div>
-          <p className="nexus-shell-copy nexus-shell-copy--compact" style={{ margin: 0 }}>
+          <p
+            className="nexus-shell-copy nexus-shell-copy--compact"
+            style={{ margin: 0 }}
+          >
             Curated from {AGENCY_AGENT_SOURCE.repo} as Nexus role packs, routing
             hints, and quality signals.
           </p>
@@ -101,7 +107,13 @@ export default function AgencyRoleLibrary() {
               }}
             >
               <TinyLabel>{label}</TinyLabel>
-              <div style={{ fontSize: "18px", fontWeight: 900, color: "var(--text)" }}>
+              <div
+                style={{
+                  fontSize: "18px",
+                  fontWeight: 900,
+                  color: "var(--text)",
+                }}
+              >
                 {value}
               </div>
             </div>
@@ -138,7 +150,8 @@ export default function AgencyRoleLibrary() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
           gap: "14px",
         }}
       >
@@ -157,19 +170,29 @@ export default function AgencyRoleLibrary() {
             <h3 style={{ margin: 0, fontSize: "16px", color: "var(--text)" }}>
               {selectedPack.label}
             </h3>
-            <p className="nexus-shell-copy nexus-shell-copy--compact" style={{ margin: 0 }}>
+            <p
+              className="nexus-shell-copy nexus-shell-copy--compact"
+              style={{ margin: 0 }}
+            >
               {selectedPack.mission}
             </p>
           </div>
 
-          <div className="nexus-ops-brief-list" aria-label="Agency role archetypes">
+          <div
+            className="nexus-ops-brief-list"
+            aria-label="Agency role archetypes"
+          >
             {selectedPack.archetypes.map((role) => (
               <article key={role.title} className="nexus-ops-brief-item">
                 <span className="nexus-ops-brief-item__eyebrow">
                   {role.sourceInspiration}
                 </span>
-                <span className="nexus-ops-brief-item__title">{role.title}</span>
-                <p className="nexus-ops-brief-item__summary">{role.whenToUse}</p>
+                <span className="nexus-ops-brief-item__title">
+                  {role.title}
+                </span>
+                <p className="nexus-ops-brief-item__summary">
+                  {role.whenToUse}
+                </p>
                 <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
                   {role.deliverables.slice(0, 3).map((deliverable) => (
                     <ShellBadge key={deliverable} tone="muted">
@@ -226,13 +249,22 @@ export default function AgencyRoleLibrary() {
                 gap: "8px",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "8px",
+                }}
+              >
                 <strong style={{ color: "var(--text)", fontSize: "13px" }}>
                   {topMatch.agentId.toUpperCase()} - {topMatch.roleTitle}
                 </strong>
                 <ShellBadge tone="accent">score {topMatch.score}</ShellBadge>
               </div>
-              <p className="nexus-shell-copy nexus-shell-copy--compact" style={{ margin: 0 }}>
+              <p
+                className="nexus-shell-copy nexus-shell-copy--compact"
+                style={{ margin: 0 }}
+              >
                 {topMatch.reason}
               </p>
               <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
@@ -244,7 +276,10 @@ export default function AgencyRoleLibrary() {
               </div>
             </div>
           ) : (
-            <p className="nexus-shell-copy nexus-shell-copy--compact" style={{ margin: 0 }}>
+            <p
+              className="nexus-shell-copy nexus-shell-copy--compact"
+              style={{ margin: 0 }}
+            >
               No role signal matched yet.
             </p>
           )}
@@ -260,6 +295,13 @@ export default function AgencyRoleLibrary() {
             </div>
           </ShellStack>
         </aside>
+      </div>
+
+      <div
+        className="nexus-agency-role-library__company-map"
+        style={{ borderTop: "1px solid var(--border)", paddingTop: "14px" }}
+      >
+        <NexusCompanyMap />
       </div>
     </section>
   );

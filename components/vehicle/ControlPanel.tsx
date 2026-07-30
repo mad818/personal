@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "@/components/ui/Toast";
 
 type DriveMode = "Manual" | "Autonomous" | "Patrol" | "Emergency Stop";
 
@@ -52,6 +53,27 @@ export default function ControlPanel() {
 
   const toggleSensor = (s: string) => {
     setSensors((prev) => ({ ...prev, [s]: !prev[s] }));
+  };
+
+  const handleReturnBase = () => {
+    if (mode === "Emergency Stop" || eStopActive) {
+      toast({
+        title: "Base return not staged",
+        message:
+          "Select a non-emergency local mode before changing the simulated route.",
+        severity: "high",
+      });
+      return;
+    }
+
+    setMode("Autonomous");
+    setWaypoints(1);
+    toast({
+      title: "Base return staged locally",
+      message:
+        "The simulation now holds one base waypoint. No vehicle command was transmitted.",
+      severity: "medium",
+    });
   };
 
   return (
@@ -260,6 +282,8 @@ export default function ControlPanel() {
             Clear Route
           </button>
           <button
+            onClick={handleReturnBase}
+            aria-label="Stage local base-return simulation"
             style={{
               flex: 1,
               padding: "7px",
@@ -272,7 +296,7 @@ export default function ControlPanel() {
               fontWeight: 800,
             }}
           >
-            Return Base
+            Stage Base Return
           </button>
         </div>
       </div>
@@ -318,6 +342,7 @@ export default function ControlPanel() {
           </div>
         </div>
         <input
+          aria-label="Vehicle speed limit"
           type="range"
           min={0}
           max={30}

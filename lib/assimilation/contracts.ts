@@ -2,8 +2,14 @@ import { z } from "zod";
 
 export const INTERNAL_WORKBENCH_SUPPORT = "internal" as const;
 
-export const workbenchSimulationModeSchema = z.enum(["live", "seeded", "derived"]);
-export type WorkbenchSimulationMode = z.infer<typeof workbenchSimulationModeSchema>;
+export const workbenchSimulationModeSchema = z.enum([
+  "live",
+  "seeded",
+  "derived",
+]);
+export type WorkbenchSimulationMode = z.infer<
+  typeof workbenchSimulationModeSchema
+>;
 
 export const internalWorkbenchMetaSchema = z.object({
   support: z.literal(INTERNAL_WORKBENCH_SUPPORT),
@@ -143,7 +149,13 @@ export const securityScenarioSchema = z.object({
   title: z.string().min(1).max(160),
   family: z.string().min(1).max(120),
   source: z.enum(["wstg-v42", "ai-surface"]),
-  status: z.enum(["not-started", "monitoring", "covered", "attention", "blocked"]),
+  status: z.enum([
+    "not-started",
+    "monitoring",
+    "covered",
+    "attention",
+    "blocked",
+  ]),
   owner: z.string().min(1).max(120),
   evidence: z.string().min(1).max(1200),
   remediation: z.string().min(1).max(1200),

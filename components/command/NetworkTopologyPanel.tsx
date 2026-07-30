@@ -46,7 +46,13 @@ export default function NetworkTopologyPanel({
           >
             Route topology
           </div>
-          <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}>
+          <div
+            style={{
+              fontSize: "10px",
+              color: "var(--text3)",
+              marginTop: "2px",
+            }}
+          >
             Read-only hub view — homelable topology posture
           </div>
         </div>

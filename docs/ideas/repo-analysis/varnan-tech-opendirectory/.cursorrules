@@ -1,0 +1,5 @@
+Use REPO_CONTEXT.md for strategic orientation only.
+Do not run or install the upstream CLI, plugin, marketplace, or skills bundle.
+Keep all adapted procedures local-first, source-traced, and read-only.
+Never infer external account, connector, credential, posting, or mutation authority.
+Preserve the four exact excluded capability IDs.

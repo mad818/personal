@@ -463,6 +463,7 @@ function WeatherStationCard({ weather }: { weather: WeatherData | null }) {
 export default function SensorDashboard() {
   const [sensors, setSensors] = useState<Sensor[]>(INITIAL_SENSORS);
   const [localWeather, setLocalWeather] = useState<WeatherData | null>(null);
+  const [mqttStreamError, setMqttStreamError] = useState<string | null>(null);
 
   // Read weather from Zustand store (typed as any, field added by GlobalDataLoader)
   const storeWeather = useStore(
@@ -489,8 +490,13 @@ export default function SensorDashboard() {
     try {
       es = new EventSource("/api/mqtt?topics=home/sensors");
     } catch {
+      setMqttStreamError("Sensor stream could not start.");
       return;
     }
+
+    es.onerror = () => {
+      setMqttStreamError("Sensor stream disconnected.");
+    };
 
     es.onmessage = (evt) => {
       try {
@@ -554,6 +560,23 @@ export default function SensorDashboard() {
       >
         Sensor Network — {totalDevices} Devices
       </div>
+
+      {mqttStreamError ? (
+        <div
+          role="alert"
+          style={{
+            marginBottom: "10px",
+            fontSize: "11px",
+            color: "var(--text2)",
+            padding: "8px 10px",
+            borderRadius: "8px",
+            border: "1px solid rgba(245, 158, 11, 0.35)",
+            background: "rgba(245, 158, 11, 0.08)",
+          }}
+        >
+          {mqttStreamError}
+        </div>
+      ) : null}
 
       <div
         style={{
@@ -665,7 +688,11 @@ export default function SensorDashboard() {
               {/* Sparkline */}
               {!boolVal && (
                 <div style={{ marginBottom: "6px" }}>
-                  <SensorSparkline color={s.color} sensorId={s.id} value={s.value} />
+                  <SensorSparkline
+                    color={s.color}
+                    sensorId={s.id}
+                    value={s.value}
+                  />
                 </div>
               )}
 

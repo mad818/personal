@@ -32,7 +32,9 @@ export async function GET(req: NextRequest) {
     return response;
   } catch {
     return protectedJson(
-      { error: "Unable to collect the sanitized Windows optimization posture." },
+      {
+        error: "Unable to collect the sanitized Windows optimization posture.",
+      },
       { status: 500 },
     );
   }

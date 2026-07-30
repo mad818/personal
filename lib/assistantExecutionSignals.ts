@@ -1,4 +1,7 @@
-import type { AssistantGuidance, HQAssistantIntent } from "@/components/home/office/types";
+import type {
+  AssistantGuidance,
+  HQAssistantIntent,
+} from "@/components/home/office/types";
 import {
   getAssistantCapability,
   type AssistantCapabilityId,
@@ -30,7 +33,9 @@ export interface AssistantExecutionAttachment {
   preferredPreparedHref: string | null;
 }
 
-function getArtifactLabel(artifactClass: UnfinishedSessionArtifactClass | null | undefined) {
+function getArtifactLabel(
+  artifactClass: UnfinishedSessionArtifactClass | null | undefined,
+) {
   switch (artifactClass) {
     case "reverse_engineering":
       return "reverse-engineering continuity";
@@ -57,7 +62,7 @@ export function detectAssistantRiskyWork(opts: {
   playbookId?: EngineeringPlaybookId | null;
   specId?: SpecTemplateId | null;
   hasImpactSeed?: boolean;
-}) : AssistantRiskyWorkSignal {
+}): AssistantRiskyWorkSignal {
   let score = 0;
   const reasons: string[] = [];
   const capability = getAssistantCapability(opts.capabilityId);
@@ -126,21 +131,22 @@ export function buildAssistantExecutionAttachment(opts: {
   playbookId?: EngineeringPlaybookId | null;
   specId?: SpecTemplateId | null;
   hasImpactSeed?: boolean;
-}) : AssistantExecutionAttachment {
+}): AssistantExecutionAttachment {
   const signal = detectAssistantRiskyWork(opts);
   if (!signal.risky) {
     return { signal, cue: null, preferredPreparedHref: null };
   }
 
-  const preferredPreparedHref = opts.hasImpactSeed && opts.filePath
-    ? `/resources?view=impact&file=${encodeURIComponent(opts.filePath)}`
-    : opts.systemId
-      ? `/resources?view=system&system=${opts.systemId}`
-      : opts.specId
-        ? `/resources?view=specs&spec=${opts.specId}`
-        : opts.playbookId
-          ? `/resources?view=playbooks&playbook=${opts.playbookId}`
-          : null;
+  const preferredPreparedHref =
+    opts.hasImpactSeed && opts.filePath
+      ? `/resources?view=impact&file=${encodeURIComponent(opts.filePath)}`
+      : opts.systemId
+        ? `/resources?view=system&system=${opts.systemId}`
+        : opts.specId
+          ? `/resources?view=specs&spec=${opts.specId}`
+          : opts.playbookId
+            ? `/resources?view=playbooks&playbook=${opts.playbookId}`
+            : null;
 
   const cue = preferredPreparedHref
     ? {
@@ -166,7 +172,7 @@ export function buildAssistantArchiveCue(opts: {
   capabilityId: AssistantCapabilityId;
   unfinishedSession?: UnfinishedSessionMemory | null;
   preparedWorkspaceHref?: string | null;
-}) : AssistantGuidance | null {
+}): AssistantGuidance | null {
   const lowerInput = opts.input.toLowerCase();
   const session = opts.unfinishedSession;
 
@@ -188,7 +194,10 @@ export function buildAssistantArchiveCue(opts: {
     };
   }
 
-  if (ARCHIVE_REPAIR_RE.test(lowerInput) && opts.preparedWorkspaceHref?.includes("/vault?focus=")) {
+  if (
+    ARCHIVE_REPAIR_RE.test(lowerInput) &&
+    opts.preparedWorkspaceHref?.includes("/vault?focus=")
+  ) {
     return {
       kind: "archive",
       tone: "neutral",

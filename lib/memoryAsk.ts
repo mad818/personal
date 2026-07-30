@@ -53,7 +53,10 @@ export interface MemoryAskResponse {
       };
 }
 
-function layerMatches(page: CompiledMemoryPage, layer: MemoryAskLayer): boolean {
+function layerMatches(
+  page: CompiledMemoryPage,
+  layer: MemoryAskLayer,
+): boolean {
   if (layer === "all") return true;
   return page.layer === layer;
 }

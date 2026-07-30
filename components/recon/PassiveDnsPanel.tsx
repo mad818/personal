@@ -5,7 +5,11 @@
 "use client";
 
 import { useState } from "react";
-import { sanitizeHtml } from "@/lib/security/sanitizeHtml";
+import {
+  reconLookupErrorMessage,
+  requestReconLookup,
+} from "@/lib/reconLookupContract";
+import { htmlToPlainText } from "@/lib/security/textSafety";
 
 function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -26,15 +30,10 @@ interface PdnsRecord {
 
 async function fetchCirclPdns(domain: string): Promise<string> {
   try {
-    const r = await fetch(
-      `https://www.circl.lu/pdns/query/${encodeURIComponent(domain)}`,
-      {
-        headers: { Accept: "application/json" },
-        signal: AbortSignal.timeout(10000),
-      },
-    );
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const text = await r.text();
+    const text = await requestReconLookup<string>({
+      operation: "passive_dns",
+      target: domain,
+    });
     const records: PdnsRecord[] = text
       .trim()
       .split("\n")
@@ -79,18 +78,16 @@ async function fetchCirclPdns(domain: string): Promise<string> {
     });
     return html;
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return `<span style="color:var(--flo)">${esc(reconLookupErrorMessage(e, "CIRCL pDNS"))}</span>`;
   }
 }
 
 async function fetchReverseIp(ip: string): Promise<string> {
   try {
-    const r = await fetch(
-      `https://api.hackertarget.com/reverseiplookup/?q=${encodeURIComponent(ip)}`,
-      { signal: AbortSignal.timeout(10000) },
-    );
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const text = await r.text();
+    const text = await requestReconLookup<string>({
+      operation: "reverse_ip",
+      target: ip,
+    });
     if (!text.trim() || text.includes("error") || text.includes("API count")) {
       return `<span style="color:var(--text3)">${esc(text.trim() || "No results")}</span>`;
     }
@@ -106,7 +103,7 @@ async function fetchReverseIp(ip: string): Promise<string> {
     }
     return html;
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return `<span style="color:var(--flo)">${esc(reconLookupErrorMessage(e, "HackerTarget"))}</span>`;
   }
 }
 
@@ -174,8 +171,8 @@ export default function PassiveDnsPanel() {
           marginTop: 0,
         }}
       >
-        Look up historical DNS resolutions and co-hosted domains. Free — no API
-        key required.
+        Look up historical DNS resolutions and co-hosted domains through the
+        protected Nexus server boundary. Free — no API key required.
       </p>
 
       <div
@@ -187,6 +184,7 @@ export default function PassiveDnsPanel() {
         }}
       >
         <input
+          aria-label="Passive DNS domain or IP address"
           style={{ ...INPUT, flex: 1, minWidth: "200px" }}
           placeholder="Domain (e.g. example.com) or IP address"
           value={target}
@@ -255,9 +253,14 @@ export default function PassiveDnsPanel() {
                 📜 Historical DNS Records
               </div>
               <div
-                style={{ fontSize: "11px", lineHeight: 1.6 }}
-                dangerouslySetInnerHTML={{ __html: sanitizeHtml(pdns) }}
-              />
+                style={{
+                  fontSize: "11px",
+                  lineHeight: 1.6,
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {htmlToPlainText(pdns)}
+              </div>
             </div>
           )}
           {revIp && (
@@ -273,9 +276,14 @@ export default function PassiveDnsPanel() {
                 🌐 Reverse IP — Co-hosted Domains
               </div>
               <div
-                style={{ fontSize: "11px", lineHeight: 1.6 }}
-                dangerouslySetInnerHTML={{ __html: sanitizeHtml(revIp) }}
-              />
+                style={{
+                  fontSize: "11px",
+                  lineHeight: 1.6,
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {htmlToPlainText(revIp)}
+              </div>
             </div>
           )}
         </div>

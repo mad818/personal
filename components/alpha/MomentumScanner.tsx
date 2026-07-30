@@ -1,8 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import dynamic from "next/dynamic";
+import { useMemo, useState } from "react";
 import { useStore } from "@/store/useStore";
 import { fmtPrice, fmtPct } from "@/lib/helpers";
+
+const LazyTradeThesisPanel = dynamic(() => import("./TradeThesisPanel"), {
+  ssr: false,
+});
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Signal {
@@ -125,6 +130,8 @@ export default function MomentumScanner() {
   const prices = useStore((s) => s.prices);
   const pricesLoaded = useStore((s) => s.pricesLoaded);
   const sparklines = useStore((s) => s.sparklines);
+  const fearGreed = useStore((s) => s.signals?.fg);
+  const [selectedSignal, setSelectedSignal] = useState<Signal | null>(null);
 
   const signals: Signal[] = useMemo(() => {
     return Object.entries(prices)
@@ -173,7 +180,7 @@ export default function MomentumScanner() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "56px 1fr 72px 72px 72px 100px",
+          gridTemplateColumns: "56px 1fr 72px 72px 72px 118px",
           gap: "8px",
           padding: "0 12px 6px",
           fontSize: "10px",
@@ -189,7 +196,7 @@ export default function MomentumScanner() {
         <span style={{ textAlign: "right" }}>Price</span>
         <span style={{ textAlign: "right" }}>24h</span>
         <span style={{ textAlign: "right" }}>7d</span>
-        <span style={{ textAlign: "right" }}>Score</span>
+        <span style={{ textAlign: "right" }}>Score / thesis</span>
       </div>
 
       {signals.map((s) => {
@@ -199,7 +206,7 @@ export default function MomentumScanner() {
             key={s.id}
             style={{
               display: "grid",
-              gridTemplateColumns: "56px 1fr 72px 72px 72px 100px",
+              gridTemplateColumns: "56px 1fr 72px 72px 72px 118px",
               gap: "8px",
               alignItems: "center",
               background: "var(--surf2)",
@@ -280,7 +287,22 @@ export default function MomentumScanner() {
             </span>
 
             {/* Numeric score */}
-            <div style={{ textAlign: "right" }}>
+            <button
+              type="button"
+              onClick={() => setSelectedSignal(s)}
+              aria-label={`Open ${s.sym} trade thesis`}
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                justifyContent: "flex-end",
+                gap: "5px",
+                border: "1px solid var(--border)",
+                borderRadius: "6px",
+                background: "var(--surf)",
+                padding: "5px 7px",
+                cursor: "pointer",
+              }}
+            >
               <span
                 style={{
                   fontSize: "13px",
@@ -292,12 +314,28 @@ export default function MomentumScanner() {
                 {s.score}
               </span>
               <span style={{ fontSize: "10px", color: "var(--text3)" }}>
-                /100
+                /100 · Thesis
               </span>
-            </div>
+            </button>
           </div>
         );
       })}
+
+      {selectedSignal ? (
+        <LazyTradeThesisPanel
+          input={{
+            sym: selectedSignal.sym,
+            price: selectedSignal.price,
+            chg24h: selectedSignal.chg24h,
+            score: selectedSignal.score,
+            label: selectedSignal.label,
+            trend: selectedSignal.trend,
+            fearGreedValue: fearGreed?.value,
+            fearGreedLabel: fearGreed?.label,
+          }}
+          onClose={() => setSelectedSignal(null)}
+        />
+      ) : null}
     </div>
   );
 }

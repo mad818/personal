@@ -13,7 +13,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/hq?focus=hq-chronicle",
       label: "Open HQ chronicle",
-      detail: "Work from the live chronicle block when touching reply flow, continuation, or mission output.",
+      detail:
+        "Work from the live chronicle block when touching reply flow, continuation, or mission output.",
     },
   },
   {
@@ -21,7 +22,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/hq?focus=hq-console-shell",
       label: "Open HQ console shell",
-      detail: "Jump directly into the shell chrome and scene-control block instead of the broad HQ top.",
+      detail:
+        "Jump directly into the shell chrome and scene-control block instead of the broad HQ top.",
     },
   },
   {
@@ -29,7 +31,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/hq?focus=hq-chronicle",
       label: "Open HQ chronicle",
-      detail: "Use the main HQ repair session for the shell’s orchestration and chronicle flow.",
+      detail:
+        "Use the main HQ repair session for the shell’s orchestration and chronicle flow.",
     },
   },
   {
@@ -37,7 +40,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/hq?focus=hq-scheduler-jobs",
       label: "Open scheduler jobs",
-      detail: "Review active scheduler results and job-led repair flow from the exact HQ scheduler jobs session.",
+      detail:
+        "Review active scheduler results and job-led repair flow from the exact HQ scheduler jobs session.",
     },
   },
   {
@@ -45,7 +49,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/hq?focus=hq-scheduler-governance",
       label: "Open scheduler governance",
-      detail: "Use the exact scheduler governance session instead of reopening the whole shell.",
+      detail:
+        "Use the exact scheduler governance session instead of reopening the whole shell.",
     },
   },
   {
@@ -53,7 +58,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/hq?focus=hq-scheduler-governance",
       label: "Open scheduler governance",
-      detail: "Keep audit posture, governance rules, and scheduler repair context visible while changing shared automation logic.",
+      detail:
+        "Keep audit posture, governance rules, and scheduler repair context visible while changing shared automation logic.",
     },
   },
   {
@@ -61,7 +67,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/vault?focus=vault-stewardship",
       label: "Open VAULT stewardship",
-      detail: "Start from the archive-health panel when repairing vault continuity or maintenance posture.",
+      detail:
+        "Start from the archive-health panel when repairing vault continuity or maintenance posture.",
     },
   },
   {
@@ -69,7 +76,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/vault?focus=vault-compiled-pages",
       label: "Open compiled pages",
-      detail: "Jump directly into compiled-page repair flow instead of the broader VAULT shell.",
+      detail:
+        "Jump directly into compiled-page repair flow instead of the broader VAULT shell.",
     },
   },
   {
@@ -77,7 +85,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/vault?focus=vault-stewardship",
       label: "Open VAULT stewardship",
-      detail: "Use the exact archive repair session while changing the VAULT route shell.",
+      detail:
+        "Use the exact archive repair session while changing the VAULT route shell.",
     },
   },
   {
@@ -85,7 +94,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/vault?focus=vault-memory-spine",
       label: "Open memory spine",
-      detail: "Keep the local memory readiness lane visible while changing the shared archive contract.",
+      detail:
+        "Keep the local memory readiness lane visible while changing the shared archive contract.",
     },
   },
   {
@@ -93,7 +103,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/vault?focus=vault-compiled-pages",
       label: "Open compiled pages",
-      detail: "Review durable compiled-page behavior on the exact archive panel while changing stored page logic.",
+      detail:
+        "Review durable compiled-page behavior on the exact archive panel while changing stored page logic.",
     },
   },
   {
@@ -101,7 +112,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/command?focus=runtime-efficiency",
       label: "Open COMMAND runtime",
-      detail: "Start with runtime posture when changing the main COMMAND shell.",
+      detail:
+        "Start with runtime posture when changing the main COMMAND shell.",
     },
   },
   {
@@ -109,7 +121,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/command?focus=runtime-efficiency",
       label: "Open COMMAND runtime",
-      detail: "Keep runtime efficiency, prompt waste, and provider posture visible while changing the AI boundary.",
+      detail:
+        "Keep runtime efficiency, prompt waste, and provider posture visible while changing the AI boundary.",
     },
   },
   {
@@ -117,7 +130,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/recon?view=opsec&focus=recon-opsec",
       label: "Open RECON OPSEC",
-      detail: "Use the exact trust-boundary panel while changing route and connector policy.",
+      detail:
+        "Use the exact trust-boundary panel while changing route and connector policy.",
     },
   },
   {
@@ -125,7 +139,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/recon?view=osint&focus=recon-lookup",
       label: "Open RECON lookup",
-      detail: "Jump directly into the target-led lookup panel when refining recon flow.",
+      detail:
+        "Jump directly into the target-led lookup panel when refining recon flow.",
     },
   },
   {
@@ -133,7 +148,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/recon?view=headers&focus=recon-headers",
       label: "Open headers audit",
-      detail: "Use the exact headers repair session instead of the broader RECON route.",
+      detail:
+        "Use the exact headers repair session instead of the broader RECON route.",
     },
   },
   {
@@ -141,7 +157,8 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/vehicle?focus=vehicle-artifact-convention",
       label: "Open vehicle artifacts",
-      detail: "Jump directly into session bundles and future hardware artifact continuity.",
+      detail:
+        "Jump directly into session bundles and future hardware artifact continuity.",
     },
   },
   {
@@ -149,12 +166,15 @@ const IMPACT_REPAIR_SESSION_PREFIXES: Array<{
     session: {
       href: "/vehicle?focus=vehicle-connector-onboarding",
       label: "Open connector onboarding",
-      detail: "Use the exact readiness panel for future Pixhawk and ArduPilot prep.",
+      detail:
+        "Use the exact readiness panel for future Pixhawk and ArduPilot prep.",
     },
   },
 ];
 
-export function getImpactRepairSession(filePath: string): ImpactRepairSession | null {
+export function getImpactRepairSession(
+  filePath: string,
+): ImpactRepairSession | null {
   const normalized = filePath.replace(/\\/g, "/");
   const match = IMPACT_REPAIR_SESSION_PREFIXES.find((entry) =>
     normalized.startsWith(entry.prefix),

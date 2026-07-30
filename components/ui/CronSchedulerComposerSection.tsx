@@ -3,7 +3,11 @@
 import type { ScheduledJob } from "@/store/useStore";
 import CompactOperatorNote from "@/components/ui/CompactOperatorNote";
 import CronSchedulerWorkflowTemplatesSection from "@/components/ui/CronSchedulerWorkflowTemplatesSection";
-import type { HQWorkflowCatalogItem, HQWorkflowCommandId } from "@/components/home/office/workflowCommands";
+import SchedulerAvailabilityPlanner from "@/components/ui/SchedulerAvailabilityPlanner";
+import type {
+  HQWorkflowCatalogItem,
+  HQWorkflowCommandId,
+} from "@/components/home/office/workflowCommands";
 import {
   MISSION_REVIEW_EXPIRY_OPTIONS,
   MISSION_TEMPLATES,
@@ -85,6 +89,7 @@ export default function CronSchedulerComposerSection({
       }}
     >
       <input
+        aria-label="Scheduled job name"
         value={name}
         onChange={(event) => onNameChange(event.target.value)}
         placeholder="Job name (e.g. Morning macro brief)"
@@ -97,6 +102,7 @@ export default function CronSchedulerComposerSection({
         }}
       />
       <textarea
+        aria-label="Scheduled task prompt"
         value={prompt}
         onChange={(event) => onPromptChange(event.target.value)}
         placeholder="Task prompt (what should run on schedule)"
@@ -112,6 +118,7 @@ export default function CronSchedulerComposerSection({
       />
       <div style={{ display: "flex", gap: 8 }}>
         <select
+          aria-label="Schedule preset"
           value={cron}
           onChange={(event) => onCronChange(event.target.value)}
           style={{
@@ -152,6 +159,7 @@ export default function CronSchedulerComposerSection({
         }}
       >
         <select
+          aria-label="Scheduled job type"
           value={jobType}
           onChange={(event) =>
             onJobTypeChange(event.target.value as ScheduledJob["type"])
@@ -168,6 +176,7 @@ export default function CronSchedulerComposerSection({
           <option value="prompt">Prompt</option>
         </select>
         <select
+          aria-label="Scheduled output target"
           value={outputTarget}
           onChange={(event) =>
             onOutputTargetChange(
@@ -190,6 +199,7 @@ export default function CronSchedulerComposerSection({
           <option value="none">No artifact</option>
         </select>
         <select
+          aria-label="Scheduled approval policy"
           value={approvalPolicy}
           onChange={(event) =>
             onApprovalPolicyChange(
@@ -209,6 +219,7 @@ export default function CronSchedulerComposerSection({
           <option value="observe">Observe only</option>
         </select>
         <select
+          aria-label="Scheduled mission agent"
           value={missionAgent}
           onChange={(event) => onMissionAgentChange(event.target.value)}
           style={{
@@ -267,6 +278,7 @@ export default function CronSchedulerComposerSection({
             REVIEW-FIRST MISSION CONTRACT
           </div>
           <input
+            aria-label="Mission scope"
             value={missionScope}
             onChange={(event) => onMissionScopeChange(event.target.value)}
             placeholder="Mission scope (what the overnight work is allowed to do)"
@@ -286,6 +298,7 @@ export default function CronSchedulerComposerSection({
             }}
           >
             <select
+              aria-label="Mission review expiry"
               value={missionReviewExpiryHours}
               onChange={(event) =>
                 onMissionReviewExpiryHoursChange(Number(event.target.value))
@@ -320,8 +333,11 @@ export default function CronSchedulerComposerSection({
             </div>
           </div>
           <textarea
+            aria-label="Mission re-entry summary"
             value={missionReentrySummary}
-            onChange={(event) => onMissionReentrySummaryChange(event.target.value)}
+            onChange={(event) =>
+              onMissionReentrySummaryChange(event.target.value)
+            }
             placeholder="Re-entry summary (how the operator should review and resume the mission)"
             rows={3}
             style={{
@@ -334,9 +350,9 @@ export default function CronSchedulerComposerSection({
             }}
           />
           <div style={{ color: "#6875a0", fontSize: 10, lineHeight: 1.5 }}>
-            Mission jobs stay local-first in this tranche. They can queue work for review,
-            but they do not authorize silent expansion, route sprawl, or background
-            follow-on missions by themselves.
+            Mission jobs stay local-first in this tranche. They can queue work
+            for review, but they do not authorize silent expansion, route
+            sprawl, or background follow-on missions by themselves.
           </div>
         </div>
       ) : null}
@@ -347,7 +363,9 @@ export default function CronSchedulerComposerSection({
         reviewOnlyWorkflows={reviewOnlyWorkflows}
         onApplyWorkflowTemplate={onApplyWorkflowTemplate}
       />
+      <SchedulerAvailabilityPlanner onCronChange={onCronChange} />
       <input
+        aria-label="Cron expression"
         value={cron}
         onChange={(event) => onCronChange(event.target.value)}
         placeholder="Cron expression (minute hour day month weekday)"
@@ -360,7 +378,11 @@ export default function CronSchedulerComposerSection({
           fontFamily: "monospace",
         }}
       />
-      {error ? <div style={{ color: "#ef4444", fontSize: 11 }}>{error}</div> : null}
+      {error ? (
+        <div role="alert" style={{ color: "#ef4444", fontSize: 11 }}>
+          {error}
+        </div>
+      ) : null}
     </div>
   );
 }

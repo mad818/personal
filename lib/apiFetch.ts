@@ -13,6 +13,7 @@
  */
 
 import { normalizeTokenCandidate } from "@/lib/authToken";
+import { isDedupeSafeGet } from "@/lib/liveFeedReliability";
 
 const TOKEN_KEY = "nexus_session_token";
 
@@ -20,6 +21,24 @@ const TOKEN_KEY = "nexus_session_token";
 // Prevents duplicate GET requests to the same URL within the same render cycle.
 // Only GET requests are deduplicated — mutations (POST/PUT/DELETE) are always sent.
 const inflightRequests = new Map<string, Promise<Response>>();
+
+function buildDedupeKey(
+  url: string,
+  options: RequestInit,
+  headers: Headers,
+): string {
+  const headerEntries = Array.from(headers.entries()).sort(([left], [right]) =>
+    left.localeCompare(right),
+  );
+  return JSON.stringify([
+    url,
+    options.cache ?? "default",
+    options.credentials ?? "same-origin",
+    options.mode ?? "cors",
+    options.redirect ?? "follow",
+    headerEntries,
+  ]);
+}
 
 export function getSessionToken(): string {
   return "";
@@ -56,11 +75,12 @@ export async function apiFetch(
 
   const method = (options.method ?? "GET").toUpperCase();
 
-  // Deduplicate concurrent GET requests to the same URL.
-  // A second caller that arrives while the first is in-flight gets the same Promise.
+  // Deduplicate only abort-free, cache-compatible GETs with the same request key.
+  // Requests carrying a signal stay independent so one caller cannot cancel another.
   // POST/PUT/DELETE always fire independently.
-  if (method === "GET") {
-    const existing = inflightRequests.get(url);
+  if (isDedupeSafeGet(method, options)) {
+    const dedupeKey = buildDedupeKey(url, options, headers);
+    const existing = inflightRequests.get(dedupeKey);
     if (existing) return existing.then((response) => response.clone());
 
     const p = fetch(url, {
@@ -68,9 +88,9 @@ export async function apiFetch(
       headers,
       credentials: options.credentials ?? "same-origin",
     }).finally(() => {
-      inflightRequests.delete(url);
+      inflightRequests.delete(dedupeKey);
     });
-    inflightRequests.set(url, p);
+    inflightRequests.set(dedupeKey, p);
     return p.then((response) => response.clone());
   }
 

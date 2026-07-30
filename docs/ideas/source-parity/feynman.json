@@ -2,15 +2,17 @@
   "schemaVersion": 1,
   "id": "feynman",
   "name": "Feynman",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/companion-inc/feynman",
-    "version": "0.2.58",
-    "reviewedAt": "2026-06-07",
+    "version": "0.3.5",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/companion-inc/feynman/blob/main/README.md",
       "https://github.com/companion-inc/feynman/blob/main/AGENTS.md",
+      "https://github.com/companion-inc/feynman/releases/tag/v0.3.5",
+      "https://github.com/companion-inc/feynman/blob/main/src/rank/paper-rank.ts",
       "https://github.com/companion-inc/feynman/tree/main/skills",
       "https://github.com/companion-inc/feynman/tree/main/extensions/research-tools",
       "https://github.com/companion-inc/feynman/tree/main/.feynman/agents"
@@ -100,11 +102,51 @@
       ]
     },
     {
-      "id": "paper-search-read-ask-annotate-code",
-      "title": "Semantic paper search, full paper/section reads, paper Q&A, local annotations, and paper-repository code reads",
+      "id": "paper-read-order-ranking",
+      "title": "Transparent PaperRank read-order triage with available-signal weighting and missing-component receipts",
+      "sourceEvidence": "src/rank/paper-rank.ts and README.md PaperRank command",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanPaperRank.ts",
+        "app/api/tools/route.ts",
+        "components/home/office/workflowCommands.ts",
+        "scripts/check-feynman-paper-rank-runtime.mjs"
+      ]
+    },
+    {
+      "id": "public-paper-metadata-and-section-inspection",
+      "title": "Bounded public arXiv metadata and requested-section inspection with missing-section receipts",
       "sourceEvidence": "extensions/research-tools/alpha.ts",
-      "disposition": "pending",
-      "reason": "Current Nexus paper search is a daily-paper signal and lacks the complete paper inspection tool family."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanPaperInspection.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-paper-inspection-runtime.mjs"
+      ]
+    },
+    {
+      "id": "bounded-paper-question-answering",
+      "title": "Explicit section-grounded paper Q&A with bounded evidence and citation-audit receipts",
+      "sourceEvidence": "extensions/research-tools/alpha.ts",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanPaperQuestion.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-paper-question-runtime.mjs"
+      ]
+    },
+    {
+      "id": "semantic-paper-search-and-annotations",
+      "title": "Semantic paper search and persistent local annotations",
+      "sourceEvidence": "extensions/research-tools/alpha.ts",
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanPaperLibrary.ts",
+        "app/api/feynman/papers/route.ts",
+        "app/api/feynman/papers/import/route.ts",
+        "components/vault/FeynmanPaperLibraryPanel.tsx",
+        "scripts/check-feynman-paper-library-runtime.mjs"
+      ]
     },
     {
       "id": "hugging-face-inspection",
@@ -119,31 +161,41 @@
     },
     {
       "id": "workflow-specific-output-contracts",
-      "title": "Specialized behavioral contracts for literature review, paper-code audit, replication, recipes, comparison, drafts, and review",
+      "title": "Specialized behavioral contracts for literature review, review, audit, replication plans, recipes, comparisons, drafts, autoresearch plans, and watches",
       "sourceEvidence": "skills and prompts workflow trees",
-      "disposition": "pending",
-      "reason": "Current workflows share one generalized engine and command-specific purpose text rather than fully specialized execution and artifact contracts."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanWorkflowContracts.ts",
+        "lib/feynmanResearch.ts",
+        "scripts/check-feynman-workflow-contracts-runtime.mjs"
+      ]
     },
     {
       "id": "paper-code-audit",
       "title": "Line-by-line paper claim versus public codebase audit",
       "sourceEvidence": "skills/paper-code-audit/SKILL.md and alpha_read_code",
-      "disposition": "pending",
-      "reason": "Current audit mode performs generic source synthesis and does not resolve a paper's repository or compare claims to implementation artifacts."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanPaperCodeAudit.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-paper-code-audit-runtime.mjs"
+      ]
     },
     {
       "id": "local-replication-execution",
       "title": "Operator-selected local or virtual-environment replication with scripts and result artifacts",
       "sourceEvidence": "skills/replication/SKILL.md",
-      "disposition": "pending",
-      "reason": "Current replicate mode produces a plan only; safe local execution, scripts, logs, and results remain unimplemented."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "A research prompt cannot safely authorize arbitrary downloaded code, dependency installation, training, or dataset execution on the Nexus host. Nexus completes the feasible portion as an execution-ready plan with metrics, stop conditions, and an explicit approval gate."
     },
     {
       "id": "docker-isolated-experiments",
       "title": "Docker-isolated experiment execution",
       "sourceEvidence": "README.md Skills & Tools and skills/docker",
-      "disposition": "pending",
-      "reason": "Nexus has isolation policy scaffolding but no Feynman replication executor backed by an approved Docker sandbox."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "A container does not by itself establish safe code, network, volume, secret, resource, or image provenance. Nexus does not own an approved experiment sandbox and therefore keeps Docker execution outside the research product."
     },
     {
       "id": "paid-cloud-gpu-compute",
@@ -157,15 +209,22 @@
       "id": "autoresearch-loop",
       "title": "Measured experiment loop that tries variants, keeps improvements, and records JSONL history",
       "sourceEvidence": "skills/autoresearch/SKILL.md",
-      "disposition": "pending",
-      "reason": "Current autoresearch mode returns a bounded plan and does not execute or score an approved experiment loop."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Autonomously mutating code or model configurations, executing variants, and retaining the winner exceeds an advisory research request. Nexus implements the bounded objective, variants, scoring, keep-or-reject, stop, and approval plan without enabling the loop."
     },
     {
       "id": "recurring-research-watch",
       "title": "Baseline survey plus operator-approved recurring material-change checks",
       "sourceEvidence": "skills/watch/SKILL.md",
-      "disposition": "pending",
-      "reason": "Current watch mode returns a scheduler template but does not create, enable, run, or reconcile a real approved recurring watch."
+      "disposition": "adapted",
+      "proof": [
+        "lib/feynmanResearchWatch.ts",
+        "app/api/feynman/watch/run/route.ts",
+        "components/ui/CronSchedulerRunner.tsx",
+        "components/vault/FeynmanResearchWatchPanel.tsx",
+        "scripts/check-feynman-research-watch-runtime.mjs"
+      ]
     },
     {
       "id": "session-search-resume",

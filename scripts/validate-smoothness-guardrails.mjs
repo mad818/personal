@@ -2,7 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 
 function read(file) {
   return fs.readFileSync(path.join(repoRoot, file), "utf8");
@@ -48,20 +51,28 @@ const requiredSnippets = [
   {
     file: "components/ui/OperationalLightGrid.tsx",
     snippets: [
-      "data-testid=\"operational-light-grid\"",
+      'data-testid="operational-light-grid"',
       "aria-label",
       "title={title}",
     ],
   },
   {
     file: "components/nav/Nav.tsx",
-    snippets: ["useOperationalLights", "variant=\"toprail\"", "maxLights={10}"],
+    snippets: ["useOperationalLights", 'variant="toprail"'],
+  },
+  {
+    file: "DESIGN.md",
+    snippets: ["ambient-sweep: 14s"],
+  },
+  {
+    file: "app/design-md.generated.css",
+    snippets: ["--nexus-atmosphere-sweep-duration: 14s;"],
   },
   {
     file: "components/ui/FreeLocalReadinessPanel.tsx",
     snippets: [
       "buildOperationalLightGrid",
-      "variant={compact ? \"compact\" : \"panel\"}",
+      'variant={compact ? "compact" : "panel"}',
       "document.hidden",
     ],
   },
@@ -87,9 +98,79 @@ for (const check of requiredSnippets) {
   const source = read(check.file);
   for (const snippet of check.snippets) {
     if (!source.includes(snippet)) {
-      errors.push(`${check.file}: missing smoothness proof snippet "${snippet}"`);
+      errors.push(
+        `${check.file}: missing smoothness proof snippet "${snippet}"`,
+      );
     }
   }
+}
+
+const navSource = read("components/nav/Nav.tsx");
+const toprailLightCap = navSource.match(
+  /variant="toprail"[\s\S]{0,240}?maxLights=\{(\d+)\}/,
+);
+if (!toprailLightCap) {
+  errors.push(
+    "components/nav/Nav.tsx: the top-rail operational lights need an explicit maxLights cap.",
+  );
+} else {
+  const maxLights = Number(toprailLightCap[1]);
+  if (!Number.isInteger(maxLights) || maxLights < 1 || maxLights > 10) {
+    errors.push(
+      `components/nav/Nav.tsx: top-rail maxLights must stay between 1 and 10; received ${toprailLightCap[1]}.`,
+    );
+  }
+}
+
+const styles = read("app/globals.css");
+const readAnimationDurationMs = (selector) => {
+  const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const rule = styles.match(
+    new RegExp(`${escapedSelector}\\s*\\{([^}]*)\\}`, "m"),
+  );
+  if (!rule) return null;
+  const explicitDuration = rule[1].match(
+    /animation-duration:\s*([\d.]+)ms\s*;/,
+  );
+  const shorthandDuration = rule[1].match(
+    /animation:\s*[^;]*?\b([\d.]+)ms\b[^;]*;/,
+  );
+  const value = explicitDuration?.[1] ?? shorthandDuration?.[1];
+  return value ? Number(value) : null;
+};
+
+for (const [selector, label] of [
+  [".nexus-motion-enter", "shared module entry"],
+  [
+    ".nexus-ops-workplane.nexus-motion-enter--primary",
+    "primary workplane entry",
+  ],
+  [".nexus-ops-rail.nexus-motion-enter--support", "support rail entry"],
+]) {
+  const duration = readAnimationDurationMs(selector);
+  if (duration === null) {
+    errors.push(
+      `app/globals.css: ${label} needs an explicit animation-duration in milliseconds.`,
+    );
+  } else if (duration <= 0 || duration > 300) {
+    errors.push(
+      `app/globals.css: ${label} must stay within the occasional-motion budget (1-300ms); received ${duration}ms.`,
+    );
+  }
+}
+
+const clearanceSweep = styles.match(
+  /\.nexus-shell-opsHead--clearance \.nexus-shell-opsHead__plateSweep\s*\{([^}]*)\}/m,
+);
+if (
+  !clearanceSweep ||
+  !clearanceSweep[1].includes(
+    "animation: nexus-hero-sweep var(--nexus-atmosphere-sweep-duration)",
+  )
+) {
+  errors.push(
+    "app/globals.css: the Aurora plate sweep must use the DESIGN.md ambient sweep duration token.",
+  );
 }
 
 const legacyStatusSurfaces = [
@@ -104,7 +185,14 @@ const tsxFiles = [
 ];
 
 for (const legacyName of legacyStatusSurfaces) {
-  const owningFile = tsxFiles.find((file) => file.endsWith(`${legacyName}.tsx`));
+  const owningFile = tsxFiles.find((file) =>
+    file.endsWith(`${legacyName}.tsx`),
+  );
+  if (owningFile) {
+    errors.push(
+      `${owningFile}: ${legacyName} must remain retired; use OperationalLightGrid instead.`,
+    );
+  }
   for (const file of tsxFiles) {
     if (file === owningFile) continue;
     const source = read(file);
@@ -119,15 +207,18 @@ for (const legacyName of legacyStatusSurfaces) {
   }
 }
 
-const toprailPolling = read("components/ui/TrustPostureStrip.tsx");
+const toprailPolling = read("components/ui/TrustOperationsRail.tsx");
 if (!toprailPolling.includes("document.hidden")) {
   errors.push(
-    "components/ui/TrustPostureStrip.tsx: trust strip polling must pause while the tab is hidden.",
+    "components/ui/TrustOperationsRail.tsx: trust polling must pause while the tab is hidden.",
   );
 }
 
 const forbiddenNetworkIdleFiles = [
-  ...listFiles("tests", (file) => file.endsWith(".ts") || file.endsWith(".tsx")),
+  ...listFiles(
+    "tests",
+    (file) => file.endsWith(".ts") || file.endsWith(".tsx"),
+  ),
 ];
 for (const file of forbiddenNetworkIdleFiles) {
   const source = read(file);
@@ -145,5 +236,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  "Smoothness guardrails OK (operational lights, visibility-aware polling, and legacy status surfaces are constrained).",
+  "Smoothness guardrails OK (operational lights, visibility-aware polling, and legacy status surfaces are retired).",
 );

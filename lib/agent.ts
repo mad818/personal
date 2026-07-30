@@ -71,6 +71,22 @@ import {
   YAGNI_AGENT_DIRECTIVE,
   YAGNI_MAX_TOOL_CALLS_PER_RUN,
 } from "@/lib/agentYagniGuardrails";
+import {
+  buildLocalInferenceRecoveryMessage,
+  shouldAllowCloudEscalation,
+} from "@/lib/localInferencePosture";
+import { detectTeamOrchestrationNeed } from "@/lib/teamOrchestration";
+import {
+  compactAgentToolResult,
+  createAgentExecutionState,
+  normalizeAgentIterationBudget,
+  normalizeAgentToolInputForTransport,
+  prepareAgentContext,
+  reduceAgentExecutionState,
+  summarizeAgentExecutionState,
+  validateAgentToolInput,
+  type AgentExecutionAction,
+} from "@/lib/agentExecutionContract";
 
 type ToolRiskTier = "tier0" | "tier1" | "tier2";
 
@@ -80,6 +96,10 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   fetch_url: "tier0",
   deep_research: "tier0",
   feynman_research: "tier0",
+  feynman_paper_rank: "tier0",
+  feynman_paper_inspect: "tier0",
+  feynman_paper_ask: "tier0",
+  feynman_paper_code_audit: "tier0",
   feynman_outputs: "tier0",
   huggingface_inspect: "tier0",
   compare_repos: "tier0",
@@ -88,6 +108,10 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   list_files: "tier0",
   read_project_file: "tier0",
   list_project_files: "tier0",
+  list_design_skills: "tier0",
+  resolve_design_skill: "tier0",
+  list_go_to_market_skills: "tier0",
+  resolve_go_to_market_skill: "tier0",
   calculate: "tier0",
   recall: "tier0",
   read_current_tab: "tier0",
@@ -96,6 +120,7 @@ const TOOL_RISK: Record<string, ToolRiskTier> = {
   // Tier 1: local/browser/session side-effects
   remember: "tier1",
   ask_max: "tier1",
+  delegate_specialist: "tier1",
   navigate_to: "tier1",
   click_element: "tier1",
   type_text: "tier1",
@@ -140,6 +165,15 @@ function syncPrivacyShieldStatus(response: Response) {
   }
 }
 
+function readAgentToolString(
+  input: Readonly<Record<string, unknown>>,
+  key: string,
+  fallback = "",
+): string {
+  const value = input[key];
+  return typeof value === "string" ? value : fallback;
+}
+
 // ── Tool definitions (shown to the model) ────────────────────────────────────
 export const AGENT_TOOLS = [
   {
@@ -175,8 +209,7 @@ export const AGENT_TOOLS = [
       properties: {
         topic: {
           type: "string",
-          description:
-            "The research topic or question to investigate deeply.",
+          description: "The research topic or question to investigate deeply.",
         },
       },
       required: ["topic"],
@@ -209,8 +242,113 @@ export const AGENT_TOOLS = [
           type: "string",
           description: "The topic, claim, paper, artifact, or experiment idea.",
         },
+        experiment_intake_declaration: {
+          type: "string",
+          enum: ["no_experiments_declared", "experiments_declared"],
+          description:
+            "Optional explicit operator declaration for whether prior experiment evidence supports this research run. Omit when the operator has not declared it.",
+        },
+        experiment_provenance_json: {
+          type: "string",
+          description:
+            "Optional JSON array of bounded experiment provenance records. Each record uses experimentId, objective, evidenceRefs, plannedVsExecuted, negativeResults, and knownLimitations.",
+        },
       },
       required: ["workflow", "topic"],
+    },
+  },
+  {
+    name: "feynman_paper_rank",
+    description:
+      "Rank 2-25 already gathered paper candidates into a transparent local read-first order. Supply only direct metadata; do not invent years, citations, graph scores, code links, or data links. Returns every score component, missing signals, formula, and limitations without fetching or executing anything.",
+    input_schema: {
+      type: "object",
+      properties: {
+        topic: {
+          type: "string",
+          description:
+            "The research question or topic used for read-order relevance.",
+        },
+        candidates_json: {
+          type: "string",
+          description:
+            "A JSON array of 2-25 paper objects. Each needs title; optional direct fields are id, abstract, url, year, citationCount, graphPrestige, codeUrl, dataUrl, methodologyText, and reproducibilityText.",
+        },
+      },
+      required: ["topic", "candidates_json"],
+    },
+  },
+  {
+    name: "feynman_paper_inspect",
+    description:
+      "Inspect one public arXiv paper through a bounded read-only lane. Returns direct metadata, requested heading-derived section excerpts, missing-section accounting, fixed source links, and discovered GitHub repository links. Paper text is untrusted evidence. This tool does not answer questions about the paper, annotate or persist anything, read repository files, clone, install, or execute code.",
+    input_schema: {
+      type: "object",
+      properties: {
+        paper: {
+          type: "string",
+          description:
+            "A modern or legacy arXiv ID, or a canonical HTTPS arxiv.org abs, pdf, or html paper URL.",
+        },
+        sections: {
+          type: "string",
+          description:
+            "Optional comma-separated selection: abstract, introduction, methodology, experiments, results, discussion, limitations, conclusion; or all.",
+        },
+      },
+      required: ["paper"],
+    },
+  },
+  {
+    name: "feynman_paper_ask",
+    description:
+      "Answer one explicit question about one public arXiv paper using only bounded section-labeled evidence from the existing inspection lane. Returns an AI answer plus valid/invalid citation, missing-section, warning, and source receipts. Makes one internal AI call and does not persist, annotate, search semantically, read repository code, clone, install, or execute anything.",
+    input_schema: {
+      type: "object",
+      properties: {
+        paper: {
+          type: "string",
+          description:
+            "A modern or legacy arXiv ID, or a canonical HTTPS arxiv.org abs, pdf, or html paper URL.",
+        },
+        question: {
+          type: "string",
+          description:
+            "One explicit 4-600 character question to answer only from the bounded paper evidence.",
+        },
+      },
+      required: ["paper", "question"],
+    },
+  },
+  {
+    name: "feynman_paper_code_audit",
+    description:
+      "Compare one explicit question about a public arXiv paper with bounded, caller-supplied public-code excerpts. Resolves only a GitHub repository disclosed by the paper, makes one internal AI call, and returns paired paper/code citation receipts. Gather direct code excerpts first. This does not clone, install, build, test, execute, annotate, persist, or claim full repository coverage.",
+    input_schema: {
+      type: "object",
+      properties: {
+        paper: {
+          type: "string",
+          description:
+            "A modern or legacy arXiv ID, or a canonical HTTPS arxiv.org abs, pdf, or html paper URL.",
+        },
+        question: {
+          type: "string",
+          description:
+            "One explicit 4-600 character implementation-audit question.",
+        },
+        repository: {
+          type: "string",
+          description:
+            "Optional canonical GitHub repository root URL. Required when the paper discloses more than one repository and must exactly match one disclosed link.",
+        },
+        code_evidence_json: {
+          type: "string",
+          description:
+            "A JSON array of 1-8 objects with repository-relative path and bounded excerpt strings, gathered from direct public code evidence.",
+        },
+      },
+      required: ["paper", "question", "code_evidence_json"],
     },
   },
   {
@@ -223,15 +361,18 @@ export const AGENT_TOOLS = [
         action: {
           type: "string",
           enum: ["list", "search", "resume", "export"],
-          description: "List sessions and VAULT outputs, search sessions, resume one session, or export one fixed artifact.",
+          description:
+            "List sessions and VAULT outputs, search sessions, resume one session, or export one fixed artifact.",
         },
         query: {
           type: "string",
-          description: "Search text used for session search or resume when session_id is unknown.",
+          description:
+            "Search text used for session search or resume when session_id is unknown.",
         },
         session_id: {
           type: "string",
-          description: "Generated Feynman continuity session ID used for resume or export.",
+          description:
+            "Generated Feynman continuity session ID used for resume or export.",
         },
         format: {
           type: "string",
@@ -320,10 +461,10 @@ export const AGENT_TOOLS = [
       required: ["repo_refs"],
     },
   },
-    {
-      name: "assimilate_repo",
-      description:
-        "Build a public-safe repo-assimilation implementation brief for a public GitHub repo using existing metadata-only repo intel. Use this for explicit adopt/adapt/reject questions when the user wants a Nexus-local implementation decision, extension-point brief, and ORBIT-ready handoff instead of raw code ingestion. Returns a deterministic six-section brief and never fetches arbitrary source files.",
+  {
+    name: "assimilate_repo",
+    description:
+      "Build a public-safe repo-assimilation implementation brief for a public GitHub repo using existing metadata-only repo intel. Use this for explicit adopt/adapt/reject questions when the user wants a Nexus-local implementation decision, extension-point brief, and ORBIT-ready handoff instead of raw code ingestion. Returns a deterministic six-section brief and never fetches arbitrary source files.",
     input_schema: {
       type: "object",
       properties: {
@@ -417,7 +558,7 @@ export const AGENT_TOOLS = [
   {
     name: "ask_max",
     description:
-      "Ask Max (your local OpenClaw AI agent) a question. Max has web search, file access, Notion, and Google Places tools. Use this when you need Max's perspective, want to delegate a task locally, or want a second opinion. Max runs at http://127.0.0.1:18789.",
+      "Ask the separate local OpenClaw Max agent a question. Use only when the operator explicitly requests OpenClaw, external Max, or that second opinion; use delegate_specialist for native Nexus worker delegation. Max runs at http://127.0.0.1:18789.",
     input_schema: {
       type: "object",
       properties: {
@@ -429,19 +570,211 @@ export const AGENT_TOOLS = [
       required: ["message"],
     },
   },
+  {
+    name: "delegate_specialist",
+    description:
+      "Delegate one bounded advisory mission to a Nexus specialist worker. Use only when you are MAX coordinating a cross-domain task. The worker has no tools or mutation authority and returns a typed handoff for you to review before answering the operator.",
+    input_schema: {
+      type: "object",
+      properties: {
+        worker: {
+          type: "string",
+          enum: ["orbit", "nova", "cipher", "flux"],
+          description:
+            "Specialist worker: orbit=code, nova=research, cipher=security, flux=markets",
+        },
+        task_id: {
+          type: "string",
+          description: "Short stable task identifier for this handoff",
+        },
+        mission: {
+          type: "string",
+          description:
+            "One bounded specialist mission with a clear done-when condition",
+        },
+        context: {
+          type: "string",
+          description:
+            "Only the file excerpts, evidence, assumptions, or constraints the worker may rely on",
+        },
+        expected_output: {
+          type: "string",
+          description: "What MAX needs back from the worker",
+        },
+      },
+      required: ["worker", "task_id", "mission"],
+    },
+  },
+
+  // ── Project-owned builder procedures ─────────────────────────────────────
+  {
+    name: "list_design_skills",
+    description:
+      "Search the complete project-owned builder procedure atlas adapted from MengTo/Skills. Returns bounded IDs, families, availability, and purpose. Use before design, marketing, capture, customer support, media sourcing, animation, WebGL, or UI-detail work when the exact procedure is not already known.",
+    input_schema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description:
+            "Optional search text such as pricing, GSAP, capture, audit, support, WebGL, or shadows.",
+        },
+        category: {
+          type: "string",
+          enum: ["codex", "customer-support", "media", "ui", "web-design"],
+          description: "Optional exact upstream source category.",
+        },
+        family: {
+          type: "string",
+          enum: [
+            "workflow-extraction",
+            "evidence-audit",
+            "capture",
+            "support",
+            "voice-social",
+            "performance",
+            "media-sourcing",
+            "design-brief",
+            "marketing-system",
+            "visual-system",
+            "motion",
+            "webgl",
+            "ui-detail",
+          ],
+          description: "Optional exact project-owned procedure family.",
+        },
+        availability: {
+          type: "string",
+          enum: [
+            "native",
+            "connector_required",
+            "host_required",
+            "dependency_review",
+          ],
+          description: "Optional execution-prerequisite filter.",
+        },
+        limit: {
+          type: "string",
+          description: "Optional result limit from 1 to 100; defaults to 40.",
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "resolve_design_skill",
+    description:
+      "Resolve one exact active builder skill ID into its full read-only operating contract: purpose, requirements, inputs, ordered workflow, guardrails, acceptance checks, availability, and primary source. Call this before executing a matching design, capture, support, media, performance, animation, WebGL, or UI-detail task. The contract does not authorize installs or external actions.",
+    input_schema: {
+      type: "object",
+      properties: {
+        skill: {
+          type: "string",
+          description:
+            "Exact ID returned by list_design_skills, for example pricing-page, optimize-web-animations, or css-border-gradient.",
+        },
+      },
+      required: ["skill"],
+    },
+  },
+  {
+    name: "list_go_to_market_skills",
+    description:
+      "Search the complete guarded go-to-market procedure atlas adapted from the current Varnan-Tech/OpenDirectory portfolio. Returns bounded active IDs, families, availability, and purpose. Use before visual production, content packaging, launch, market intelligence, respectful outreach drafting, buyer research, or developer communications when the exact procedure is not already known. High-risk scraping, contact harvesting, and competing authority files are excluded.",
+    input_schema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description:
+            "Optional search text such as launch, pricing, newsletter, market, community, PR, or schema.",
+        },
+        category: {
+          type: "string",
+          enum: [
+            "visual-media",
+            "content",
+            "launch",
+            "gtm-intelligence",
+            "outreach",
+            "research",
+            "developer-tools",
+            "other",
+          ],
+          description: "Optional exact upstream source category.",
+        },
+        family: {
+          type: "string",
+          enum: [
+            "visual-production",
+            "content-packaging",
+            "launch-communications",
+            "market-intelligence",
+            "outreach-drafting",
+            "buyer-research",
+            "developer-communications",
+            "opportunity-research",
+          ],
+          description: "Optional exact project-owned procedure family.",
+        },
+        availability: {
+          type: "string",
+          enum: [
+            "native",
+            "source_required",
+            "connector_required",
+            "host_required",
+            "dependency_review",
+          ],
+          description: "Optional execution-prerequisite filter.",
+        },
+        limit: {
+          type: "string",
+          description: "Optional result limit from 1 to 62; defaults to 40.",
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "resolve_go_to_market_skill",
+    description:
+      "Resolve one exact active go-to-market skill ID into its complete read-only operating contract: purpose, requirements, inputs, ordered workflow, guardrails, acceptance checks, availability, and primary source. Call before executing matching visual, content, launch, market, outreach, buyer-research, or developer-communication work. The contract does not authorize collection, accounts, installs, providers, messages, ads, posts, PRs, dependencies, or publication.",
+    input_schema: {
+      type: "object",
+      properties: {
+        skill: {
+          type: "string",
+          description:
+            "Exact ID returned by list_go_to_market_skills, for example producthunt-launch-kit, pricing-finder, or pr-description-writer.",
+        },
+      },
+      required: ["skill"],
+    },
+  },
 
   // ── Project source code access ─────────────────────────────────────────────
   {
     name: "read_project_file",
     description:
-      'Read a source file from the Homefront project. Use this to understand the codebase before making changes — always read a file before editing it. Examples: "app/home/page.tsx", "components/home/HomeChat.tsx", "lib/agent.ts", "store/useStore.ts".',
+      'Read a source file from the Homefront project. Small files return exactly as stored. Large files return bounded semantic chunks; use focus to retrieve declarations related to a topic or chunk to request one exact 1-based manifest entry. Always read the relevant file context before editing it. Examples: "app/home/page.tsx", "components/home/office/HQTerminalSection.tsx", "lib/agent.ts", "store/useStore.ts".',
     input_schema: {
       type: "object",
       properties: {
         path: {
           type: "string",
           description:
-            'Relative path from project root, e.g. "components/home/HomeChat.tsx"',
+            'Relative path from project root, e.g. "components/home/office/HQTerminalSection.tsx"',
+        },
+        focus: {
+          type: "string",
+          description:
+            "Optional plain-text hint (max 200 characters) used to rank semantic chunks in a large file.",
+        },
+        chunk: {
+          type: "string",
+          description:
+            "Optional exact 1-based chunk number from a prior large-file manifest. Takes precedence over focus.",
         },
       },
       required: ["path"],
@@ -473,7 +806,7 @@ export const AGENT_TOOLS = [
         path: {
           type: "string",
           description:
-            'Relative path to the file, e.g. "components/home/HomeChat.tsx"',
+            'Relative path to the file, e.g. "components/home/office/HQTerminalSection.tsx"',
         },
         old_string: {
           type: "string",
@@ -645,13 +978,27 @@ const BROWSER_INTENT_RE =
 const RESEARCH_INTENT_RE =
   /\b(research|search|find|latest|current|news|read|summarize|verify|look up|cite|source)\b/i;
 const DELEGATE_INTENT_RE =
-  /\b(max|delegate|second opinion|double-check)\b/i;
+  /\b(?:openclaw|ask max|external max|second opinion from max)\b/i;
+const SPECIALIST_DELEGATE_INTENT_RE =
+  /\b(?:delegate|sub-?agent|specialist worker|central orchestrator)\b/i;
 const FEYNMAN_WORKFLOW_INTENT_RE =
   /\bfeynman_research\b|(?:^|\s)\/(?:deepresearch|deep-research|lit|lit-review|literature-review|review|audit|replicate|recipe|compare|draft|autoresearch|watch)\b|\b(?:deep research|literature review|peer review|paper audit|claim audit|experiment replication|replication plan|implementation recipe|research recipe|comparison matrix|paper draft|research watch|autoresearch)\b/i;
+const FEYNMAN_PAPER_RANK_INTENT_RE =
+  /\bfeynman_paper_rank\b|(?:^|\s)\/(?:rank|paper-rank)\b|\b(?:paper rank|what should i read first|rank (?:these|the) papers)\b/i;
+const FEYNMAN_PAPER_INSPECTION_INTENT_RE =
+  /\bfeynman_paper_inspect\b|(?:^|\s)\/(?:paper-inspect|inspect-paper)\b|https:\/\/(?:www\.)?arxiv\.org\/(?:abs|pdf|html)\/[^\s]+|\b(?:inspect|read|extract|show)\b.{0,30}\b(?:arxiv|paper sections?)\b/i;
+const FEYNMAN_PAPER_QUESTION_INTENT_RE =
+  /\bfeynman_paper_ask\b|(?:^|\s)\/(?:paper-ask|ask-paper)\b|\b(?:ask|answer|explain)\b.{0,80}\b(?:arxiv|paper)\b|\b(?:what|why|how|does|do|is|are|can|which)\b.{0,160}\b(?:arxiv|paper)\b|https:\/\/(?:www\.)?arxiv\.org\/(?:abs|pdf|html)\/[^\s]+.{0,160}\b(?:what|why|how|does|do|is|are|can|which)\b/i;
+const FEYNMAN_PAPER_CODE_AUDIT_INTENT_RE =
+  /\bfeynman_paper_code_audit\b|(?:^|\s)\/(?:paper-code-audit|audit-paper-code)\b|\b(?:audit|compare|check)\b.{0,80}\b(?:paper|arxiv)\b.{0,80}\b(?:code|repo(?:sitory)?|implementation)\b|\b(?:code|repo(?:sitory)?|implementation)\b.{0,80}\b(?:against|versus|vs\.?|to)\b.{0,40}\b(?:paper|arxiv)\b/i;
 const FEYNMAN_OUTPUTS_INTENT_RE =
   /\bfeynman_outputs\b|(?:^|\s)\/outputs\b|\bfeynman outputs\b|\b(?:search|find|resume|continue|preview|export|pdf)\b.{0,40}\b(?:feynman|research session|research output)\b|\b(?:feynman|research session|research output)\b.{0,40}\b(?:search|find|resume|continue|preview|export|pdf)\b/i;
 const HUGGING_FACE_INTENT_RE =
   /\bhugging\s*face\b|\bhuggingface_inspect\b|https:\/\/huggingface\.co\/(?:datasets\/)?[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)?/i;
+const DESIGN_SKILL_INTENT_RE =
+  /\b(?:design|landing page|pricing page|marketing page|ui|ux|animation|motion|scroll|gsap|three\.?js|webgl|shader|canvas|capture|screenshot|screen recording|customer support|billing case|account case|tts|voiceover|unsplash|aura assets|originality audit|performance profiling|instruments)\b/i;
+const GO_TO_MARKET_SKILL_INTENT_RE =
+  /\b(?:go[- ]to[- ]market|gtm|launch kit|product hunt|show hn|newsletter|linkedin post|tweet thread|content repurpos|market map|market research|competitor pricing|pricing audit|buyer pain|meeting brief|investor fit|vc match|community research|developer relations|devrel|pull request description|pr description|standup update|llms\.txt|schema markup)\b/i;
 
 function pickAgentTools(names: Iterable<string>): AgentToolDefinition[] {
   return Array.from(names)
@@ -697,11 +1044,24 @@ export function getAgentToolCatalog(
     (!codeIntent && normalizedAgent !== "orbit");
   const deepResearchIntent = hasDeepResearchIntent(userMessage);
   const feynmanWorkflowIntent = FEYNMAN_WORKFLOW_INTENT_RE.test(userMessage);
+  const feynmanPaperRankIntent = FEYNMAN_PAPER_RANK_INTENT_RE.test(userMessage);
+  const feynmanPaperInspectionIntent =
+    FEYNMAN_PAPER_INSPECTION_INTENT_RE.test(userMessage);
+  const feynmanPaperQuestionIntent =
+    FEYNMAN_PAPER_QUESTION_INTENT_RE.test(userMessage);
+  const feynmanPaperCodeAuditIntent =
+    FEYNMAN_PAPER_CODE_AUDIT_INTENT_RE.test(userMessage);
   const feynmanOutputsIntent = FEYNMAN_OUTPUTS_INTENT_RE.test(userMessage);
   const huggingFaceIntent = HUGGING_FACE_INTENT_RE.test(userMessage);
+  const designSkillIntent = DESIGN_SKILL_INTENT_RE.test(userMessage);
+  const goToMarketSkillIntent = GO_TO_MARKET_SKILL_INTENT_RE.test(userMessage);
   const repoCompareIntent = hasRepoCompareSignal(userMessage);
   const repoAssimilationIntent = hasRepoAssimilationSignal(userMessage);
   const delegateIntent = DELEGATE_INTENT_RE.test(userMessage);
+  const specialistDelegateIntent =
+    normalizedAgent === "jansky" &&
+    (detectTeamOrchestrationNeed(userMessage) ||
+      SPECIALIST_DELEGATE_INTENT_RE.test(userMessage));
   const repoIntelIntent = hasRepoIntelSignal(userMessage);
   const workspaceReadIntent =
     codeIntent || normalizedAgent === "orbit" || normalizedAgent === "jansky";
@@ -714,7 +1074,10 @@ export function getAgentToolCatalog(
     names.add("fetch_url");
   }
 
-  if (deepResearchIntent && (normalizedAgent === "nova" || normalizedAgent === "jansky")) {
+  if (
+    deepResearchIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
     groups.add("deep_research");
     names.add("deep_research");
   }
@@ -725,6 +1088,41 @@ export function getAgentToolCatalog(
   ) {
     groups.add("feynman_research");
     names.add("feynman_research");
+  }
+
+  if (
+    feynmanPaperRankIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("feynman_paper_rank");
+    names.add("feynman_paper_rank");
+  }
+
+  if (
+    feynmanPaperInspectionIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("feynman_paper_inspection");
+    names.add("feynman_paper_inspect");
+  }
+
+  if (
+    feynmanPaperQuestionIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("feynman_paper_question");
+    names.add("feynman_paper_ask");
+  }
+
+  if (
+    feynmanPaperCodeAuditIntent &&
+    (normalizedAgent === "nova" || normalizedAgent === "jansky")
+  ) {
+    groups.add("research");
+    groups.add("feynman_paper_code_audit");
+    names.add("web_search");
+    names.add("fetch_url");
+    names.add("feynman_paper_code_audit");
   }
 
   if (
@@ -768,6 +1166,18 @@ export function getAgentToolCatalog(
     names.add("analyze_repo");
   }
 
+  if (designSkillIntent) {
+    groups.add("design_skills");
+    names.add("list_design_skills");
+    names.add("resolve_design_skill");
+  }
+
+  if (goToMarketSkillIntent) {
+    groups.add("go_to_market_skills");
+    names.add("list_go_to_market_skills");
+    names.add("resolve_go_to_market_skill");
+  }
+
   if (workspaceReadIntent) {
     groups.add("workspace_read");
     names.add("read_project_file");
@@ -801,6 +1211,11 @@ export function getAgentToolCatalog(
     names.add("ask_max");
   }
 
+  if (specialistDelegateIntent) {
+    groups.add("central_orchestrator");
+    names.add("delegate_specialist");
+  }
+
   const tools = pickAgentTools(names);
   const id = Array.from(groups).sort().join("+");
   return { id, tools };
@@ -828,7 +1243,7 @@ const DRAFT_FILE_TOOL = {
 export interface ToolCall {
   id: string;
   name: string;
-  input: Record<string, string>;
+  input: Record<string, unknown>;
 }
 
 export interface AgentStep {
@@ -974,6 +1389,7 @@ export interface AgentOptions {
   toolCatalog?: AgentToolCatalog;
   efficiencyHint?: Partial<AgentEfficiencyMetrics>;
   onToolMetric?: (metric: ToolExecutionMeta) => void;
+  onExecutionAction?: (action: AgentExecutionAction) => void;
 }
 
 export type AgentRuntimeEngine = "nexus" | "claudeCode";
@@ -1129,8 +1545,17 @@ function emptyToolExecutionMeta(): ToolExecutionMeta {
 
 async function executeToolDetailed(
   name: string,
-  input: Record<string, string>,
+  input: Record<string, unknown>,
 ): Promise<ToolExecutionResult> {
+  const validation = validateAgentToolInput(AGENT_TOOLS, name, input);
+  if (!validation.ok) {
+    return {
+      result: `Tool "${name}" rejected before execution: ${
+        validation.error ?? "invalid structured input"
+      }`,
+      meta: emptyToolExecutionMeta(),
+    };
+  }
   const risk = getToolRisk(name);
 
   // High-risk write operations require explicit proposal/approval flow by default.
@@ -1139,16 +1564,19 @@ async function executeToolDetailed(
     const requireApproval =
       store.settings.agentHighRiskWritesRequireApproval ?? true;
     if (requireApproval) {
-      const pathOrFile = input.path ?? input.filename ?? name;
+      const pathOrFile =
+        readAgentToolString(input, "path") ||
+        readAgentToolString(input, "filename") ||
+        name;
       const blocked = `🔒 Blocked ${name} (${risk}). Use propose_project_edit first so the user can review and approve the change.`;
-        store.addChangeEntry({
-          path: pathOrFile,
-          agent: "orbit",
-          summary: `Policy blocked high-risk tool: ${name}`,
-          type: "rejected",
-          linesAdded: 0,
-          linesRemoved: 0,
-        });
+      store.addChangeEntry({
+        path: pathOrFile,
+        agent: "orbit",
+        summary: `Policy blocked high-risk tool: ${name}`,
+        type: "rejected",
+        linesAdded: 0,
+        linesRemoved: 0,
+      });
       return { result: blocked, meta: emptyToolExecutionMeta() };
     }
   }
@@ -1156,9 +1584,9 @@ async function executeToolDetailed(
   // ── Browser tools — run entirely in the user's browser window ──────────────
   if (typeof window !== "undefined") {
     if (name === "navigate_to") {
-      const newTab = (input.new_tab ?? "true") !== "false";
+      const newTab = readAgentToolString(input, "new_tab", "true") !== "false";
       return {
-        result: browserNavigate(input.url ?? "", newTab),
+        result: browserNavigate(readAgentToolString(input, "url"), newTab),
         meta: emptyToolExecutionMeta(),
       };
     }
@@ -1170,13 +1598,16 @@ async function executeToolDetailed(
     }
     if (name === "click_element") {
       return {
-        result: browserClick(input.selector ?? ""),
+        result: browserClick(readAgentToolString(input, "selector")),
         meta: emptyToolExecutionMeta(),
       };
     }
     if (name === "type_text")
       return {
-        result: browserType(input.selector ?? "", input.text ?? ""),
+        result: browserType(
+          readAgentToolString(input, "selector"),
+          readAgentToolString(input, "text"),
+        ),
         meta: emptyToolExecutionMeta(),
       };
   }
@@ -1184,13 +1615,16 @@ async function executeToolDetailed(
   // Intercept memory tools client-side — IndexedDB, no server round-trip
   if (name === "remember") {
     return {
-      result: await handleRemember(input.note ?? ""),
+      result: await handleRemember(readAgentToolString(input, "note")),
       meta: emptyToolExecutionMeta(),
     };
   }
   if (name === "recall") {
     return {
-      result: await handleRecall(input.query ?? input.note ?? ""),
+      result: await handleRecall(
+        readAgentToolString(input, "query") ||
+          readAgentToolString(input, "note"),
+      ),
       meta: emptyToolExecutionMeta(),
     };
   }
@@ -1200,15 +1634,18 @@ async function executeToolDetailed(
     try {
       const store = useStore.getState();
       store.addPendingEdit({
-        path: input.path ?? "unknown",
-        old_string: input.old_string ?? "",
-        new_string: input.new_string ?? "",
-        reason: input.reason ?? "No reason provided.",
-        risk: (input.risk ?? "medium") as "low" | "medium" | "high",
+        path: readAgentToolString(input, "path", "unknown"),
+        old_string: readAgentToolString(input, "old_string"),
+        new_string: readAgentToolString(input, "new_string"),
+        reason: readAgentToolString(input, "reason", "No reason provided."),
+        risk: readAgentToolString(input, "risk", "medium") as
+          | "low"
+          | "medium"
+          | "high",
         agentId: "orbit",
       });
       return {
-        result: `⏳ Edit proposed for "${input.path}". User will see a diff and must approve before the file is changed.`,
+        result: `⏳ Edit proposed for "${readAgentToolString(input, "path")}". User will see a diff and must approve before the file is changed.`,
         meta: emptyToolExecutionMeta(),
       };
     } catch {
@@ -1223,7 +1660,10 @@ async function executeToolDetailed(
     const runId = useStore.getState().agentRuntime.runId || "interactive";
     const r = await apiFetch("/api/tools", {
       method: "POST",
-      body: JSON.stringify({ tool: name, input }),
+      body: JSON.stringify({
+        tool: name,
+        input: normalizeAgentToolInputForTransport(input),
+      }),
       headers: { "X-Nexus-Run-Id": runId },
       signal: AbortSignal.timeout(TOOL_TIMEOUT_MS),
     });
@@ -1248,7 +1688,7 @@ async function executeToolDetailed(
 
 async function executeTool(
   name: string,
-  input: Record<string, string>,
+  input: Record<string, unknown>,
 ): Promise<string> {
   const { result } = await executeToolDetailed(name, input);
   return result;
@@ -1471,12 +1911,18 @@ Example: ["User is analyzing BTC/USD 4h chart", "User prefers RSI(14) over MACD 
         const match = raw.match(/\[[\s\S]*\]/);
         extracted = match ? JSON.parse(match[0]) : [];
       }
-    } else if (settings.aiProvider === "minimax") {
+    } else if (
+      settings.aiProvider === "minimax" ||
+      settings.aiProvider === "azure"
+    ) {
+      const provider = settings.aiProvider;
       const res = await apiFetch("/api/ai", {
         method: "POST",
         body: JSON.stringify({
-          provider: "minimax",
-          model: MINIMAX_DEFAULT_AGENT_MODEL,
+          provider,
+          ...(provider === "minimax"
+            ? { model: MINIMAX_DEFAULT_AGENT_MODEL }
+            : {}),
           max_tokens: 256,
           messages: [{ role: "user", content: prompt }],
           task: "fast",
@@ -1531,9 +1977,7 @@ async function postOllamaProxy(
       ...(settings.localEndpoint
         ? { localEndpoint: settings.localEndpoint }
         : {}),
-      ...(settings.localApiKey
-        ? { localApiKey: settings.localApiKey }
-        : {}),
+      ...(settings.localApiKey ? { localApiKey: settings.localApiKey } : {}),
     }),
     signal,
   });
@@ -1547,12 +1991,17 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
     systemPrompt,
     messages,
     onStep,
-    maxIterations = 6,
+    maxIterations: requestedMaxIterations,
     draftMode = false,
     agentId,
     toolCatalog,
     onToolMetric,
+    onExecutionAction,
   } = opts;
+  const maxIterations = normalizeAgentIterationBudget(
+    requestedMaxIterations,
+    6,
+  );
   const endpoint =
     s.localEndpoint || "http://localhost:11434/v1/chat/completions";
   const configuredModel = s.localModel || DEFAULT_LOCAL_MODEL;
@@ -1561,8 +2010,7 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
   let initialResolutionReason: string | null = null;
 
   const selectedCatalog =
-    toolCatalog ??
-    getAgentToolCatalog(agentId, messages.at(-1)?.content ?? "");
+    toolCatalog ?? getAgentToolCatalog(agentId, messages.at(-1)?.content ?? "");
   const tools = applyDraftModeToTools(selectedCatalog.tools, draftMode);
 
   if (typeof window !== "undefined")
@@ -1590,7 +2038,8 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
     onStep({
       type: "thinking",
       content:
-        initialResolutionReason === "active_runtime" && activeModel !== configuredModel
+        initialResolutionReason === "active_runtime" &&
+        activeModel !== configuredModel
           ? `⚠️ Draft mode — using active Ollama runtime model ${activeModel}. File writes are queued for Claude to finalize.`
           : `⚠️ Draft mode — using ${activeModel}. File writes are queued for Claude to finalize.`,
     });
@@ -1598,7 +2047,8 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
     onStep({
       type: "thinking",
       content:
-        initialResolutionReason === "active_runtime" && activeModel !== configuredModel
+        initialResolutionReason === "active_runtime" &&
+        activeModel !== configuredModel
           ? `Using active Ollama runtime model: ${activeModel}`
           : `Using local model: ${activeModel}`,
     });
@@ -1620,6 +2070,11 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
   let finalAnswer = "";
 
   for (let iter = 0; iter < maxIterations; iter++) {
+    onExecutionAction?.({
+      type: "iteration",
+      now: Date.now(),
+      iteration: iter + 1,
+    });
     let res: Response;
     try {
       res = await postOllamaProxy(
@@ -1677,10 +2132,7 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
 
     if (!res.ok) {
       const errorMessage = extractOllamaErrorMessage(data, res.status);
-      if (
-        !modelRecoveryAttempted &&
-        isMissingOllamaModelError(errorMessage)
-      ) {
+      if (!modelRecoveryAttempted && isMissingOllamaModelError(errorMessage)) {
         modelRecoveryAttempted = true;
         const recovery = await resolveInstalledOllamaModel({
           endpoint,
@@ -1747,7 +2199,7 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
     // Execute tool calls sequentially
     for (const tc of msg.tool_calls) {
       const name = tc.function.name;
-      let input: Record<string, string> = {};
+      let input: Record<string, unknown> = {};
       try {
         input = JSON.parse(tc.function.arguments);
       } catch {
@@ -1755,6 +2207,18 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
       }
 
       const risk = getToolRisk(name);
+      onExecutionAction?.({
+        type: "tool_started",
+        now: Date.now(),
+        tool: name,
+      });
+      if (name === "propose_project_edit") {
+        onExecutionAction?.({
+          type: "human_wait",
+          now: Date.now(),
+          tool: name,
+        });
+      }
       onStep({
         type: "tool_call",
         content: JSON.stringify({ ...input, _riskTier: risk }, null, 2),
@@ -1764,23 +2228,44 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
       let result: string;
 
       if (name === "draft_file" && draftMode) {
-        // Queue as a pending draft instead of writing to disk
-        const store = useStore.getState();
-        store.addPendingDraft({
-          filename: input.filename ?? "draft.md",
-          content: input.content ?? "",
-          model: activeModel,
-          prompt: messages.at(-1)?.content ?? "",
-        });
-        result = `📝 Draft saved: "${input.filename ?? "draft.md"}" — queued for Claude to finalize.`;
+        const validation = validateAgentToolInput(
+          [DRAFT_FILE_TOOL],
+          name,
+          input,
+        );
+        if (!validation.ok) {
+          result = `Tool "${name}" rejected before execution: ${
+            validation.error ?? "invalid structured input"
+          }`;
+        } else {
+          // Queue as a pending draft instead of writing to disk
+          const store = useStore.getState();
+          store.addPendingDraft({
+            filename: readAgentToolString(input, "filename", "draft.md"),
+            content: readAgentToolString(input, "content"),
+            model: activeModel,
+            prompt: messages.at(-1)?.content ?? "",
+          });
+          result = `📝 Draft saved: "${readAgentToolString(input, "filename", "draft.md")}" — queued for Claude to finalize.`;
+        }
       } else {
         const exec = await executeToolDetailed(name, input);
         result = exec.result;
         onToolMetric?.(exec.meta);
       }
 
+      onExecutionAction?.({
+        type: "tool_finished",
+        now: Date.now(),
+        tool: name,
+      });
       onStep({ type: "tool_result", content: result, tool: name });
-      conv.push({ role: "tool", tool_call_id: tc.id, name, content: result });
+      conv.push({
+        role: "tool",
+        tool_call_id: tc.id,
+        name,
+        content: compactAgentToolResult(result).content,
+      });
     }
 
     if (stopReason === "stop") break;
@@ -1789,22 +2274,37 @@ async function runOllamaAgent(opts: AgentOptions): Promise<string> {
   return finalAnswer;
 }
 
-// ── MiniMax agent loop (OpenAI-compat tools via /api/ai — key server-side) ────
-async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
+interface OpenAICompatibleCloudAgentConfig {
+  provider: "minimax" | "azure";
+  label: string;
+  model?: string;
+  timeoutMs: number;
+  missingConfigMessage: string;
+}
+
+// ── OpenAI-compatible cloud agent loop (keys stay behind /api/ai) ─────────────
+async function runOpenAICompatibleCloudAgent(
+  opts: AgentOptions,
+  config: OpenAICompatibleCloudAgentConfig,
+): Promise<string> {
   const {
-    settings: s,
     systemPrompt,
     messages,
     onStep,
-    maxIterations = 6,
+    maxIterations: requestedMaxIterations,
     agentId,
     toolCatalog,
     onToolMetric,
+    onExecutionAction,
   } = opts;
-  const model = MINIMAX_DEFAULT_AGENT_MODEL;
+  const maxIterations = normalizeAgentIterationBudget(
+    requestedMaxIterations,
+    6,
+  );
+  const { provider, label, model, timeoutMs, missingConfigMessage } = config;
+  const modelLabel = model ?? "configured deployment";
   const selectedCatalog =
-    toolCatalog ??
-    getAgentToolCatalog(agentId, messages.at(-1)?.content ?? "");
+    toolCatalog ?? getAgentToolCatalog(agentId, messages.at(-1)?.content ?? "");
   const tools = selectedCatalog.tools;
 
   if (typeof window !== "undefined")
@@ -1812,7 +2312,7 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
   onStep({ type: "phase", content: "executing", phase: "executing" });
   onStep({
     type: "thinking",
-    content: `Using MiniMax (${model}) via server proxy…`,
+    content: `Using ${label} (${modelLabel}) via server proxy…`,
   });
 
   type OAIMsg = {
@@ -1831,6 +2331,11 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
   let finalAnswer = "";
 
   for (let iter = 0; iter < maxIterations; iter++) {
+    onExecutionAction?.({
+      type: "iteration",
+      now: Date.now(),
+      iteration: iter + 1,
+    });
     const systemOut =
       conv[0]?.role === "system" ? String(conv[0].content ?? "") : undefined;
     const msgs = conv[0]?.role === "system" ? conv.slice(1) : [...conv];
@@ -1840,22 +2345,22 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
       res = await apiFetch("/api/ai", {
         method: "POST",
         body: JSON.stringify({
-          provider: "minimax",
-          model,
+          provider,
+          ...(model ? { model } : {}),
           max_tokens: 4096,
           system: systemOut,
           messages: msgs,
           tools: toOAITools(tools),
           tool_choice: "auto",
         }),
-        signal: AbortSignal.timeout(OLLAMA_TIMEOUT_MS),
+        signal: AbortSignal.timeout(timeoutMs),
       });
       syncPrivacyShieldStatus(res);
     } catch (e) {
       const isTimeout = e instanceof Error && e.name === "TimeoutError";
       finalAnswer = isTimeout
-        ? `MiniMax took too long (${OLLAMA_TIMEOUT_MS / 1000}s). Try again or switch provider.`
-        : "Network error reaching MiniMax via /api/ai.";
+        ? `${label} took too long (${timeoutMs / 1000}s). Try again or switch provider.`
+        : `Network error reaching ${label} via /api/ai.`;
       onStep({ type: "answer", content: finalAnswer });
       break;
     }
@@ -1864,7 +2369,7 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
     try {
       data = await res.json();
     } catch {
-      finalAnswer = "MiniMax returned an unreadable response.";
+      finalAnswer = `${label} returned an unreadable response.`;
       onStep({ type: "answer", content: finalAnswer });
       break;
     }
@@ -1873,7 +2378,7 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
       const msg =
         (data?.error as { message?: string })?.message ??
         (typeof data?.message === "string" ? data.message : null) ??
-        `MiniMax error (HTTP ${res.status}). Is MINIMAX_API_KEY set?`;
+        `${label} error (HTTP ${res.status}). ${missingConfigMessage}`;
       finalAnswer = msg;
       onStep({ type: "answer", content: finalAnswer });
       break;
@@ -1907,7 +2412,7 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
 
     for (const tc of msg.tool_calls) {
       const name = tc.function.name;
-      let input: Record<string, string> = {};
+      let input: Record<string, unknown> = {};
       try {
         input = JSON.parse(tc.function.arguments);
       } catch {
@@ -1915,6 +2420,18 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
       }
 
       const risk = getToolRisk(name);
+      onExecutionAction?.({
+        type: "tool_started",
+        now: Date.now(),
+        tool: name,
+      });
+      if (name === "propose_project_edit") {
+        onExecutionAction?.({
+          type: "human_wait",
+          now: Date.now(),
+          tool: name,
+        });
+      }
       onStep({
         type: "tool_call",
         content: JSON.stringify({ ...input, _riskTier: risk }, null, 2),
@@ -1924,14 +2441,44 @@ async function runMiniMaxAgent(opts: AgentOptions): Promise<string> {
       const exec = await executeToolDetailed(name, input);
       const result = exec.result;
       onToolMetric?.(exec.meta);
+      onExecutionAction?.({
+        type: "tool_finished",
+        now: Date.now(),
+        tool: name,
+      });
       onStep({ type: "tool_result", content: result, tool: name });
-      conv.push({ role: "tool", tool_call_id: tc.id, name, content: result });
+      conv.push({
+        role: "tool",
+        tool_call_id: tc.id,
+        name,
+        content: compactAgentToolResult(result).content,
+      });
     }
 
     if (stopReason === "stop") break;
   }
 
   return finalAnswer;
+}
+
+function runMiniMaxAgent(opts: AgentOptions) {
+  return runOpenAICompatibleCloudAgent(opts, {
+    provider: "minimax",
+    label: "MiniMax",
+    model: MINIMAX_DEFAULT_AGENT_MODEL,
+    timeoutMs: OLLAMA_TIMEOUT_MS,
+    missingConfigMessage: "Is MINIMAX_API_KEY set?",
+  });
+}
+
+function runAzureAgent(opts: AgentOptions) {
+  return runOpenAICompatibleCloudAgent(opts, {
+    provider: "azure",
+    label: "Azure OpenAI",
+    timeoutMs: OLLAMA_TIMEOUT_MS,
+    missingConfigMessage:
+      "Check AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, and AZURE_OPENAI_DEPLOYMENT.",
+  });
 }
 
 function getRuntimeEngine(settings: Settings): AgentRuntimeEngine {
@@ -1943,17 +2490,34 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   const {
     settings,
     systemPrompt,
-    messages,
+    messages: incomingMessages,
     onStep,
-    maxIterations = 8,
+    maxIterations: requestedMaxIterations,
     onToken,
     agentId,
     efficiencyHint,
   } = opts;
+  const maxIterations = normalizeAgentIterationBudget(
+    requestedMaxIterations,
+    8,
+  );
   void onToken; // referenced via opts.onToken in loop body
   const s = settings ?? getSettings();
   const runId = `run_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
   const runStartedAt = Date.now();
+  const userMessage =
+    incomingMessages.findLast((message) => message.role === "user")?.content ??
+    "";
+  let executionState = reduceAgentExecutionState(createAgentExecutionState(), {
+    type: "launch",
+    now: runStartedAt,
+    runId,
+    objectiveChars: userMessage.length,
+    maxIterations,
+  });
+  const recordExecutionAction = (action: AgentExecutionAction) => {
+    executionState = reduceAgentExecutionState(executionState, action);
+  };
   const toolTraces: {
     tool: string;
     risk: ToolRiskTier;
@@ -1977,6 +2541,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
         Math.max(0, now - (phaseStart.get(current) ?? now));
     }
     phaseStart.set(phase, now);
+    recordExecutionAction({ type: "phase", now, phase });
     if (typeof window !== "undefined") {
       const st = useStore.getState();
       st.setCurrentPhase(phase);
@@ -1988,8 +2553,6 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   if (typeof window !== "undefined") useStore.getState().beginAgentRun(runId);
 
   // ── Phase: interpreting ───────────────────────────────────────────────────
-  const userMessage =
-    messages.findLast((m) => m.role === "user")?.content ?? "";
   markPhase("interpreting");
 
   // ── Task plan: heuristic decomposition ───────────────────────────────────
@@ -2002,16 +2565,33 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
 
   // ── Auto-recall: inject relevant memories into system prompt ─────────────
   const memoryContext = await buildMemoryContext(userMessage);
-  const enrichedPrompt =
-    systemPrompt + buildRuntimeAuthorityPromptBlock() + memoryContext +
+  const unboundedPrompt =
+    systemPrompt +
+    buildRuntimeAuthorityPromptBlock() +
+    memoryContext +
     `\n\n${YAGNI_AGENT_DIRECTIVE}\n\nTool budget: aim to complete this run in ${YAGNI_MAX_TOOL_CALLS_PER_RUN} tool calls or fewer.`;
-  const contextChars = enrichedPrompt.length;
-  const contextCompacted =
-    Boolean(efficiencyHint?.liveContextCompacted) ||
-    memoryContext.includes("[CONTEXT COMPACTED");
   const runtimeEngine = getRuntimeEngine(s);
   const selectedToolCatalog =
     opts.toolCatalog ?? getAgentToolCatalog(agentId, userMessage);
+  const preparedContext = prepareAgentContext({
+    systemPrompt: unboundedPrompt,
+    messages: incomingMessages,
+  });
+  const enrichedPrompt = preparedContext.systemPrompt;
+  const messages = preparedContext.messages;
+  const contextChars = preparedContext.outputChars;
+  const contextCompacted =
+    preparedContext.compacted ||
+    Boolean(efficiencyHint?.liveContextCompacted) ||
+    memoryContext.includes("[CONTEXT COMPACTED");
+  recordExecutionAction({
+    type: "context_prepared",
+    now: Date.now(),
+    inputChars: preparedContext.inputChars,
+    outputChars: preparedContext.outputChars,
+    compacted: contextCompacted,
+    omittedMessageCount: preparedContext.omittedMessageCount,
+  });
   const toolCatalogChars = estimateToolCatalogChars(selectedToolCatalog.tools);
   const recordToolMetric = (metric: ToolExecutionMeta) => {
     if (metric.cacheHit) readCacheHits += 1;
@@ -2028,6 +2608,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     agentId,
     toolCatalog: selectedToolCatalog,
     onToolMetric: recordToolMetric,
+    onExecutionAction: recordExecutionAction,
   };
 
   const finalizeRunState = (ok: boolean) => {
@@ -2054,6 +2635,20 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     verification?: VerificationPayload;
     finalAnswer?: string;
   }) => {
+    if (
+      executionState.status !== "completed" &&
+      executionState.status !== "failed"
+    ) {
+      recordExecutionAction(
+        args.ok
+          ? { type: "complete", now: Date.now() }
+          : {
+              type: "fail",
+              now: Date.now(),
+              errorCode: args.failureCause ? "agent_run_failed" : "no_answer",
+            },
+      );
+    }
     if (typeof window === "undefined") return;
     const v = args.verification;
     const verification = v
@@ -2154,6 +2749,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
       providerUsed,
       contextChars,
       contextCompacted,
+      executionContract: summarizeAgentExecutionState(executionState),
       toolTraces,
       efficiency,
       continuity,
@@ -2161,8 +2757,13 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   };
 
   // No API key in settings — try Ollama first, then fall through to free cloud auto-chain.
-  // Anthropic / MiniMax always try /api/ai (keys in .env). OpenAI path uses legacy apiKey or auto chain.
-  if (s.aiProvider !== "anthropic" && s.aiProvider !== "minimax" && !s.apiKey) {
+  // Server-routed cloud providers use /api/ai (keys in .env). OpenAI still uses the legacy apiKey path.
+  if (
+    s.aiProvider !== "anthropic" &&
+    s.aiProvider !== "minimax" &&
+    s.aiProvider !== "azure" &&
+    !s.apiKey
+  ) {
     try {
       const answer = await runOllamaAgent({
         ...enrichedOpts,
@@ -2176,14 +2777,31 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     } catch (error) {
       const localFailure =
         error instanceof Error && error.message ? error.message : "";
-      // Ollama not running — silently fall through to free cloud auto-chain.
-      // The chain tries up to 19 free providers (Groq, Cerebras, SambaNova…)
-      // before surfacing any error, so the user sees a response regardless.
+      const cloudEscalationAllowed = shouldAllowCloudEscalation({
+        networkMode: "isolated",
+        paidApisAllowed: false,
+        aiMode: storeAiMode,
+        aiProvider: s.aiProvider,
+      });
+      if (!cloudEscalationAllowed) {
+        const recovery = buildLocalInferenceRecoveryMessage();
+        const err = isMissingOllamaModelError(localFailure)
+          ? `${localFailure} ${recovery.message}`
+          : recovery.message;
+        finalizeRunState(false);
+        finishDiagnostics({
+          ok: false,
+          failureCause: err,
+          finalAnswer: err,
+        });
+        onStep({ type: "answer", content: err });
+        return err;
+      }
       onStep({
         type: "thinking",
         content: isMissingOllamaModelError(localFailure)
-          ? `${localFailure} Trying free cloud providers…`
-          : "Ollama not available — trying free cloud providers…",
+          ? `${localFailure} Trying hosted providers…`
+          : "Ollama not available — trying hosted providers…",
       });
       try {
         const cloudMessages = messages.map((m) => ({
@@ -2193,7 +2811,6 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
         const cloudRes = await apiFetch("/api/ai", {
           method: "POST",
           body: JSON.stringify({
-            // No provider = auto-chain through all 19 free providers in score order.
             max_tokens: 4096,
             system: enrichedPrompt,
             messages: cloudMessages,
@@ -2201,22 +2818,25 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
           signal: AbortSignal.timeout(30_000),
         });
         syncPrivacyShieldStatus(cloudRes);
-        const cloudData = (await cloudRes
-          .json()
-          .catch(() => null)) as Record<string, unknown> | null;
+        const cloudData = (await cloudRes.json().catch(() => null)) as Record<
+          string,
+          unknown
+        > | null;
         if (cloudRes.ok) {
-          providerUsed = cloudRes.headers.get("X-Provider")?.trim() ?? providerUsed;
+          providerUsed =
+            cloudRes.headers.get("X-Provider")?.trim() ?? providerUsed;
           type CloudMsg = {
             choices?: { message?: { content?: string } }[];
             content?: { text?: string }[];
           };
           const d = cloudData as CloudMsg | null;
           const cloudAnswer =
-            d?.choices?.[0]?.message?.content ??
-            d?.content?.[0]?.text ??
-            "";
+            d?.choices?.[0]?.message?.content ?? d?.content?.[0]?.text ?? "";
           if (cloudAnswer) {
-            const sanitizedCloudAnswer = sanitizeAgentReply(cloudAnswer, onStep);
+            const sanitizedCloudAnswer = sanitizeAgentReply(
+              cloudAnswer,
+              onStep,
+            );
             finalizeRunState(true);
             finishDiagnostics({ ok: true, finalAnswer: sanitizedCloudAnswer });
             void autoLearn(userMessage, sanitizedCloudAnswer, s);
@@ -2231,12 +2851,11 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
           onStep({ type: "answer", content: err });
           return err;
         }
-      } catch { /* ignore — fall through to final error below */ }
-      // All providers failed
-      const err =
-        "No AI providers are responding. " +
-        "Start Ollama locally (`ollama serve`) or add a free cloud key in Settings " +
-        "(Groq, Cerebras, or SambaNova are free and take 30 seconds to set up).";
+      } catch {
+        /* ignore — fall through to final error below */
+      }
+      const recovery = buildLocalInferenceRecoveryMessage();
+      const err = recovery.message;
       finalizeRunState(false);
       finishDiagnostics({ ok: false, failureCause: err, finalAnswer: err });
       onStep({ type: "answer", content: err });
@@ -2267,18 +2886,24 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     }
   }
 
-  // ── MiniMax — OpenAI-format tool loop (server-side MINIMAX_API_KEY)
-  if (s.aiProvider === "minimax") {
+  // ── OpenAI-compatible cloud tool loops (server-side keys)
+  if (s.aiProvider === "minimax" || s.aiProvider === "azure") {
+    const provider = s.aiProvider;
     try {
-      const answer = await runMiniMaxAgent(enrichedOpts);
-      providerUsed = "minimax";
+      const answer =
+        provider === "azure"
+          ? await runAzureAgent(enrichedOpts)
+          : await runMiniMaxAgent(enrichedOpts);
+      providerUsed = provider;
       finalizeRunState(Boolean(answer));
       finishDiagnostics({ ok: Boolean(answer), finalAnswer: answer });
       void autoLearn(userMessage, answer, s);
       return answer;
     } catch {
       const err =
-        "MiniMax agent failed. Set MINIMAX_API_KEY in Settings, save, then restart `npm run dev`.";
+        provider === "azure"
+          ? "Azure OpenAI agent failed. Check the Azure key, endpoint, deployment, and paid-provider opt-in in `.env.local`."
+          : "MiniMax agent failed. Set MINIMAX_API_KEY in Settings, save, then restart `npm run dev`.";
       finalizeRunState(false);
       finishDiagnostics({ ok: false, failureCause: err, finalAnswer: err });
       onStep({ type: "answer", content: err });
@@ -2296,6 +2921,11 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
   let finalAnswer = "";
 
   for (let iter = 0; iter < maxIterations; iter++) {
+    recordExecutionAction({
+      type: "iteration",
+      now: Date.now(),
+      iteration: iter + 1,
+    });
     let res: Response;
     try {
       res = await apiFetch("/api/ai", {
@@ -2375,7 +3005,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     if (!res.ok) {
       finalAnswer = isRoutePolicyBlockPayload(data)
         ? buildCloudInferencePolicyMessage(data)
-        : data?.error?.message ?? "Claude API error.";
+        : (data?.error?.message ?? "Claude API error.");
       finalizeRunState(false);
       finishDiagnostics({ ok: false, failureCause: finalAnswer, finalAnswer });
       break;
@@ -2387,7 +3017,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
       text?: string;
       id?: string;
       name?: string;
-      input?: Record<string, string>;
+      input?: Record<string, unknown>;
     }[];
 
     const textBlocks = content
@@ -2450,8 +3080,20 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
     await Promise.all(
       toolUseBlocks.map(async (b) => {
         const name = b.name ?? "";
-        const input = (b.input ?? {}) as Record<string, string>;
+        const input = (b.input ?? {}) as Record<string, unknown>;
         const risk = getToolRisk(name);
+        recordExecutionAction({
+          type: "tool_started",
+          now: Date.now(),
+          tool: name,
+        });
+        if (name === "propose_project_edit") {
+          recordExecutionAction({
+            type: "human_wait",
+            now: Date.now(),
+            tool: name,
+          });
+        }
         const trace: {
           tool: string;
           risk: ToolRiskTier;
@@ -2472,11 +3114,16 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
         const result = exec.result;
         recordToolMetric(exec.meta);
         trace.output = result;
+        recordExecutionAction({
+          type: "tool_finished",
+          now: Date.now(),
+          tool: name,
+        });
         onStep({ type: "tool_result", content: result, tool: name });
         toolResults.push({
           type: "tool_result",
           tool_use_id: b.id,
-          content: result,
+          content: compactAgentToolResult(result).content,
         });
       }),
     );
@@ -2493,8 +3140,7 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
       if (!verification.ok) {
         onStep({
           type: "thinking",
-          content:
-            `Verification failed: run marked DEGRADED (${RUNTIME_VERIFICATION_LABEL}).`,
+          content: `Verification failed: run marked DEGRADED (${RUNTIME_VERIFICATION_LABEL}).`,
         });
       } else {
         onStep({

@@ -133,14 +133,18 @@ export default function MissionHandoffStrip({
 
   return (
     <aside
-      className={["nexus-mission-handoff", "nexus-motion-enter", "nexus-motion-enter--continuity"].join(
-        " ",
-      )}
+      className={[
+        "nexus-mission-handoff",
+        "nexus-motion-enter",
+        "nexus-motion-enter--continuity",
+      ].join(" ")}
       data-tone={content.tone}
     >
       <div className="nexus-mission-handoff__lead">
         <span className="nexus-mission-handoff__label">Continue mission</span>
-        <p className="nexus-mission-handoff__summary">{content.contextHint ?? content.summary}</p>
+        <p className="nexus-mission-handoff__summary">
+          {content.contextHint ?? content.summary}
+        </p>
       </div>
       <details className="nexus-mission-handoff__detail">
         <summary>Why this lane</summary>
@@ -149,7 +153,9 @@ export default function MissionHandoffStrip({
       </details>
       <div className="nexus-mission-handoff__actions">
         {content.contextHint ? (
-          <span className="nexus-mission-handoff__chip">{content.contextHint}</span>
+          <span className="nexus-mission-handoff__chip">
+            {content.contextHint}
+          </span>
         ) : null}
         <Link href="/hq" className="nexus-mission-handoff__link">
           Return to HQ

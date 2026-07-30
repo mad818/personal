@@ -27,7 +27,9 @@ export default function PersistedShellStateNotice() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const raw = window.sessionStorage.getItem(PERSISTED_SHELL_STATE_NOTICE_KEY);
+      const raw = window.sessionStorage.getItem(
+        PERSISTED_SHELL_STATE_NOTICE_KEY,
+      );
       if (!raw) return;
       window.sessionStorage.removeItem(PERSISTED_SHELL_STATE_NOTICE_KEY);
       const parsed = JSON.parse(raw) as RepairNotice;

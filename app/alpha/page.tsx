@@ -146,17 +146,17 @@ export default function AlphaPage() {
       ? "alpha-watchlist"
       : focus === "alpha-market-review"
         ? "alpha-market-review"
-      : focus === "alpha-signals"
-        ? "alpha-signals"
-        : focus === "alpha-scanner"
-          ? "alpha-scanner"
-          : focus === "alpha-sizer"
-            ? "alpha-sizer"
-            : focus === "alpha-prices"
-              ? "alpha-prices"
-              : focus === "alpha-charts"
-                ? "alpha-charts"
-                : null;
+        : focus === "alpha-signals"
+          ? "alpha-signals"
+          : focus === "alpha-scanner"
+            ? "alpha-scanner"
+            : focus === "alpha-sizer"
+              ? "alpha-sizer"
+              : focus === "alpha-prices"
+                ? "alpha-prices"
+                : focus === "alpha-charts"
+                  ? "alpha-charts"
+                  : null;
 
   useSurfaceFocusScroll(focusTargetId);
 
@@ -204,24 +204,27 @@ export default function AlphaPage() {
 
   return (
     <ShellPage
+      width="wide"
       surface="alpha"
       eyebrow="Market picture"
       title="Market desk"
-      description="Watchlists, setups, and sizing on one market desk."
+      description="Watchlists, setups, sizing."
       actions={
         <>
-          <ShellBadge tone="accent">Execution support</ShellBadge>
-          <ShellBadge tone="success">Tape continuity</ShellBadge>
+          <ShellBadge tone="accent">Execution</ShellBadge>
+          <ShellBadge tone="success">Tape</ShellBadge>
         </>
       }
     >
-      <PricesLoader />
+      <PricesLoader showStatus />
 
       <ShellStack>
         <OpsStrip className="nexus-surface-route-strip">
           <div className="nexus-surface-route-strip__grid">
             <div className="nexus-surface-route-strip__cell">
-              <span className="nexus-surface-route-strip__cellLabel">Watchlist</span>
+              <span className="nexus-surface-route-strip__cellLabel">
+                Watchlist
+              </span>
               <strong className="nexus-surface-route-strip__cellValue">
                 {watchlist.length}
               </strong>
@@ -230,21 +233,27 @@ export default function AlphaPage() {
               </span>
             </div>
             <div className="nexus-surface-route-strip__cell">
-              <span className="nexus-surface-route-strip__cellLabel">Active chamber</span>
+              <span className="nexus-surface-route-strip__cellLabel">
+                Active chamber
+              </span>
               <strong className="nexus-surface-route-strip__cellValue">
                 {chamber === "tape" ? "Tape" : chamber}
               </strong>
               <span className="nexus-surface-route-strip__cellNote">
-                Use one market posture strip instead of repeating brief copy in every view.
+                Use one market posture strip instead of repeating brief copy in
+                every view.
               </span>
             </div>
             <div className="nexus-surface-route-strip__cell">
-              <span className="nexus-surface-route-strip__cellLabel">Tape mode</span>
+              <span className="nexus-surface-route-strip__cellLabel">
+                Tape mode
+              </span>
               <strong className="nexus-surface-route-strip__cellValue">
                 {tapeView === "charts" ? "Charts" : "Grid"}
               </strong>
               <span className="nexus-surface-route-strip__cellNote">
-                Prices and charts now share one verification chamber while old deep links still resolve.
+                Prices and charts now share one verification chamber while old
+                deep links still resolve.
               </span>
             </div>
           </div>
@@ -311,13 +320,22 @@ export default function AlphaPage() {
             <OpsWorkplane className={alphaLayout.workplaneClass}>
               <div className="nexus-surface-chamber-shell__body">
                 <div className="nexus-surface-chamber-shell__lead">
-                  <OpsField title="Watchlist manager" detail="Where the tape stands now">
+                  <OpsField
+                    title="Watchlist manager"
+                    detail="Where the tape stands now"
+                  >
                     <WatchlistManager />
                   </OpsField>
                 </div>
-                <OpsRail className={`nexus-surface-chamber-shell__support ${alphaLayout.railClass}`}>
+                <OpsRail
+                  className={`nexus-surface-chamber-shell__support ${alphaLayout.railClass}`}
+                >
                   {renderSupportRail()}
-                  <OpsField title="Sparklines" detail="Tracked seven-day motion" tone="muted">
+                  <OpsField
+                    title="Sparklines"
+                    detail="Tracked seven-day motion"
+                    tone="muted"
+                  >
                     <LazyPriceSparklines />
                   </OpsField>
                 </OpsRail>
@@ -331,11 +349,16 @@ export default function AlphaPage() {
             <OpsWorkplane className={alphaLayout.workplaneClass}>
               <div className="nexus-surface-chamber-shell__body">
                 <div className="nexus-surface-chamber-shell__lead">
-                  <OpsField title="Signal engine" detail="Inspect the strongest setup first">
+                  <OpsField
+                    title="Signal engine"
+                    detail="Inspect the strongest setup first"
+                  >
                     <LazyBuyBot />
                   </OpsField>
                 </div>
-                <OpsRail className={`nexus-surface-chamber-shell__support ${alphaLayout.railClass}`}>
+                <OpsRail
+                  className={`nexus-surface-chamber-shell__support ${alphaLayout.railClass}`}
+                >
                   {renderSupportRail()}
                   <OpsField
                     title="Market brief"
@@ -344,7 +367,9 @@ export default function AlphaPage() {
                     compact
                   >
                     <div className="nexus-shell-copy nexus-shell-copy--compact">
-                      The signal engine stays primary here; use the watchlist and tape chamber only when the setup needs broader verification.
+                      The signal engine stays primary here; use the watchlist
+                      and tape chamber only when the setup needs broader
+                      verification.
                     </div>
                   </OpsField>
                 </OpsRail>
@@ -358,11 +383,16 @@ export default function AlphaPage() {
             <OpsWorkplane className={alphaLayout.workplaneClass}>
               <div className="nexus-surface-chamber-shell__body">
                 <div className="nexus-surface-chamber-shell__lead">
-                  <OpsField title="Momentum scanner" detail="Which names deserve attention">
+                  <OpsField
+                    title="Momentum scanner"
+                    detail="Which names deserve attention"
+                  >
                     <LazyMomentumScanner />
                   </OpsField>
                 </div>
-                <OpsRail className={`nexus-surface-chamber-shell__support ${alphaLayout.railClass}`}>
+                <OpsRail
+                  className={`nexus-surface-chamber-shell__support ${alphaLayout.railClass}`}
+                >
                   {renderSupportRail()}
                 </OpsRail>
               </div>
@@ -375,11 +405,16 @@ export default function AlphaPage() {
             <OpsWorkplane className={alphaLayout.workplaneClass}>
               <div className="nexus-surface-chamber-shell__body">
                 <div className="nexus-surface-chamber-shell__lead">
-                  <OpsField title="Position sizer" detail="Size the trade before you act">
+                  <OpsField
+                    title="Position sizer"
+                    detail="Size the trade before you act"
+                  >
                     <LazyPositionSizer />
                   </OpsField>
                 </div>
-                <OpsRail className={`nexus-surface-chamber-shell__support ${alphaLayout.railClass}`}>
+                <OpsRail
+                  className={`nexus-surface-chamber-shell__support ${alphaLayout.railClass}`}
+                >
                   {renderSupportRail()}
                 </OpsRail>
               </div>
@@ -388,7 +423,10 @@ export default function AlphaPage() {
         )}
 
         {chamber === "tape" && (
-          <div id={tapeView === "charts" ? "alpha-charts" : "alpha-prices"} style={{ scrollMarginTop: "120px" }}>
+          <div
+            id={tapeView === "charts" ? "alpha-charts" : "alpha-prices"}
+            style={{ scrollMarginTop: "120px" }}
+          >
             <OpsWorkplane className={alphaLayout.workplaneClass}>
               <div className="nexus-surface-chamber-shell__body">
                 <div className="nexus-surface-chamber-shell__lead">
@@ -400,17 +438,25 @@ export default function AlphaPage() {
                       minButtonWidth={110}
                     />
                     {tapeView === "prices" ? (
-                      <OpsField title="Price grid" detail="Verify the broad tape first">
+                      <OpsField
+                        title="Price grid"
+                        detail="Verify the broad tape first"
+                      >
                         <LazyPriceGrid />
                       </OpsField>
                     ) : (
-                      <OpsField title="Charts" detail="Visual follow-through before execution">
+                      <OpsField
+                        title="Charts"
+                        detail="Visual follow-through before execution"
+                      >
                         <LazyTradingViewMarkets />
                       </OpsField>
                     )}
                   </div>
                 </div>
-                <OpsRail className={`nexus-surface-chamber-shell__support ${alphaLayout.railClass}`}>
+                <OpsRail
+                  className={`nexus-surface-chamber-shell__support ${alphaLayout.railClass}`}
+                >
                   {renderSupportRail()}
                 </OpsRail>
               </div>

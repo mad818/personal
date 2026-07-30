@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getBrandServiceName } from "@/lib/brand";
-import { applyNoStoreHeaders, readRuntimeIdentity } from "@/lib/runtimeIdentity";
+import {
+  applyNoStoreHeaders,
+  readRuntimeIdentity,
+} from "@/lib/runtimeIdentity";
 
 export const dynamic = "force-dynamic";
 

@@ -37,10 +37,12 @@ export default function CronSchedulerGovernanceStatusSection({
             feature {nativeBatchPosture.featureEnabled ? "on" : "off"}
           </span>
           <span style={{ color: "#6875a0", fontSize: 10 }}>
-            paid APIs {nativeBatchPosture.paidApisAllowed ? "allowed" : "blocked"}
+            paid APIs{" "}
+            {nativeBatchPosture.paidApisAllowed ? "allowed" : "blocked"}
           </span>
           <span style={{ color: "#6875a0", fontSize: 10 }}>
-            anthropic key {nativeBatchPosture.apiKeyConfigured ? "configured" : "missing"}
+            anthropic key{" "}
+            {nativeBatchPosture.apiKeyConfigured ? "configured" : "missing"}
           </span>
         </div>
       </CompactOperatorNote>
@@ -49,7 +51,14 @@ export default function CronSchedulerGovernanceStatusSection({
         tone="info"
         summary="Audit export, saved views, and recent-run review stay local to this drawer without adding backend state."
       />
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexWrap: "wrap",
+        }}
+      >
         <button
           type="button"
           onClick={onCopySchedulerAudit}
@@ -83,7 +92,8 @@ export default function CronSchedulerGovernanceStatusSection({
           Export audit
         </button>
         <span style={{ color: "#6875a0", fontSize: 10 }}>
-          Use saved views for recurring slices. Export only when a handoff needs to leave the drawer.
+          Use saved views for recurring slices. Export only when a handoff needs
+          to leave the drawer.
         </span>
       </div>
       <SchedulerGovernanceCard jobs={jobs} />

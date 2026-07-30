@@ -131,14 +131,18 @@ export default function MemorySpineOverview() {
           <ShellBadge tone="muted">
             Knowledge {snapshot.countsByLayer.knowledge}
           </ShellBadge>
-          <ShellBadge tone="muted">Outputs {snapshot.countsByLayer.output}</ShellBadge>
+          <ShellBadge tone="muted">
+            Outputs {snapshot.countsByLayer.output}
+          </ShellBadge>
           <ShellBadge tone="accent">
             Promote {lifecycle.promotionReadyCount}
           </ShellBadge>
           <ShellBadge tone="accent">
             Citation-ready {lifecycle.citationReadyCount}
           </ShellBadge>
-          <ShellBadge tone="muted">Reopen {lifecycle.reopenReadyCount}</ShellBadge>
+          <ShellBadge tone="muted">
+            Reopen {lifecycle.reopenReadyCount}
+          </ShellBadge>
           {lifecycle.compactionBacklog > 0 ? (
             <ShellBadge tone="accent">
               Compaction {lifecycle.compactionBacklog}
@@ -260,7 +264,13 @@ export default function MemorySpineOverview() {
                   flexWrap: "wrap",
                 }}
               >
-                <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text)" }}>
+                <div
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "var(--text)",
+                  }}
+                >
                   {item.title}
                 </div>
                 <div style={{ fontSize: "11px", color: "var(--text2)" }}>
@@ -270,15 +280,27 @@ export default function MemorySpineOverview() {
                 </div>
               </div>
 
-              <div style={{ fontSize: "12px", lineHeight: 1.5, color: "var(--text2)" }}>
+              <div
+                style={{
+                  fontSize: "12px",
+                  lineHeight: 1.5,
+                  color: "var(--text2)",
+                }}
+              >
                 {item.summary}
               </div>
 
               <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                <ShellBadge tone="accent">{LAYER_LABELS[item.layer]}</ShellBadge>
-                <ShellBadge tone="muted">{DOMAIN_LABELS[item.domain]}</ShellBadge>
+                <ShellBadge tone="accent">
+                  {LAYER_LABELS[item.layer]}
+                </ShellBadge>
+                <ShellBadge tone="muted">
+                  {DOMAIN_LABELS[item.domain]}
+                </ShellBadge>
                 <ShellBadge tone="muted">{item.kind}</ShellBadge>
-                <ShellBadge tone={item.visibility === "safe" ? "success" : "muted"}>
+                <ShellBadge
+                  tone={item.visibility === "safe" ? "success" : "muted"}
+                >
                   {item.visibility}
                 </ShellBadge>
                 {item.citationId ? (

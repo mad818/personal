@@ -37,7 +37,10 @@ export interface ProjectImpactResult {
 }
 
 function normalizeRepoPath(value: string) {
-  return value.replace(/\\/g, "/").replace(/^\.\/+/, "").replace(/^\/+/, "");
+  return value
+    .replace(/\\/g, "/")
+    .replace(/^\.\/+/, "")
+    .replace(/^\/+/, "");
 }
 
 function normalizeRelativeImport(value: string) {
@@ -54,7 +57,9 @@ function normalizeRelativeImport(value: string) {
 }
 
 function isAllowedSourcePath(path: string) {
-  return SOURCE_ROOTS.some((root) => path === root || path.startsWith(`${root}/`));
+  return SOURCE_ROOTS.some(
+    (root) => path === root || path.startsWith(`${root}/`),
+  );
 }
 
 function listSourceFiles(root: string) {
@@ -85,7 +90,9 @@ function listSourceFiles(root: string) {
 
       const relativePath = normalizeRepoPath(relative(root, absolutePath));
       if (
-        SOURCE_EXTENSIONS.some((extension) => relativePath.endsWith(extension)) &&
+        SOURCE_EXTENSIONS.some((extension) =>
+          relativePath.endsWith(extension),
+        ) &&
         isAllowedSourcePath(relativePath)
       ) {
         results.push(relativePath);
@@ -138,7 +145,9 @@ function resolveCandidate(
   if (!normalizedBase || !isAllowedSourcePath(normalizedBase)) return null;
 
   const candidates = [normalizedBase];
-  if (!SOURCE_EXTENSIONS.some((extension) => normalizedBase.endsWith(extension))) {
+  if (
+    !SOURCE_EXTENSIONS.some((extension) => normalizedBase.endsWith(extension))
+  ) {
     for (const extension of SOURCE_EXTENSIONS) {
       candidates.push(`${normalizedBase}${extension}`);
       candidates.push(`${normalizedBase}/index${extension}`);
@@ -215,7 +224,10 @@ function buildLikelyTouched(
     }));
 }
 
-export function getProjectImpact(root: string, file: string): ProjectImpactResult | null {
+export function getProjectImpact(
+  root: string,
+  file: string,
+): ProjectImpactResult | null {
   const sourceFiles = listSourceFiles(root);
   const fileSet = new Set(sourceFiles);
   const target = resolveRequestedFile(file, fileSet);
@@ -229,7 +241,9 @@ export function getProjectImpact(root: string, file: string): ProjectImpactResul
     const resolvedImports = Array.from(
       new Set(
         extractImportSpecifiers(source)
-          .map((specifier) => resolveImportSpecifier(sourceFile, specifier, fileSet))
+          .map((specifier) =>
+            resolveImportSpecifier(sourceFile, specifier, fileSet),
+          )
           .filter((path): path is string => Boolean(path)),
       ),
     ).sort((left, right) => left.localeCompare(right));

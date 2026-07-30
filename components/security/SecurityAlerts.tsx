@@ -120,8 +120,13 @@ function typeIcon(type: DetectionType): string {
 
 function alertPriority(alert: Alert): number {
   const base = alert.acknowledged ? 0 : 1000;
-  const typeBoost =
-    alert.isWeather ? 280 : alert.type === "Person" ? 220 : alert.type === "Vehicle" ? 160 : 60;
+  const typeBoost = alert.isWeather
+    ? 280
+    : alert.type === "Person"
+      ? 220
+      : alert.type === "Vehicle"
+        ? 160
+        : 60;
   const nightBoost = alert.isNight ? 40 : 0;
   return base + typeBoost + nightBoost + alert.confidence;
 }
@@ -165,7 +170,9 @@ function AlertPreviewCard({ alert }: { alert: Alert }) {
           {alert.timestamp}
         </span>
       </div>
-      <div style={{ fontSize: "10px", color: "var(--text2)" }}>{alert.detail}</div>
+      <div style={{ fontSize: "10px", color: "var(--text2)" }}>
+        {alert.detail}
+      </div>
     </div>
   );
 }
@@ -433,8 +440,12 @@ export default function SecurityAlerts() {
   const effectiveBase = storeAlerts.length > 0 ? storeAlerts : baseAlerts;
   const allAlerts = [...weatherAlerts, ...effectiveBase];
   const unreadCount = allAlerts.filter((alert) => !alert.acknowledged).length;
-  const weatherCount = weatherAlerts.filter((alert) => !alert.acknowledged).length;
-  const acknowledgedCount = allAlerts.filter((alert) => alert.acknowledged).length;
+  const weatherCount = weatherAlerts.filter(
+    (alert) => !alert.acknowledged,
+  ).length;
+  const acknowledgedCount = allAlerts.filter(
+    (alert) => alert.acknowledged,
+  ).length;
 
   const acknowledge = (id: string) => {
     if (id.startsWith("weather-")) {
@@ -500,7 +511,11 @@ export default function SecurityAlerts() {
       >
         {[
           { label: "Unread", value: unreadCount, color: "var(--accent)" },
-          { label: "Acknowledged", value: acknowledgedCount, color: "var(--text2)" },
+          {
+            label: "Acknowledged",
+            value: acknowledgedCount,
+            color: "var(--text2)",
+          },
           { label: "Weather", value: weatherCount, color: "#818cf8" },
         ].map((stat) => (
           <div
@@ -512,7 +527,9 @@ export default function SecurityAlerts() {
               padding: "8px 10px",
             }}
           >
-            <div style={{ fontSize: "9px", color: "var(--text3)" }}>{stat.label}</div>
+            <div style={{ fontSize: "9px", color: "var(--text3)" }}>
+              {stat.label}
+            </div>
             <div
               style={{
                 marginTop: "4px",
@@ -558,9 +575,9 @@ export default function SecurityAlerts() {
             marginLeft: "auto",
             fontSize: "10px",
             color: "var(--text3)",
-          lineHeight: "26px",
-        }}
-      >
+            lineHeight: "26px",
+          }}
+        >
           {unreadCount} unread
         </span>
       </div>

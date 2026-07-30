@@ -1,0 +1,172 @@
+#!/usr/bin/env node
+/* eslint-disable no-console */
+
+import assert from "node:assert/strict";
+import {
+  assertContentSecurityPolicyNonce,
+  buildContentSecurityPolicy,
+  createContentSecurityPolicyNonce,
+} from "../lib/security/contentSecurityPolicy.ts";
+
+function readDirective(policy, name) {
+  const directive = policy
+    .split(";")
+    .map((value) => value.trim())
+    .find((value) => value === name || value.startsWith(`${name} `));
+  assert.ok(directive, `Missing ${name} directive.`);
+  return directive.split(/\s+/);
+}
+
+function policyTokenSet(policy) {
+  return new Set(
+    policy
+      .split(";")
+      .flatMap((directive) => directive.trim().split(/\s+/))
+      .filter(Boolean),
+  );
+}
+
+const nonces = Array.from({ length: 64 }, () =>
+  createContentSecurityPolicyNonce(),
+);
+assert.equal(new Set(nonces).size, nonces.length);
+for (const nonce of nonces) {
+  assert.match(nonce, /^[a-f0-9]{32}$/);
+  assert.doesNotThrow(() => assertContentSecurityPolicyNonce(nonce));
+}
+
+const nonce = nonces[0];
+const production = buildContentSecurityPolicy(nonce, { development: false });
+assert.equal(production.includes("\r"), false);
+assert.equal(production.includes("\n"), false);
+assert.deepEqual(readDirective(production, "script-src"), [
+  "script-src",
+  "'self'",
+  `'nonce-${nonce}'`,
+  "'strict-dynamic'",
+]);
+assert.equal(
+  readDirective(production, "script-src").includes("'unsafe-inline'"),
+  false,
+);
+assert.equal(
+  readDirective(production, "script-src").includes("'unsafe-eval'"),
+  false,
+);
+assert.deepEqual(readDirective(production, "style-src"), [
+  "style-src",
+  "'self'",
+  "'unsafe-inline'",
+  "https://fonts.googleapis.com",
+]);
+assert.deepEqual(readDirective(production, "img-src"), [
+  "img-src",
+  "'self'",
+  "data:",
+  "blob:",
+  "https://*.basemaps.cartocdn.com",
+]);
+assert.deepEqual(readDirective(production, "font-src"), [
+  "font-src",
+  "'self'",
+  "data:",
+  "https://fonts.gstatic.com",
+]);
+assert.deepEqual(readDirective(production, "media-src"), [
+  "media-src",
+  "'self'",
+  "data:",
+  "blob:",
+  "https://d8j0ntlcm91z4.cloudfront.net",
+  "https://stream.mux.com",
+  "https://*.mux.com",
+]);
+assert.deepEqual(readDirective(production, "connect-src"), [
+  "connect-src",
+  "'self'",
+  "https://stream.mux.com",
+  "https://*.mux.com",
+]);
+assert.deepEqual(readDirective(production, "frame-src"), [
+  "frame-src",
+  "'self'",
+]);
+assert.deepEqual(readDirective(production, "object-src"), [
+  "object-src",
+  "'none'",
+]);
+assert.deepEqual(readDirective(production, "base-uri"), ["base-uri", "'self'"]);
+assert.deepEqual(readDirective(production, "form-action"), [
+  "form-action",
+  "'self'",
+]);
+
+const development = buildContentSecurityPolicy(nonce, {
+  development: true,
+  devPort: "3100",
+});
+assert.ok(readDirective(development, "script-src").includes("'unsafe-eval'"));
+assert.ok(
+  readDirective(development, "connect-src").includes("ws://127.0.0.1:3100"),
+);
+assert.ok(
+  readDirective(development, "connect-src").includes("ws://localhost:3100"),
+);
+assert.equal(
+  policyTokenSet(development).has("https://s3.tradingview.com"),
+  false,
+);
+
+const tradingViewEmbed = buildContentSecurityPolicy(nonce, {
+  development: false,
+  tradingViewEmbed: true,
+});
+assert.ok(
+  new Set(readDirective(tradingViewEmbed, "script-src")).has(
+    "https://s3.tradingview.com",
+  ),
+);
+assert.ok(
+  new Set(readDirective(tradingViewEmbed, "frame-src")).has(
+    "https://*.tradingview-widget.com",
+  ),
+);
+assert.deepEqual(readDirective(tradingViewEmbed, "sandbox"), [
+  "sandbox",
+  "allow-scripts",
+  "allow-popups",
+  "allow-popups-to-escape-sandbox",
+]);
+assert.equal(tradingViewEmbed.includes("allow-same-origin"), false);
+
+const invalidPort = buildContentSecurityPolicy(nonce, {
+  development: true,
+  devPort: "3100; script-src *",
+});
+assert.ok(
+  readDirective(invalidPort, "connect-src").includes("ws://localhost:3000"),
+);
+assert.equal(invalidPort.includes("script-src *"), false);
+
+for (const invalidNonce of [
+  "short",
+  "a".repeat(21),
+  "a".repeat(129),
+  "a".repeat(22) + "; script-src *",
+  "a".repeat(22) + "\r\nX-Test: injected",
+]) {
+  assert.throws(() => assertContentSecurityPolicyNonce(invalidNonce));
+  assert.throws(() =>
+    buildContentSecurityPolicy(invalidNonce, { development: false }),
+  );
+}
+
+const secondPolicy = buildContentSecurityPolicy(nonces[1], {
+  development: false,
+});
+assert.notEqual(secondPolicy, production);
+assert.equal(secondPolicy.includes(`'nonce-${nonce}'`), false);
+
+console.log(
+  "ok content-security-policy-runtime (128-bit unique nonces, nonce-only production scripts, route-scoped TradingView sandbox, preserved directives, dev fallback, and injection rejection)",
+);

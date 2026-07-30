@@ -2,9 +2,7 @@ import "server-only";
 
 import { listCompiledMemoryPages } from "@/lib/memoryPagesStore";
 
-export async function loadSavedRepoAssimilationBrief(
-  normalizedRepoId: string,
-) {
+export async function loadSavedRepoAssimilationBrief(normalizedRepoId: string) {
   const pages = await listCompiledMemoryPages({
     limit: 24,
     workflowId: "repo-assimilation",

@@ -14,6 +14,8 @@ import {
 } from "@/lib/subscriptionEscape";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { ActionDialog } from "@/components/ui/ActionDialog";
+import { useActionDialog } from "@/hooks/useActionDialog";
 import MasterDnsVpnReadinessPanel from "@/components/resources/MasterDnsVpnReadinessPanel";
 
 interface SecureLinkOpenPanelProps {
@@ -40,8 +42,7 @@ function cardStyle(tone: "normal" | "accent" = "normal"): CSSProperties {
       tone === "accent"
         ? "1px solid rgba(110, 231, 183, 0.42)"
         : "1px solid var(--border)",
-    background:
-      tone === "accent" ? "rgba(110, 231, 183, 0.1)" : "var(--surf1)",
+    background: tone === "accent" ? "rgba(110, 231, 183, 0.1)" : "var(--surf1)",
   };
 }
 
@@ -63,9 +64,7 @@ function buttonStyle(active = false): CSSProperties {
     minHeight: "38px",
     padding: "9px 12px",
     borderRadius: "10px",
-    border: active
-      ? "1px solid var(--accent)"
-      : "1px solid var(--border)",
+    border: active ? "1px solid var(--accent)" : "1px solid var(--border)",
     background: active ? "var(--surf2)" : "var(--surf1)",
     color: "var(--text)",
     fontSize: "12px",
@@ -109,7 +108,9 @@ function scopeBadgeTone(
   return "muted";
 }
 
-function scopeLabel(scope: ReturnType<typeof inspectSecureLink>["networkScope"]) {
+function scopeLabel(
+  scope: ReturnType<typeof inspectSecureLink>["networkScope"],
+) {
   if (scope === "same-app") return "Same app";
   if (scope === "private") return "Private";
   if (scope === "public") return "Public IP risk";
@@ -186,13 +187,15 @@ export default function SecureLinkOpenPanel({
   const [category, setCategory] =
     useState<SecureStreamLinkCategory>("media-server");
   const [query, setQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] =
-    useState<SecureStreamLinkCategory | "all">("all");
+  const [categoryFilter, setCategoryFilter] = useState<
+    SecureStreamLinkCategory | "all"
+  >("all");
   const [sort, setSort] = useState<StreamLinkSort>("favorite");
   const [legalPrivacyRouteKind, setLegalPrivacyRouteKind] =
     useState<LegalPrivacyRouteKind>("none");
   const [privacyRouteConfirmed, setPrivacyRouteConfirmed] = useState(false);
   const [message, setMessage] = useState("");
+  const actionDialog = useActionDialog();
   const inspection = useMemo(() => inspectSecureLink(link), [link]);
   const privacyRoutePosture = useMemo(
     () =>
@@ -253,10 +256,7 @@ export default function SecureLinkOpenPanel({
     setMessage(`Added "${next.title}".`);
   }
 
-  function patchLink(
-    item: SecureStreamLink,
-    patch: Partial<SecureStreamLink>,
-  ) {
+  function patchLink(item: SecureStreamLink, patch: Partial<SecureStreamLink>) {
     onChangeLinks((currentLinks) =>
       currentLinks.map((entry) =>
         entry.id === item.id
@@ -266,13 +266,17 @@ export default function SecureLinkOpenPanel({
     );
   }
 
-  function removeLink(item: SecureStreamLink) {
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(`Remove "${item.title}" from the connect shelf?`)
-    ) {
-      return;
-    }
+  async function removeLink(item: SecureStreamLink) {
+    const confirmed = await actionDialog.requestActionDialog({
+      eyebrow: "Connect shelf",
+      title: `Remove "${item.title}"?`,
+      description:
+        "This removes the private launcher from Nexus. It does not delete or change the linked service.",
+      confirmLabel: "Remove link",
+      tone: "danger",
+    });
+    if (!confirmed) return;
+
     onChangeLinks((currentLinks) =>
       currentLinks.filter((entry) => entry.id !== item.id),
     );
@@ -311,9 +315,7 @@ export default function SecureLinkOpenPanel({
         <div style={cardStyle(publicLinkCount ? "accent" : "normal")}>
           <SectionLabel detail="VPN/exit-node check">IP guard</SectionLabel>
           <strong style={{ fontSize: "16px" }}>
-            {publicLinkCount
-              ? privacyRoutePosture.statusLabel
-              : "Private only"}
+            {publicLinkCount ? privacyRoutePosture.statusLabel : "Private only"}
           </strong>
           {lockedPublicLinkCount ? (
             <p
@@ -364,7 +366,9 @@ export default function SecureLinkOpenPanel({
               ))}
             </select>
           </label>
-          <div style={cardStyle(privacyRoutePosture.active ? "accent" : "normal")}>
+          <div
+            style={cardStyle(privacyRoutePosture.active ? "accent" : "normal")}
+          >
             <SectionLabel detail="VPN / Tailscale exit node / Legal proxy">
               Route status
             </SectionLabel>
@@ -420,7 +424,9 @@ export default function SecureLinkOpenPanel({
       </div>
 
       <div style={cardStyle()}>
-        <SectionLabel detail="Paste link, press add">Add stream link</SectionLabel>
+        <SectionLabel detail="Paste link, press add">
+          Add stream link
+        </SectionLabel>
         <div
           style={{
             display: "grid",
@@ -518,7 +524,11 @@ export default function SecureLinkOpenPanel({
                   ? "Save failed"
                   : "Local shelf"}
           </ShellBadge>
-          {message ? <ShellBadge tone="accent">{message}</ShellBadge> : null}
+          {message ? (
+            <ShellBadge role="status" tone="accent">
+              {message}
+            </ShellBadge>
+          ) : null}
         </div>
 
         <p
@@ -608,99 +618,102 @@ export default function SecureLinkOpenPanel({
                     privacyRoutePosture.canOpenPublicLinks);
                 return (
                   <>
-              <div
-                style={{
-                  aspectRatio: "16 / 10",
-                  borderRadius: "10px",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  background:
-                    "linear-gradient(145deg, rgba(56, 122, 255, 0.28), rgba(10, 15, 30, 0.94))",
-                  display: "grid",
-                  alignContent: "space-between",
-                  padding: "10px",
-                }}
-              >
-                <ShellBadge tone={item.favorite ? "success" : "muted"}>
-                  {SECURE_STREAM_LINK_CATEGORY_LABELS[item.category]}
-                </ShellBadge>
-                <ShellBadge tone={scopeBadgeTone(tileInspection.networkScope)}>
-                  {scopeLabel(tileInspection.networkScope)}
-                </ShellBadge>
-                <strong style={{ fontSize: "18px" }}>{item.title}</strong>
-              </div>
-              <p
-                style={{
-                  margin: "8px 0 0",
-                  color: "var(--text2)",
-                  fontSize: "11px",
-                  overflowWrap: "anywhere",
-                }}
-              >
-                {hostFromHref(item.url)}
-              </p>
-              {tileInspection.requiresIpPrivacy && !privacyRouteConfirmed ? (
-                <p
-                  style={{
-                    margin: "6px 0 0",
-                    color: "var(--text2)",
-                    fontSize: "11px",
-                    lineHeight: 1.45,
-                  }}
-                >
-                  Locked until {privacyRoutePosture.label} is active and
-                  confirmed.
-                </p>
-              ) : null}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "8px",
-                  marginTop: "10px",
-                }}
-              >
-                {connectAllowed ? (
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    referrerPolicy="no-referrer"
-                    onClick={() =>
-                      setMessage(`Connecting to "${item.title}".`)
-                    }
-                    style={buttonStyle(true)}
-                  >
-                    Connect
-                  </a>
-                ) : (
-                  <span aria-disabled="true" style={buttonStyle(false)}>
-                    Locked
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={() => void copyLink(item.url)}
-                  style={buttonStyle(true)}
-                >
-                  Copy
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    patchLink(item, { favorite: !item.favorite })
-                  }
-                  style={buttonStyle(true)}
-                >
-                  {item.favorite ? "Unpin" : "Pin"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removeLink(item)}
-                  style={buttonStyle(true)}
-                >
-                  Remove
-                </button>
-              </div>
+                    <div
+                      style={{
+                        aspectRatio: "16 / 10",
+                        borderRadius: "10px",
+                        border: "1px solid rgba(255, 255, 255, 0.08)",
+                        background:
+                          "linear-gradient(145deg, rgba(56, 122, 255, 0.28), rgba(10, 15, 30, 0.94))",
+                        display: "grid",
+                        alignContent: "space-between",
+                        padding: "10px",
+                      }}
+                    >
+                      <ShellBadge tone={item.favorite ? "success" : "muted"}>
+                        {SECURE_STREAM_LINK_CATEGORY_LABELS[item.category]}
+                      </ShellBadge>
+                      <ShellBadge
+                        tone={scopeBadgeTone(tileInspection.networkScope)}
+                      >
+                        {scopeLabel(tileInspection.networkScope)}
+                      </ShellBadge>
+                      <strong style={{ fontSize: "18px" }}>{item.title}</strong>
+                    </div>
+                    <p
+                      style={{
+                        margin: "8px 0 0",
+                        color: "var(--text2)",
+                        fontSize: "11px",
+                        overflowWrap: "anywhere",
+                      }}
+                    >
+                      {hostFromHref(item.url)}
+                    </p>
+                    {tileInspection.requiresIpPrivacy &&
+                    !privacyRouteConfirmed ? (
+                      <p
+                        style={{
+                          margin: "6px 0 0",
+                          color: "var(--text2)",
+                          fontSize: "11px",
+                          lineHeight: 1.45,
+                        }}
+                      >
+                        Locked until {privacyRoutePosture.label} is active and
+                        confirmed.
+                      </p>
+                    ) : null}
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "8px",
+                        marginTop: "10px",
+                      }}
+                    >
+                      {connectAllowed ? (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          referrerPolicy="no-referrer"
+                          onClick={() =>
+                            setMessage(`Connecting to "${item.title}".`)
+                          }
+                          style={buttonStyle(true)}
+                        >
+                          Connect
+                        </a>
+                      ) : (
+                        <span aria-disabled="true" style={buttonStyle(false)}>
+                          Locked
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => void copyLink(item.url)}
+                        style={buttonStyle(true)}
+                      >
+                        Copy
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          patchLink(item, { favorite: !item.favorite })
+                        }
+                        style={buttonStyle(true)}
+                      >
+                        {item.favorite ? "Unpin" : "Pin"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void removeLink(item)}
+                        style={buttonStyle(true)}
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </>
                 );
               })()}
@@ -722,6 +735,7 @@ export default function SecureLinkOpenPanel({
           </p>
         </div>
       )}
+      <ActionDialog controller={actionDialog} />
     </section>
   );
 }

@@ -3,7 +3,7 @@ import type {
   VehicleBridgeStatus,
   VehicleBenchChecklistItem,
   VehicleTelemetryFrame,
-} from "@/lib/vehicle/types"
+} from "@/lib/vehicle/types";
 
 export const VEHICLE_BENCH_CHECKLIST: VehicleBenchChecklistItem[] = [
   {
@@ -22,7 +22,8 @@ export const VEHICLE_BENCH_CHECKLIST: VehicleBenchChecklistItem[] = [
     id: "imu-orientation",
     category: "orientation",
     label: "FC orientation and IMU axes verified",
-    detail: "Pitch, roll, and yaw move in the expected direction in the ground station.",
+    detail:
+      "Pitch, roll, and yaw move in the expected direction in the ground station.",
   },
   {
     id: "compass-calibration",
@@ -52,7 +53,8 @@ export const VEHICLE_BENCH_CHECKLIST: VehicleBenchChecklistItem[] = [
     id: "home-point",
     category: "gps_home",
     label: "Home point and heading are believable",
-    detail: "Home should not drift or point the wrong direction before field work.",
+    detail:
+      "Home should not drift or point the wrong direction before field work.",
   },
   {
     id: "radio-failsafe",
@@ -66,7 +68,7 @@ export const VEHICLE_BENCH_CHECKLIST: VehicleBenchChecklistItem[] = [
     label: "Battery threshold and warning path reviewed",
     detail: "Low-battery posture is understood before first outdoor throttle.",
   },
-]
+];
 
 export const VEHICLE_CHECKLIST_CATEGORY_LABELS: Record<
   VehicleBenchChecklistItem["category"],
@@ -77,32 +79,36 @@ export const VEHICLE_CHECKLIST_CATEGORY_LABELS: Record<
   radio_modes: "Radio + Modes",
   gps_home: "GPS + Home",
   failsafes: "Failsafes",
-}
+};
 
 export interface VehicleBenchChecklistProgress {
-  completedCount: number
-  totalCount: number
-  percent: number
-  remainingCount: number
-  nextIncompleteLabel: string | null
+  completedCount: number;
+  totalCount: number;
+  percent: number;
+  remainingCount: number;
+  nextIncompleteLabel: string | null;
 }
 
 export function getVehicleBenchChecklistProgress(
   checklistState: Record<string, boolean>,
 ): VehicleBenchChecklistProgress {
-  const completedCount = VEHICLE_BENCH_CHECKLIST.filter((item) => checklistState[item.id]).length
-  const totalCount = VEHICLE_BENCH_CHECKLIST.length
-  const remainingCount = totalCount - completedCount
+  const completedCount = VEHICLE_BENCH_CHECKLIST.filter(
+    (item) => checklistState[item.id],
+  ).length;
+  const totalCount = VEHICLE_BENCH_CHECKLIST.length;
+  const remainingCount = totalCount - completedCount;
   const nextIncompleteLabel =
-    VEHICLE_BENCH_CHECKLIST.find((item) => !checklistState[item.id])?.label ?? null
+    VEHICLE_BENCH_CHECKLIST.find((item) => !checklistState[item.id])?.label ??
+    null;
 
   return {
     completedCount,
     totalCount,
-    percent: totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
+    percent:
+      totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
     remainingCount,
     nextIncompleteLabel,
-  }
+  };
 }
 
 export function buildVehicleOpsBrief({
@@ -111,22 +117,22 @@ export function buildVehicleOpsBrief({
   checklistState,
   bridgeStatus,
 }: {
-  activeFrame: VehicleTelemetryFrame
-  historyFrames: number
-  checklistState: Record<string, boolean>
+  activeFrame: VehicleTelemetryFrame;
+  historyFrames: number;
+  checklistState: Record<string, boolean>;
   bridgeStatus: Pick<
     VehicleBridgeStatus,
     "available" | "fresh" | "bridgeLabel" | "ingestedFrames" | "freshnessMs"
-  >
+  >;
 }): string {
-  const checklist = getVehicleBenchChecklistProgress(checklistState)
-  const bridgeLabel = bridgeStatus.bridgeLabel ?? "simulation fallback"
+  const checklist = getVehicleBenchChecklistProgress(checklistState);
+  const bridgeLabel = bridgeStatus.bridgeLabel ?? "simulation fallback";
   const bridgeAge =
     bridgeStatus.freshnessMs === null
       ? "no bridge ingest yet"
       : bridgeStatus.freshnessMs < 60_000
         ? `${Math.round(bridgeStatus.freshnessMs / 1_000)}s ago`
-        : `${Math.round(bridgeStatus.freshnessMs / 60_000)}m ago`
+        : `${Math.round(bridgeStatus.freshnessMs / 60_000)}m ago`;
 
   return [
     `Vehicle ops brief — ${new Date(activeFrame.timestamp).toLocaleString()}`,
@@ -138,16 +144,20 @@ export function buildVehicleOpsBrief({
     `Flight posture: ${activeFrame.heartbeat.mode} · battery ${activeFrame.battery.percent.toFixed(0)}% · GPS ${activeFrame.position.fixType} with ${activeFrame.position.satellites} sats.`,
     `Retention: ${historyFrames} shared frames in replay buffer for future Vault packaging.`,
     "Next operator flow: bench validation -> passive bridge confirmation -> drone compliance review -> Vault artifact package.",
-  ].join(" ")
+  ].join(" ");
 }
 
 export function buildVehicleArtifactManifest(
   activeFrame: VehicleTelemetryFrame,
   history: VehicleTelemetryFrame[],
 ): VehicleArtifactManifest {
-  const latestTs = new Date(activeFrame.timestamp).toISOString().replace(/[:]/g, "-")
-  const sessionLabel = `f450-bench-${latestTs}`
-  const issues = activeFrame.recentEvents.filter((event) => event.severity !== "info").length
+  const latestTs = new Date(activeFrame.timestamp)
+    .toISOString()
+    .replace(/[:]/g, "-");
+  const sessionLabel = `f450-bench-${latestTs}`;
+  const issues = activeFrame.recentEvents.filter(
+    (event) => event.severity !== "info",
+  ).length;
 
   return {
     generatedAt: Date.now(),
@@ -200,5 +210,5 @@ export function buildVehicleArtifactManifest(
         note: "Optional future parametric/source file used to regenerate or revise the local 3D preview artifact.",
       },
     ],
-  }
+  };
 }

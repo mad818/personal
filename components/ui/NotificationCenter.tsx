@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/store/useStore";
 import type { Notification } from "@/store/useStore";
 import { SEVERITY_COLORS, TYPE_ICONS } from "@/lib/notifications";
+import { useModalDialog } from "@/hooks/useModalDialog";
 
 // ── Filter types ───────────────────────────────────────────────────────────────
 type Filter = "all" | "critical" | "threats" | "market" | "system";
@@ -88,14 +89,12 @@ function NotifCard({
             ? "rgba(20,16,14,0.5)"
             : "rgba(28,20,18,0.75)",
         border: `1px solid ${hovered ? "rgba(196,72,90,0.12)" : "rgba(58,46,43,0.6)"}`,
-        cursor: "pointer",
         transition: "background 0.15s, border 0.15s",
         borderLeft: `3px solid ${borderColor}`,
         marginBottom: "4px",
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onClick={() => onMark(notif.id)}
     >
       {/* Unread dot */}
       {!notif.read && (
@@ -113,75 +112,101 @@ function NotifCard({
         />
       )}
 
-      {/* Icon */}
-      <div
+      <button
+        type="button"
+        disabled={notif.read}
+        onClick={() => onMark(notif.id)}
+        aria-label={
+          notif.read
+            ? `Read notification: ${notif.title}. ${notif.message}`
+            : `Mark notification as read: ${notif.title}. ${notif.message}`
+        }
         style={{
-          fontSize: "18px",
-          lineHeight: 1,
-          flexShrink: 0,
-          marginTop: "1px",
+          display: "flex",
+          flex: 1,
+          gap: "10px",
+          minWidth: 0,
+          padding: 0,
+          border: "none",
+          background: "transparent",
+          color: "inherit",
+          cursor: notif.read ? "default" : "pointer",
+          textAlign: "left",
         }}
       >
-        {icon}
-      </div>
+        {/* Icon */}
+        <span
+          aria-hidden="true"
+          style={{
+            fontSize: "18px",
+            lineHeight: 1,
+            flexShrink: 0,
+            marginTop: "1px",
+          }}
+        >
+          {icon}
+        </span>
 
-      {/* Content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: "11px",
-            fontWeight: 700,
-            color: notif.read
-              ? "rgba(184,169,158,0.65)"
-              : "rgba(236,229,223,0.9)",
-            marginBottom: "2px",
-            textTransform: "uppercase" as const,
-            letterSpacing: "0.4px",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {notif.title}
-        </div>
-        <div
-          style={{
-            fontSize: "10.5px",
-            color: "rgba(122,107,98,0.9)",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            marginBottom: "3px",
-          }}
-        >
-          {notif.message}
-        </div>
-        <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+        {/* Content */}
+        <span style={{ flex: 1, minWidth: 0 }}>
           <span
             style={{
-              fontSize: "9px",
-              color: "rgba(122,107,98,0.6)",
-              letterSpacing: "0.3px",
-            }}
-          >
-            {notif.source} · {formatTime(notif.timestamp)}
-          </span>
-          <span
-            style={{
-              fontSize: "8px",
+              display: "block",
+              fontSize: "11px",
               fontWeight: 700,
-              color: borderColor,
+              color: notif.read
+                ? "rgba(184,169,158,0.65)"
+                : "rgba(236,229,223,0.9)",
+              marginBottom: "2px",
               textTransform: "uppercase" as const,
-              letterSpacing: "0.5px",
-              background: `${borderColor}15`,
-              padding: "1px 4px",
-              borderRadius: "3px",
+              letterSpacing: "0.4px",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             }}
           >
-            {notif.severity}
+            {notif.title}
           </span>
-        </div>
-      </div>
+          <span
+            style={{
+              display: "block",
+              fontSize: "10.5px",
+              color: "rgba(122,107,98,0.9)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              marginBottom: "3px",
+            }}
+          >
+            {notif.message}
+          </span>
+          <span style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+            <span
+              style={{
+                fontSize: "9px",
+                color: "rgba(122,107,98,0.6)",
+                letterSpacing: "0.3px",
+              }}
+            >
+              {notif.source} · {formatTime(notif.timestamp)}
+            </span>
+            <span
+              style={{
+                fontSize: "8px",
+                fontWeight: 700,
+                color: borderColor,
+                textTransform: "uppercase" as const,
+                letterSpacing: "0.5px",
+                background: `${borderColor}15`,
+                padding: "1px 4px",
+                borderRadius: "3px",
+              }}
+            >
+              {notif.severity}
+            </span>
+          </span>
+        </span>
+      </button>
 
       {/* Dismiss */}
       <button
@@ -221,6 +246,7 @@ export default function NotificationCenter({ open, onClose }: Props) {
   const unreadCount = useStore((s) => s.unreadCount);
 
   const [filter, setFilter] = useState<Filter>("all");
+  const dialogRef = useModalDialog({ open, onClose });
 
   const filtered = useMemo(
     () => filterNotifications(notifications, filter),
@@ -248,20 +274,6 @@ export default function NotificationCenter({ open, onClose }: Props) {
     { key: "system", label: "System" },
   ];
 
-  useEffect(() => {
-    if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open, onClose]);
-
   return (
     <AnimatePresence>
       {open
@@ -276,6 +288,7 @@ export default function NotificationCenter({ open, onClose }: Props) {
               className="nexus-overlay-backdrop"
             />,
             <motion.div
+              ref={dialogRef}
               key="notifications-panel"
               initial={{ x: 320, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
@@ -283,132 +296,150 @@ export default function NotificationCenter({ open, onClose }: Props) {
               transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
               role="dialog"
               aria-modal="true"
-              aria-label="Notifications"
+              aria-labelledby="nexus-notifications-title"
               id="nexus-notifications-dialog"
               data-testid="notifications-dialog"
               className="nexus-sidepanel nexus-sidepanel--notifications"
+              tabIndex={-1}
               style={{
                 width: "320px",
               }}
             >
-            {/* Header */}
-            <div className="nexus-sidepanel__header">
-              <div className="nexus-sidepanel__header-copy">
-                <span className="nexus-sidepanel__eyebrow">Live inbox</span>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span style={{ fontSize: "18px" }}>🔔</span>
-                  <span className="nexus-sidepanel__title">Notifications</span>
-                  {unreadCount > 0 && (
+              {/* Header */}
+              <div className="nexus-sidepanel__header">
+                <div className="nexus-sidepanel__header-copy">
+                  <span className="nexus-sidepanel__eyebrow">Live inbox</span>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <span style={{ fontSize: "18px" }}>🔔</span>
                     <span
-                      style={{
-                        background: "#ef4444",
-                        color: "#fff",
-                        borderRadius: "8px",
-                        fontSize: "9px",
-                        fontWeight: 900,
-                        padding: "1px 5px",
-                      }}
+                      className="nexus-sidepanel__title"
+                      id="nexus-notifications-title"
                     >
-                      {unreadCount}
+                      Notifications
                     </span>
+                    {unreadCount > 0 && (
+                      <span
+                        style={{
+                          background: "#ef4444",
+                          color: "#fff",
+                          borderRadius: "8px",
+                          fontSize: "9px",
+                          fontWeight: 900,
+                          padding: "1px 5px",
+                        }}
+                      >
+                        {unreadCount}
+                      </span>
+                    )}
+                  </div>
+                  <span className="nexus-sidepanel__subtitle">
+                    Threat, market, and system events grouped by urgency.
+                  </span>
+                </div>
+                <div className="nexus-sidepanel__header-actions">
+                  {unreadCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={markAllRead}
+                      className="nexus-chip"
+                      data-testid="notifications-mark-all"
+                    >
+                      Mark all read
+                    </button>
                   )}
-                </div>
-                <span className="nexus-sidepanel__subtitle">
-                  Threat, market, and system events grouped by urgency.
-                </span>
-              </div>
-              <div className="nexus-sidepanel__header-actions">
-                {unreadCount > 0 && (
                   <button
                     type="button"
-                    onClick={markAllRead}
-                    className="nexus-chip"
-                    data-testid="notifications-mark-all"
+                    onClick={onClose}
+                    className="nexus-sidepanel__close"
+                    data-testid="notifications-close"
+                    data-dialog-initial-focus
+                    aria-label="Close notifications"
                   >
-                    Mark all read
+                    ×
                   </button>
-                )}
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="nexus-sidepanel__close"
-                  data-testid="notifications-close"
-                  aria-label="Close notifications"
-                >
-                  ×
-                </button>
+                </div>
               </div>
-            </div>
 
-            {/* Notifications list */}
-            <div className="nexus-sidepanel__body">
-              <div className="nexus-chip-group" style={{ marginBottom: "12px" }}>
-                {FILTERS.map((f) => (
-                  <button
-                    type="button"
-                    key={f.key}
-                    onClick={() => setFilter(f.key)}
-                    className={filter === f.key ? "nexus-chip is-active" : "nexus-chip"}
-                    data-testid={`notifications-filter-${f.key}`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-              {filtered.length === 0 ? (
+              {/* Notifications list */}
+              <div className="nexus-sidepanel__body">
                 <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    height: "60%",
-                    gap: "10px",
-                    color: "rgba(122,107,98,0.5)",
-                    fontSize: "12px",
-                    textAlign: "center",
-                  }}
+                  className="nexus-chip-group"
+                  style={{ marginBottom: "12px" }}
                 >
-                  <span style={{ fontSize: "28px", opacity: 0.4 }}>🔕</span>
-                  No notifications
+                  {FILTERS.map((f) => (
+                    <button
+                      type="button"
+                      key={f.key}
+                      onClick={() => setFilter(f.key)}
+                      className={
+                        filter === f.key ? "nexus-chip is-active" : "nexus-chip"
+                      }
+                      data-testid={`notifications-filter-${f.key}`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
                 </div>
-              ) : (
-                <>
-                  {groupOrder.map((gKey) => {
-                    const items = grouped[gKey];
-                    if (!items || items.length === 0) return null;
-                    return (
-                      <div key={gKey}>
-                        <div
-                          style={{
-                            fontSize: "9px",
-                            fontWeight: 700,
-                            letterSpacing: "1px",
-                            textTransform: "uppercase" as const,
-                            color: "rgba(122,107,98,0.5)",
-                            padding: "6px 4px 4px",
-                            marginBottom: "4px",
-                          }}
-                        >
-                          {GROUP_LABELS[gKey]}
+                {filtered.length === 0 ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: "60%",
+                      gap: "10px",
+                      color: "rgba(122,107,98,0.5)",
+                      fontSize: "12px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <span style={{ fontSize: "28px", opacity: 0.4 }}>🔕</span>
+                    No notifications
+                  </div>
+                ) : (
+                  <>
+                    {groupOrder.map((gKey) => {
+                      const items = grouped[gKey];
+                      if (!items || items.length === 0) return null;
+                      return (
+                        <div key={gKey}>
+                          <div
+                            style={{
+                              fontSize: "9px",
+                              fontWeight: 700,
+                              letterSpacing: "1px",
+                              textTransform: "uppercase" as const,
+                              color: "rgba(122,107,98,0.5)",
+                              padding: "6px 4px 4px",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            {GROUP_LABELS[gKey]}
+                          </div>
+                          <AnimatePresence>
+                            {items.map((n, i) => (
+                              <NotifCard
+                                key={n.id}
+                                notif={n}
+                                index={i}
+                                onMark={markRead}
+                                onDismiss={dismissNotification}
+                              />
+                            ))}
+                          </AnimatePresence>
                         </div>
-                        <AnimatePresence>
-                          {items.map((n, i) => (
-                            <NotifCard
-                              key={n.id}
-                              notif={n}
-                              index={i}
-                              onMark={markRead}
-                              onDismiss={dismissNotification}
-                            />
-                          ))}
-                        </AnimatePresence>
-                      </div>
-                    );
-                  })}
-                </>
-              )}
-            </div>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
             </motion.div>,
           ]
         : null}

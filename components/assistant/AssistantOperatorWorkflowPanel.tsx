@@ -35,11 +35,13 @@ export default function AssistantOperatorWorkflowPanel({
     if (workflow.changeLog.length) next.push("change_log");
     if (workflow.skillInvocations.length) next.push("skill_invocations");
     return next;
-  }, [workflow.changeLog.length, workflow.proposedEdits.length, workflow.skillInvocations.length]);
+  }, [
+    workflow.changeLog.length,
+    workflow.proposedEdits.length,
+    workflow.skillInvocations.length,
+  ]);
   const [activeSection, setActiveSection] =
-    useState<AssistantOperatorWorkflowFocus>(
-      focus ?? workflow.defaultFocus,
-    );
+    useState<AssistantOperatorWorkflowFocus>(focus ?? workflow.defaultFocus);
 
   useEffect(() => {
     setActiveSection(focus ?? workflow.defaultFocus);
@@ -144,7 +146,8 @@ export default function AssistantOperatorWorkflowPanel({
                 safeActive === section
                   ? "rgba(255,255,255,0.16)"
                   : "rgba(255,255,255,0.04)",
-              color: safeActive === section ? "#ffffff" : "var(--text2, #c6ced8)",
+              color:
+                safeActive === section ? "#ffffff" : "var(--text2, #c6ced8)",
               fontSize: compact ? "8px" : "10px",
               fontWeight: 800,
               padding: "4px 8px",
@@ -179,7 +182,9 @@ export default function AssistantOperatorWorkflowPanel({
               >
                 {item.status}
               </span>
-              <span style={{ fontSize: compact ? "10px" : "12px", lineHeight: 1.4 }}>
+              <span
+                style={{ fontSize: compact ? "10px" : "12px", lineHeight: 1.4 }}
+              >
                 {item.label}
               </span>
             </div>
@@ -197,7 +202,9 @@ export default function AssistantOperatorWorkflowPanel({
                 borderTop: "1px solid rgba(255,255,255,0.07)",
               }}
             >
-              <div style={{ fontSize: compact ? "10px" : "12px", fontWeight: 800 }}>
+              <div
+                style={{ fontSize: compact ? "10px" : "12px", fontWeight: 800 }}
+              >
                 {edit.label}
               </div>
               <div
@@ -226,7 +233,9 @@ export default function AssistantOperatorWorkflowPanel({
                 borderTop: "1px solid rgba(255,255,255,0.07)",
               }}
             >
-              <div style={{ fontSize: compact ? "10px" : "12px", fontWeight: 800 }}>
+              <div
+                style={{ fontSize: compact ? "10px" : "12px", fontWeight: 800 }}
+              >
                 {entry.label}
               </div>
               <div
@@ -266,7 +275,9 @@ export default function AssistantOperatorWorkflowPanel({
               >
                 {item.status}
               </span>
-              <span style={{ fontSize: compact ? "10px" : "12px", lineHeight: 1.4 }}>
+              <span
+                style={{ fontSize: compact ? "10px" : "12px", lineHeight: 1.4 }}
+              >
                 {item.label}
               </span>
             </div>

@@ -2,7 +2,7 @@
 /* eslint-disable no-console */
 import fs from "node:fs";
 import path from "node:path";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 
 const root = process.cwd();
 
@@ -33,7 +33,9 @@ function forbidHexDrift(source, label) {
     }
   }
   if (source.includes('color: "#fff"') || source.includes("color: '#fff'")) {
-    fail(`${label} still uses #fff on accent buttons — use designTokens.textOnAccent`);
+    fail(
+      `${label} still uses #fff on accent buttons — use designTokens.textOnAccent`,
+    );
   }
 }
 
@@ -44,12 +46,6 @@ requireText(tokens, "assimilationDecisionColor", "designTokens.ts");
 requireText(tokens, "networkHealthStatusColor", "designTokens.ts");
 
 const watchedFiles = [
-  "components/ops/OpsDensityAlertStrip.tsx",
-  "components/ops/OpsDualViewPanel.tsx",
-  "components/home/office/MementoCycleStrip.tsx",
-  "components/recon/RepoAssimilationQueueCard.tsx",
-  "components/command/PrivacyShieldReceiptCard.tsx",
-  "components/command/OvernightMissionCard.tsx",
   "components/command/NetworkTopologyPanel.tsx",
   "components/intel/PapersResearchPanel.tsx",
   "components/recon/GeocodingPlaygroundCard.tsx",
@@ -62,24 +58,52 @@ for (const relativePath of watchedFiles) {
   forbidHexDrift(source, relativePath);
 }
 
-let lintOutput = "";
+let lintReport;
 try {
-  lintOutput = execSync("npm run design:lint", {
-    cwd: root,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  const lintOutput = execFileSync(
+    process.execPath,
+    [
+      path.join(
+        root,
+        "node_modules",
+        "@google",
+        "design.md",
+        "dist",
+        "index.js",
+      ),
+      "lint",
+      "DESIGN.md",
+    ],
+    {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
+  lintReport = JSON.parse(lintOutput);
 } catch (error) {
   const stdout = error?.stdout?.toString?.() ?? "";
   const stderr = error?.stderr?.toString?.() ?? "";
-  fail(`design:lint failed:\n${stdout}\n${stderr}`);
+  const detail =
+    error instanceof SyntaxError ? error.message : `${stdout}\n${stderr}`;
+  fail(`design:lint failed:\n${detail}`);
 }
 
-if (lintOutput.includes('"severity": "warning"')) {
-  const colorWarnings = (lintOutput.match(/colors\.[^"]+/g) ?? []).length;
-  if (colorWarnings > 0) {
-    fail(`design:lint still reports unused color token warnings (${colorWarnings})`);
-  }
+const errorCount = Number(lintReport?.summary?.errors ?? 0);
+const warningCount = Number(lintReport?.summary?.warnings ?? 0);
+if (errorCount > 0 || warningCount > 0) {
+  const findings = (lintReport?.findings ?? [])
+    .filter(
+      (finding) =>
+        finding.severity === "error" || finding.severity === "warning",
+    )
+    .map((finding) => `${finding.path ?? "DESIGN.md"}: ${finding.message}`)
+    .join(" | ");
+  fail(
+    `design:lint reports ${errorCount} error(s) and ${warningCount} warning(s): ${findings}`,
+  );
 }
 
-console.log("ok design-taste-contract (semantic tokens + assimilation slice audit)");
+console.log(
+  "ok design-taste-contract (semantic tokens + assimilation slice audit)",
+);

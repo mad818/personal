@@ -1,0 +1,4 @@
+interface:
+  display_name: "Idea Refine"
+  short_description: "Turn a rough Nexus idea into a bounded proposal."
+  default_prompt: "Use $idea-refine to explore and narrow this Nexus idea before implementation."

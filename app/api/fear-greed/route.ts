@@ -1,103 +1,51 @@
-// ── api/fear-greed ──────────────────────────────────────────
-// Fear & Greed index API: crypto market sentiment indicator.
-// Cached for 1 hour — the index only updates once per day.
-
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { createCache } from "@/lib/apiCache";
+import { executeFearGreed } from "@/lib/fearGreedServer";
+import type { FearGreedSuccess } from "@/lib/fearGreedTypes";
+import { protectedJson } from "@/lib/protectedApi";
+import {
+  applyRateLimitHeaders,
+  checkRateLimit,
+} from "@/lib/security/rateLimit";
 
 export const dynamic = "force-dynamic";
 
-const cache = createCache<FearGreedResponse>({ defaultTTL: 3_600_000 }); // 1 hour
+const FEAR_GREED_RATE_LIMIT = {
+  bucket: "api-fear-greed",
+  windowMs: 60_000,
+  maxAttempts: 20,
+} as const;
+const cache = createCache<FearGreedSuccess>({
+  maxEntries: 1,
+  defaultTTL: 3_600_000,
+});
+const CACHE_KEY = "fear-greed";
 
-interface FearGreedEntry {
-  value: number;
-  classification: string;
-  timestamp: string;
+function respond(body: unknown, status: number, retryAfterSec?: number) {
+  const response = protectedJson(body, { status });
+  applyRateLimitHeaders(response, FEAR_GREED_RATE_LIMIT, retryAfterSec);
+  return response;
 }
 
-interface FearGreedResponse {
-  current: FearGreedEntry;
-  history: FearGreedEntry[];
-}
-
-interface AlternativeFNGEntry {
-  value: string;
-  value_classification: string;
-  timestamp: string;
-  time_until_update?: string;
-}
-
-interface AlternativeFNGResponse {
-  name: string;
-  data: AlternativeFNGEntry[];
-  metadata?: { error: string | null };
-}
-
-function parseEntry(entry: AlternativeFNGEntry): FearGreedEntry {
-  return {
-    value: parseInt(entry.value, 10),
-    classification: entry.value_classification,
-    timestamp: new Date(parseInt(entry.timestamp, 10) * 1000).toISOString(),
-  };
-}
-
-export async function GET(): Promise<NextResponse> {
-  const CACHE_KEY = "fear-greed";
-  const cached = cache.get(CACHE_KEY);
-  if (cached) {
-    return NextResponse.json(cached, {
-      headers: { "Cache-Control": "public, max-age=3600, s-maxage=3600" },
-    });
-  }
-
-  try {
-    // Fetch current + history in parallel
-    const [currentRes, historyRes] = await Promise.all([
-      fetch("https://api.alternative.me/fng/?limit=1&format=json", {
-        signal: AbortSignal.timeout(8000),
-        headers: { Accept: "application/json" },
-      }),
-      fetch("https://api.alternative.me/fng/?limit=30&format=json", {
-        signal: AbortSignal.timeout(8000),
-        headers: { Accept: "application/json" },
-      }),
-    ]);
-
-    if (!currentRes.ok) {
-      throw new Error(`Fear & Greed API error: ${currentRes.status}`);
-    }
-    if (!historyRes.ok) {
-      throw new Error(`Fear & Greed history API error: ${historyRes.status}`);
-    }
-
-    const [currentData, historyData] = await Promise.all([
-      currentRes.json() as Promise<AlternativeFNGResponse>,
-      historyRes.json() as Promise<AlternativeFNGResponse>,
-    ]);
-
-    const currentEntry = currentData.data?.[0];
-    if (!currentEntry) {
-      throw new Error("No current Fear & Greed data returned");
-    }
-
-    const current = parseEntry(currentEntry);
-    const history = (historyData.data ?? []).map(parseEntry);
-
-    const result: FearGreedResponse = { current, history };
-    cache.set(CACHE_KEY, result);
-
-    return NextResponse.json(result, {
-      headers: { "Cache-Control": "public, max-age=3600, s-maxage=3600" },
-    });
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json(
+export async function GET(req: NextRequest) {
+  const rateLimit = checkRateLimit(req, FEAR_GREED_RATE_LIMIT);
+  if (!rateLimit.ok) {
+    return respond(
       {
-        error: msg,
-        current: null,
-        history: [],
+        ok: false,
+        error: "Sentiment rate limit reached. Try again shortly.",
       },
-      { status: 200 },
+      429,
+      rateLimit.retryAfterSec,
     );
   }
+
+  const cached = cache.get(CACHE_KEY);
+  if (cached) return respond(cached, 200);
+
+  const result = await executeFearGreed();
+  if (result.status === 200 && result.body.ok) {
+    cache.set(CACHE_KEY, result.body);
+  }
+  return respond(result.body, result.status);
 }

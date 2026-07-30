@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "id": "jarrodwatts-claude-hud",
+  "name": "Claude HUD",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/jarrodwatts/claude-hud",
+    "version": "main reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/jarrodwatts/claude-hud",
+      "https://github.com/jarrodwatts/claude-hud/blob/main/README.md",
+      "https://github.com/jarrodwatts/claude-hud/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "compact-project-status",
+      "title": "Compact project, git, progress, check, blocker, and next-action status",
+      "sourceEvidence": "README project/git/todo/activity HUD fields and presets",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/run-status-summary/SKILL.md",
+        "docs/ideas/skills/production-engineering/observability-and-instrumentation/SKILL.md"
+      ]
+    },
+    {
+      "id": "tool-agent-todo-activity",
+      "title": "Tool, skill, MCP, agent, and todo activity when host evidence exists",
+      "sourceEvidence": "README optional activity lines",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/run-status-summary/SKILL.md"
+      ],
+      "adaptationNotes": "Unknown fields are omitted or labeled unknown; no transcript inference is allowed."
+    },
+    {
+      "id": "native-context-usage-cost",
+      "title": "Native context window, rate-limit, cost, cache, and token-speed telemetry",
+      "sourceEvidence": "README native stdin and usage configuration",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "ChatGPT/Codex does not expose Claude's status-line stdin contract; Nexus will not estimate host telemetry."
+    },
+    {
+      "id": "claude-statusline-transcript-parser",
+      "title": "Claude status-line API and transcript JSONL parser",
+      "sourceEvidence": "README architecture and setup sections",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "These are Claude Code host APIs with no one-to-one ChatGPT/Codex project surface."
+    },
+    {
+      "id": "account-and-usage-snapshot-fields",
+      "title": "Read account/auth metadata and write external usage snapshots",
+      "sourceEvidence": "README auth and external usage configuration",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "A status answer does not need account identity or locally exported usage data."
+    },
+    {
+      "id": "claude-plugin-install",
+      "title": "Claude marketplace plugin installation and status-line configuration",
+      "sourceEvidence": "README install and setup commands",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Project-aware ChatGPT/Codex uses commentary and final status rather than a Claude plugin."
+    }
+  ]
+}

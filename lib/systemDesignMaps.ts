@@ -88,17 +88,20 @@ export const SYSTEM_DESIGN_MAPS: SystemDesignMap[] = [
       {
         label: "Open HQ chronicle",
         href: "/hq?focus=hq-chronicle",
-        detail: "Work from the live chronicle block when tightening mission continuity or answer-to-action flow.",
+        detail:
+          "Work from the live chronicle block when tightening mission continuity or answer-to-action flow.",
       },
       {
         label: "Open safe refactor playbook",
         href: "/resources?view=playbooks&playbook=safe-refactor",
-        detail: "Use the existing thin-shell refactor workflow before widening HQ edits.",
+        detail:
+          "Use the existing thin-shell refactor workflow before widening HQ edits.",
       },
       {
         label: "Open agent health",
         href: "/command?focus=agent-health",
-        detail: "Watch runtime regressions and verification posture while touching the main shell.",
+        detail:
+          "Watch runtime regressions and verification posture while touching the main shell.",
       },
     ],
     impactSeedFiles: [
@@ -123,11 +126,7 @@ export const SYSTEM_DESIGN_MAPS: SystemDesignMap[] = [
       "app/api/ai/route.ts",
       "lib/aiProviderPreference.ts",
     ],
-    readFirst: [
-      "lib/ai.ts",
-      "lib/agent.ts",
-      "lib/aiProviderPreference.ts",
-    ],
+    readFirst: ["lib/ai.ts", "lib/agent.ts", "lib/aiProviderPreference.ts"],
     dependencies: [
       "provider preference normalization",
       "runtime status and auth session",
@@ -166,17 +165,20 @@ export const SYSTEM_DESIGN_MAPS: SystemDesignMap[] = [
       {
         label: "Open runtime efficiency",
         href: "/command?focus=runtime-efficiency",
-        detail: "Keep provider posture, prompt waste, and verification drift visible while changing AI behavior.",
+        detail:
+          "Keep provider posture, prompt waste, and verification drift visible while changing AI behavior.",
       },
       {
         label: "Open hallucination audit",
         href: "/resources?view=playbooks&playbook=hallucination-hardening",
-        detail: "Use the shared truth-boundary workflow before widening prompt or routing edits.",
+        detail:
+          "Use the shared truth-boundary workflow before widening prompt or routing edits.",
       },
       {
         label: "Open AI surface review",
         href: "/security?view=ai&focus=security-ai-surface",
-        detail: "Review prompt, tool, retrieval, and persistence risks on the route built for them.",
+        detail:
+          "Review prompt, tool, retrieval, and persistence risks on the route built for them.",
       },
     ],
     impactSeedFiles: [
@@ -241,17 +243,20 @@ export const SYSTEM_DESIGN_MAPS: SystemDesignMap[] = [
       {
         label: "Open stewardship",
         href: "/vault?focus=vault-stewardship",
-        detail: "Start with archive health before touching broader memory flows.",
+        detail:
+          "Start with archive health before touching broader memory flows.",
       },
       {
         label: "Repair route-less pages",
         href: "/vault?focus=vault-compiled-pages&compiledFilter=route-less",
-        detail: "Jump directly into compiled pages that still need route continuity.",
+        detail:
+          "Jump directly into compiled pages that still need route continuity.",
       },
       {
         label: "Open memory spine",
         href: "/command?focus=memory-spine",
-        detail: "Keep sync posture and local-memory readiness visible during archive work.",
+        detail:
+          "Keep sync posture and local-memory readiness visible during archive work.",
       },
     ],
     impactSeedFiles: [
@@ -315,17 +320,20 @@ export const SYSTEM_DESIGN_MAPS: SystemDesignMap[] = [
       {
         label: "Open scheduler governance",
         href: "/hq?focus=hq-scheduler-governance",
-        detail: "Use the exact HQ governance session instead of a broad shell landing while tightening scheduler posture.",
+        detail:
+          "Use the exact HQ governance session instead of a broad shell landing while tightening scheduler posture.",
       },
       {
         label: "Open compiled pages",
         href: "/vault?focus=vault-compiled-pages",
-        detail: "Review durable scheduler writeback in the archive lane instead of reading around it.",
+        detail:
+          "Review durable scheduler writeback in the archive lane instead of reading around it.",
       },
       {
         label: "Open runtime efficiency",
         href: "/command?focus=runtime-efficiency",
-        detail: "Watch batching, prompt cost, and verification posture while adjusting scheduler behavior.",
+        detail:
+          "Watch batching, prompt cost, and verification posture while adjusting scheduler behavior.",
       },
     ],
     impactSeedFiles: [
@@ -389,17 +397,20 @@ export const SYSTEM_DESIGN_MAPS: SystemDesignMap[] = [
       {
         label: "Open RECON OPSEC",
         href: "/recon?view=opsec&focus=recon-opsec",
-        detail: "Start with trust-boundary and degraded-mode verification before wider lookup work.",
+        detail:
+          "Start with trust-boundary and degraded-mode verification before wider lookup work.",
       },
       {
         label: "Open security boundary audit",
         href: "/resources?view=playbooks&playbook=security-boundary-audit",
-        detail: "Use the shared route/policy workflow before touching browser-server connector seams.",
+        detail:
+          "Use the shared route/policy workflow before touching browser-server connector seams.",
       },
       {
         label: "Open lookup lane",
         href: "/recon?view=osint&focus=recon-lookup",
-        detail: "Jump directly into the target-led RECON panel when validating live lookup behavior.",
+        detail:
+          "Jump directly into the target-led RECON panel when validating live lookup behavior.",
       },
     ],
     impactSeedFiles: [
@@ -463,17 +474,20 @@ export const SYSTEM_DESIGN_MAPS: SystemDesignMap[] = [
       {
         label: "Open connector onboarding",
         href: "/vehicle?focus=vehicle-connector-onboarding",
-        detail: "Start future hardware prep at the exact onboarding panel instead of the top of VEHICLE.",
+        detail:
+          "Start future hardware prep at the exact onboarding panel instead of the top of VEHICLE.",
       },
       {
         label: "Open artifact convention",
         href: "/vehicle?focus=vehicle-artifact-convention",
-        detail: "Jump directly into session bundles and render-brief continuity for future hardware work.",
+        detail:
+          "Jump directly into session bundles and render-brief continuity for future hardware work.",
       },
       {
         label: "Open drone compliance",
         href: "/cyber?view=drone&focus=cyber-drone",
-        detail: "Keep the paired FAA and operational review lane close to the readiness workflow.",
+        detail:
+          "Keep the paired FAA and operational review lane close to the readiness workflow.",
       },
     ],
     impactSeedFiles: [
@@ -486,5 +500,8 @@ export const SYSTEM_DESIGN_MAPS: SystemDesignMap[] = [
 
 export function getSystemDesignMap(id: string | null | undefined) {
   const resolvedId = resolveSystemDesignId(id) ?? DEFAULT_SYSTEM_DESIGN_ID;
-  return SYSTEM_DESIGN_MAPS.find((entry) => entry.id === resolvedId) ?? SYSTEM_DESIGN_MAPS[0];
+  return (
+    SYSTEM_DESIGN_MAPS.find((entry) => entry.id === resolvedId) ??
+    SYSTEM_DESIGN_MAPS[0]
+  );
 }

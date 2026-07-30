@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "gopasspw-gopass",
   "name": "gopass",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/gopasspw/gopass",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/gopasspw/gopass",
@@ -26,15 +26,21 @@
       "id": "git-as-sync-backend",
       "title": "Git as the sync and audit backend for encrypted secrets",
       "sourceEvidence": "gopass: secrets stored as GPG-encrypted files in a git repository",
-      "disposition": "pending",
-      "reason": "Nexus already uses git; the pattern of using git as an auditable encrypted data store for user settings is worth exploring."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Private live-vault content must remain local and ignored. Committing encrypted envelopes would create durable metadata, retention, and accidental-disclosure risk in the project repository."
     },
     {
       "id": "secret-hierarchy",
       "title": "Hierarchical secret paths: organize secrets in a Unix-style directory tree",
       "sourceEvidence": "gopass tree structure: secrets/email/google, secrets/api/openai",
-      "disposition": "pending",
-      "reason": "Nexus API key management is flat; a hierarchical path structure for credential organization is a useful UX reference."
+      "disposition": "adapted",
+      "reason": "Sealed records now use validated slash-separated paths with bounded segment depth, stored only inside the encrypted payload and surfaced in the unlocked record index.",
+      "proof": [
+        "lib/sealedVault.ts",
+        "components/vault/SealedVaultPanel.tsx",
+        "scripts/check-sealed-vault-runtime.mjs"
+      ]
     },
     {
       "id": "gpg-key-requirement",

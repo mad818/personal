@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frontend UI Engineering"
+  short_description: "Build accessible Nexus interfaces in existing seams."
+  default_prompt: "Use $frontend-ui-engineering to implement this interface within existing Nexus UI patterns."

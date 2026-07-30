@@ -1,30 +1,38 @@
-// ── api/fx ──────────────────────────────────────────────────
-// Forex rates API: real-time currency exchange rates.
-
-import { NextResponse } from "next/server";
-// Returns major USD pairs so the client can derive FX rates.
+import type { NextRequest } from "next/server";
+import { executeFxRates } from "@/lib/marketRatesServer";
+import { protectedJson } from "@/lib/protectedApi";
+import {
+  applyRateLimitHeaders,
+  checkRateLimit,
+} from "@/lib/security/rateLimit";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  try {
-    const r = await fetch("https://open.er-api.com/v6/latest/USD", {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(10000),
-    });
-    if (!r.ok) {
-      return NextResponse.json(
-        { error: `FX API ${r.status}`, rates: {} },
-        { status: 200 },
-      );
-    }
-    const data = await r.json();
-    return NextResponse.json({
-      rates: data.rates ?? {},
-      time_last_update_utc: data.time_last_update_utc ?? "",
-    });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Unknown";
-    return NextResponse.json({ error: msg, rates: {} }, { status: 200 });
+const FX_RATE_LIMIT = {
+  bucket: "api-fx",
+  windowMs: 60_000,
+  maxAttempts: 30,
+} as const;
+
+function respond(body: unknown, status: number, retryAfterSec?: number) {
+  const response = protectedJson(body, { status });
+  applyRateLimitHeaders(response, FX_RATE_LIMIT, retryAfterSec);
+  return response;
+}
+
+export async function GET(req: NextRequest) {
+  const rateLimit = checkRateLimit(req, FX_RATE_LIMIT);
+  if (!rateLimit.ok) {
+    return respond(
+      {
+        ok: false,
+        error: "FX rate limit reached. Try again shortly.",
+        rates: {},
+      },
+      429,
+      rateLimit.retryAfterSec,
+    );
   }
+  const result = await executeFxRates();
+  return respond(result.body, result.status);
 }

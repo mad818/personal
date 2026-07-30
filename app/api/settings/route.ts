@@ -33,7 +33,10 @@ import {
   summarizeSurfaceTiers,
 } from "@/lib/releaseMatrix";
 import { protectedJson } from "@/lib/protectedApi";
-import { getRuntimeEnvFilePath } from "@/lib/serverEnvRuntime";
+import {
+  getRuntimeEnvFilePath,
+  assertAnchoredRuntimeEnvFilePath,
+} from "@/lib/serverEnvRuntime";
 import { isConfiguredSecretValue } from "@/lib/secretReadiness";
 import { readLocalDataPolicySummary } from "@/lib/security/localDataPolicy";
 import { requireStepUpForAction } from "@/lib/security/stepUpAuth";
@@ -58,6 +61,9 @@ import {
 const SENSITIVE_KEYS = [
   "ANTHROPIC_API_KEY",
   "OPENAI_API_KEY",
+  "AZURE_OPENAI_API_KEY",
+  "AZURE_OPENAI_ENDPOINT",
+  "AZURE_OPENAI_DEPLOYMENT",
   "GROQ_API_KEY",
   "GOOGLE_AI_KEY",
   "OPENROUTER_API_KEY",
@@ -101,7 +107,7 @@ const BROWSER_MUTATION_BLOCKED_KEYS = new Set([
   "NEXUS_DEPLOYMENT_PROFILE",
 ]);
 
-const ENV_FILE = getRuntimeEnvFilePath();
+const ENV_FILE = assertAnchoredRuntimeEnvFilePath(getRuntimeEnvFilePath());
 const SETTINGS_RATE_LIMIT = {
   bucket: "api-settings",
   windowMs: 60_000,
@@ -140,6 +146,7 @@ async function readEnvFile(): Promise<Record<string, string>> {
 }
 
 async function writeEnvFile(env: Record<string, string>): Promise<void> {
+  const anchoredPath = assertAnchoredRuntimeEnvFilePath(ENV_FILE);
   // Preserve the original file structure — only update/add value lines
   let content = "";
   try {
@@ -161,7 +168,7 @@ async function writeEnvFile(env: Record<string, string>): Promise<void> {
     }
   }
 
-  await fs.writeFile(ENV_FILE, content, "utf-8");
+  await fs.writeFile(anchoredPath, content, "utf-8");
 }
 
 function normalizeConfigValue(key: string, value: string): string {
@@ -170,7 +177,10 @@ function normalizeConfigValue(key: string, value: string): string {
     if (v === "internal" || v === "connected") return v;
     return getDefaultNetworkMode();
   }
-  if (key === "NEXUS_ENABLE_HIGH_RISK_TOOLS" || key === "NEXUS_ALLOW_PAID_APIS") {
+  if (
+    key === "NEXUS_ENABLE_HIGH_RISK_TOOLS" ||
+    key === "NEXUS_ALLOW_PAID_APIS"
+  ) {
     return v === "true" ? "true" : "false";
   }
   if (key === "NEXUS_CONNECTOR_POLICY_JSON") {
@@ -185,7 +195,8 @@ function normalizeConfigValue(key: string, value: string): string {
 }
 
 function readPendingDeploymentProfile(env: Record<string, string>) {
-  const raw = env.NEXUS_DEPLOYMENT_PROFILE ?? process.env.NEXUS_DEPLOYMENT_PROFILE;
+  const raw =
+    env.NEXUS_DEPLOYMENT_PROFILE ?? process.env.NEXUS_DEPLOYMENT_PROFILE;
   if (!raw) return readDeploymentProfile();
   const v = raw.trim().toLowerCase();
   if (v === "web-self-hosted" || v === "desktop-secure") return v;
@@ -231,8 +242,8 @@ export async function GET(req: NextRequest) {
     )?.[0];
     status[key] = isConfiguredSecretValue(
       env[key] ??
-      process.env[key] ??
-      (legacyMatch ? (env[legacyMatch] ?? process.env[legacyMatch]) : ""),
+        process.env[key] ??
+        (legacyMatch ? (env[legacyMatch] ?? process.env[legacyMatch]) : ""),
     );
   }
   const config: {
@@ -242,11 +253,12 @@ export async function GET(req: NextRequest) {
     NEXUS_CONNECTOR_POLICY_JSON: ReturnType<typeof parseConnectorPolicy>;
     NEXUS_DEPLOYMENT_PROFILE: ReturnType<typeof readPendingDeploymentProfile>;
   } = {
-    NEXUS_NETWORK_MODE:
-      normalizeConfigValue(
-        "NEXUS_NETWORK_MODE",
-        env.NEXUS_NETWORK_MODE ?? process.env.NEXUS_NETWORK_MODE ?? readNetworkMode(),
-      ) as NetworkMode,
+    NEXUS_NETWORK_MODE: normalizeConfigValue(
+      "NEXUS_NETWORK_MODE",
+      env.NEXUS_NETWORK_MODE ??
+        process.env.NEXUS_NETWORK_MODE ??
+        readNetworkMode(),
+    ) as NetworkMode,
     NEXUS_ENABLE_HIGH_RISK_TOOLS:
       env.NEXUS_ENABLE_HIGH_RISK_TOOLS ??
       process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS ??
@@ -254,7 +266,8 @@ export async function GET(req: NextRequest) {
     NEXUS_ALLOW_PAID_APIS:
       env.NEXUS_ALLOW_PAID_APIS ?? process.env.NEXUS_ALLOW_PAID_APIS ?? "false",
     NEXUS_CONNECTOR_POLICY_JSON: parseConnectorPolicy(
-      env.NEXUS_CONNECTOR_POLICY_JSON ?? process.env.NEXUS_CONNECTOR_POLICY_JSON,
+      env.NEXUS_CONNECTOR_POLICY_JSON ??
+        process.env.NEXUS_CONNECTOR_POLICY_JSON,
     ),
     NEXUS_DEPLOYMENT_PROFILE: readPendingDeploymentProfile(env),
   };
@@ -367,7 +380,9 @@ export async function POST(req: NextRequest) {
     const env = await readEnvFile();
     const networkMode = normalizeConfigValue(
       "NEXUS_NETWORK_MODE",
-      env.NEXUS_NETWORK_MODE ?? process.env.NEXUS_NETWORK_MODE ?? getDefaultNetworkMode(),
+      env.NEXUS_NETWORK_MODE ??
+        process.env.NEXUS_NETWORK_MODE ??
+        getDefaultNetworkMode(),
     ) as NetworkMode;
     const highRiskEnabled =
       normalizeConfigValue(

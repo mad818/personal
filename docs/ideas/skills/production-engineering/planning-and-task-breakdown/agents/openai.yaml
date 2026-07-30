@@ -1,0 +1,4 @@
+interface:
+  display_name: "Planning And Task Breakdown"
+  short_description: "Split an approved spec into verifiable slices."
+  default_prompt: "Use $planning-and-task-breakdown to turn this Nexus spec into ordered verifiable tasks."

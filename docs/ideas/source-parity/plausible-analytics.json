@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "plausible-analytics",
   "name": "Plausible Analytics",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/plausible/analytics",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "master-4325-commits-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "AGPL-3.0",
     "primaryEvidence": [
       "https://github.com/plausible/analytics",
@@ -26,15 +26,25 @@
       "id": "event-tracking-api",
       "title": "Lightweight event tracking API: single JS snippet, POST endpoint for custom events",
       "sourceEvidence": "Plausible script.js and /api/event endpoint",
-      "disposition": "pending",
-      "reason": "Nexus could adopt Plausible's lightweight event API pattern for internal usage telemetry (local only, no PII). Pending privacy model review."
+      "disposition": "adapted",
+      "reason": "Nexus now exposes one bounded local event function that accepts validated event names and route paths, aggregates immediately by UTC day, and never sends a request or stores a visitor identifier.",
+      "proof": [
+        "lib/localUsageAnalytics.ts",
+        "components/ui/LocalUsageTracker.tsx",
+        "scripts/check-local-usage-analytics-runtime.mjs"
+      ]
     },
     {
       "id": "aggregated-metrics-dashboard",
       "title": "Aggregated metrics dashboard: unique visitors, pageviews, bounce rate, top pages",
       "sourceEvidence": "Plausible dashboard: clean aggregated analytics UI",
-      "disposition": "pending",
-      "reason": "Nexus COMMAND could surface local usage metrics (most-used tabs, agent call frequency) using an aggregated dashboard pattern."
+      "disposition": "implemented",
+      "reason": "COMMAND now shows browser-local route views, active days, total local events, and top routes for a bounded 30-day window with an explicit clear action.",
+      "proof": [
+        "components/command/LocalUsageMetricsPanel.tsx",
+        "app/command/page.tsx",
+        "lib/localUsageAnalytics.ts"
+      ]
     },
     {
       "id": "multi-site-analytics-platform",

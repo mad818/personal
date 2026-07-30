@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "colbymchenry-codegraph",
   "name": "codegraph",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/colbymchenry/codegraph",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-774-commits-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/colbymchenry/codegraph",
@@ -20,9 +20,10 @@
       "sourceEvidence": "codegraph: static call-graph + symbol index exported as JSON for agent query-time use",
       "disposition": "adapted",
       "proof": [
-        "lib/assimilation/reconCodeIntelBridge.ts"
+        "app/api/project/route.ts",
+        "components/recon/RepoIntelPanel.tsx"
       ],
-      "adaptationNotes": "CODEGRAPH_NEXUS_ROUTES documents RepoAssimilationQueueCard and agent.ts as the integration surface."
+      "adaptationNotes": "The protected project route and reachable RECON panel are the actual integration surface; no detached route-reference module is treated as product proof."
     },
     {
       "id": "static-call-graph-export",
@@ -30,7 +31,6 @@
       "sourceEvidence": "codegraph core: parse source → emit call edges as JSON at index time",
       "disposition": "adapted",
       "proof": [
-        "lib/codegraphIndex.ts",
         "scripts/build-codegraph.mjs",
         "lib/projectArchitecture.ts"
       ],
@@ -38,27 +38,30 @@
     },
     {
       "id": "agent-query-api",
-      "title": "Agent-callable API: callers-of, callees-of, definitions-of, usages-of queries",
+      "title": "Protected graph and dependency-neighbor query API",
       "sourceEvidence": "codegraph query API used by LLM agents to navigate large codebases without reading full files",
       "disposition": "adapted",
       "proof": [
-        "lib/codegraphIndex.ts"
+        "app/api/project/route.ts",
+        "lib/projectArchitecture.ts"
       ],
-      "adaptationNotes": "queryCodegraphNeighbors + buildCodegraphSnapshot; full symbol defs deferred."
+      "adaptationNotes": "The protected project API returns import neighbors plus ownership, hotspot, and security context; full symbol definitions and usages remain deferred."
     },
     {
       "id": "incremental-reindex",
       "title": "Incremental re-index on file save to keep graph current during active development",
       "sourceEvidence": "codegraph watcher mode: file-change events trigger partial re-parse",
-      "disposition": "pending",
-      "reason": "Full graph index not yet implemented; incremental re-index deferred."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus builds its bounded TypeScript and JavaScript import graph from current files on each protected query, so it has no persistent index that can become stale. A background watcher and database would duplicate that on-demand local contract."
     },
     {
       "id": "cross-repo-graph-federation",
       "title": "Federate call graphs across multiple repositories for polyrepo agent navigation",
       "sourceEvidence": "codegraph multi-repo mode: merge indexes from multiple repos",
-      "disposition": "pending",
-      "reason": "Nexus is a single-repo product; cross-repo federation deferred until single-repo graph is proven."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The protected project graph is intentionally rooted to this Nexus checkout. Federating arbitrary repositories would require new path, retention, trust, and ownership boundaries outside the product's single-project context spine."
     }
   ]
 }

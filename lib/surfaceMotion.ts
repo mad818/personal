@@ -104,14 +104,13 @@ export interface SurfaceHeroMediaSpec {
   accentBeam: "cool" | "warm" | "spectral" | "quiet";
   vignette: "command" | "scan" | "sealed" | "manual";
   frameStyle:
-    | "sanctum"
-    | "campaign"
-    | "librarium"
-    | "altar"
-    | "bastion"
-    | "auspex"
-    | "reliquary"
-    | "codex";
+    | "primary"
+    | "operations"
+    | "analysis"
+    | "markets"
+    | "defense"
+    | "archive"
+    | "reference";
 }
 
 export interface ChronicleMotionPreset {
@@ -166,10 +165,8 @@ const SHARED_ANIMATE: SurfaceTransitionState = {
 const AMBIENT_SPECS: Record<SurfaceMotionSurface, SurfaceAmbientSpec> = {
   default: {
     surface: "default",
-    haze:
-      "radial-gradient(circle at 18% 18%, rgba(103,232,249,.12), transparent 22%), radial-gradient(circle at 82% 14%, rgba(245,158,11,.08), transparent 24%), radial-gradient(circle at 50% 0%, rgba(255,255,255,.05), transparent 28%)",
-    grid:
-      "linear-gradient(90deg, rgba(103,232,249,.05) 0, rgba(103,232,249,.05) 1px, transparent 1px, transparent 180px), linear-gradient(180deg, rgba(255,255,255,.04) 0, rgba(255,255,255,.04) 1px, transparent 1px, transparent 144px)",
+    haze: "radial-gradient(circle at 18% 18%, rgba(103,232,249,.12), transparent 22%), radial-gradient(circle at 82% 14%, rgba(245,158,11,.08), transparent 24%), radial-gradient(circle at 50% 0%, rgba(255,255,255,.05), transparent 28%)",
+    grid: "linear-gradient(90deg, rgba(103,232,249,.05) 0, rgba(103,232,249,.05) 1px, transparent 1px, transparent 180px), linear-gradient(180deg, rgba(255,255,255,.04) 0, rgba(255,255,255,.04) 1px, transparent 1px, transparent 144px)",
     sweep:
       "linear-gradient(90deg, transparent 0%, rgba(103,232,249,.12) 48%, rgba(245,158,11,.08) 52%, transparent 100%)",
     signals:
@@ -180,10 +177,8 @@ const AMBIENT_SPECS: Record<SurfaceMotionSurface, SurfaceAmbientSpec> = {
   },
   hq: {
     surface: "hq",
-    haze:
-      "radial-gradient(circle at 18% 18%, rgba(103,232,249,.16), transparent 24%), radial-gradient(circle at 78% 12%, rgba(96,165,250,.16), transparent 26%), radial-gradient(circle at 50% 0%, rgba(245,158,11,.08), transparent 30%)",
-    grid:
-      "linear-gradient(90deg, rgba(103,232,249,.07) 0, rgba(103,232,249,.07) 1px, transparent 1px, transparent 176px), linear-gradient(180deg, rgba(103,232,249,.05) 0, rgba(103,232,249,.05) 1px, transparent 1px, transparent 138px)",
+    haze: "radial-gradient(circle at 18% 18%, rgba(103,232,249,.16), transparent 24%), radial-gradient(circle at 78% 12%, rgba(96,165,250,.16), transparent 26%), radial-gradient(circle at 50% 0%, rgba(245,158,11,.08), transparent 30%)",
+    grid: "linear-gradient(90deg, rgba(103,232,249,.07) 0, rgba(103,232,249,.07) 1px, transparent 1px, transparent 176px), linear-gradient(180deg, rgba(103,232,249,.05) 0, rgba(103,232,249,.05) 1px, transparent 1px, transparent 138px)",
     sweep:
       "linear-gradient(90deg, transparent 0%, rgba(103,232,249,.2) 46%, rgba(245,158,11,.12) 51%, transparent 100%)",
     signals:
@@ -194,10 +189,8 @@ const AMBIENT_SPECS: Record<SurfaceMotionSurface, SurfaceAmbientSpec> = {
   },
   command: {
     surface: "command",
-    haze:
-      "radial-gradient(circle at 16% 20%, rgba(245,158,11,.16), transparent 24%), radial-gradient(circle at 82% 16%, rgba(251,113,133,.12), transparent 22%), radial-gradient(circle at 50% 100%, rgba(103,232,249,.06), transparent 26%)",
-    grid:
-      "linear-gradient(90deg, rgba(245,158,11,.07) 0, rgba(245,158,11,.07) 1px, transparent 1px, transparent 160px), linear-gradient(180deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 1px, transparent 120px)",
+    haze: "radial-gradient(circle at 16% 20%, rgba(245,158,11,.16), transparent 24%), radial-gradient(circle at 82% 16%, rgba(251,113,133,.12), transparent 22%), radial-gradient(circle at 50% 100%, rgba(103,232,249,.06), transparent 26%)",
+    grid: "linear-gradient(90deg, rgba(245,158,11,.07) 0, rgba(245,158,11,.07) 1px, transparent 1px, transparent 160px), linear-gradient(180deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 1px, transparent 120px)",
     sweep:
       "linear-gradient(90deg, transparent 0%, rgba(245,158,11,.2) 48%, rgba(251,113,133,.12) 52%, transparent 100%)",
     signals:
@@ -208,10 +201,8 @@ const AMBIENT_SPECS: Record<SurfaceMotionSurface, SurfaceAmbientSpec> = {
   },
   intel: {
     surface: "intel",
-    haze:
-      "radial-gradient(circle at 18% 18%, rgba(167,139,250,.14), transparent 24%), radial-gradient(circle at 78% 14%, rgba(56,189,248,.12), transparent 24%), radial-gradient(circle at 40% 82%, rgba(255,255,255,.05), transparent 18%)",
-    grid:
-      "repeating-linear-gradient(180deg, rgba(167,139,250,.04) 0, rgba(167,139,250,.04) 1px, transparent 1px, transparent 10px), linear-gradient(90deg, rgba(56,189,248,.05) 0, rgba(56,189,248,.05) 1px, transparent 1px, transparent 190px)",
+    haze: "radial-gradient(circle at 18% 18%, rgba(167,139,250,.14), transparent 24%), radial-gradient(circle at 78% 14%, rgba(56,189,248,.12), transparent 24%), radial-gradient(circle at 40% 82%, rgba(255,255,255,.05), transparent 18%)",
+    grid: "repeating-linear-gradient(180deg, rgba(167,139,250,.04) 0, rgba(167,139,250,.04) 1px, transparent 1px, transparent 10px), linear-gradient(90deg, rgba(56,189,248,.05) 0, rgba(56,189,248,.05) 1px, transparent 1px, transparent 190px)",
     sweep:
       "linear-gradient(180deg, transparent 0%, rgba(56,189,248,.18) 46%, rgba(167,139,250,.1) 52%, transparent 100%)",
     signals:
@@ -222,10 +213,8 @@ const AMBIENT_SPECS: Record<SurfaceMotionSurface, SurfaceAmbientSpec> = {
   },
   alpha: {
     surface: "alpha",
-    haze:
-      "radial-gradient(circle at 18% 18%, rgba(52,211,153,.12), transparent 24%), radial-gradient(circle at 82% 14%, rgba(250,204,21,.1), transparent 24%), radial-gradient(circle at 50% 100%, rgba(103,232,249,.05), transparent 22%)",
-    grid:
-      "linear-gradient(90deg, rgba(52,211,153,.05) 0, rgba(52,211,153,.05) 1px, transparent 1px, transparent 172px), repeating-linear-gradient(180deg, rgba(250,204,21,.03) 0, rgba(250,204,21,.03) 1px, transparent 1px, transparent 14px)",
+    haze: "radial-gradient(circle at 18% 18%, rgba(52,211,153,.12), transparent 24%), radial-gradient(circle at 82% 14%, rgba(250,204,21,.1), transparent 24%), radial-gradient(circle at 50% 100%, rgba(103,232,249,.05), transparent 22%)",
+    grid: "linear-gradient(90deg, rgba(52,211,153,.05) 0, rgba(52,211,153,.05) 1px, transparent 1px, transparent 172px), repeating-linear-gradient(180deg, rgba(250,204,21,.03) 0, rgba(250,204,21,.03) 1px, transparent 1px, transparent 14px)",
     sweep:
       "linear-gradient(90deg, transparent 0%, rgba(52,211,153,.18) 48%, rgba(250,204,21,.1) 54%, transparent 100%)",
     signals:
@@ -236,10 +225,8 @@ const AMBIENT_SPECS: Record<SurfaceMotionSurface, SurfaceAmbientSpec> = {
   },
   cyber: {
     surface: "cyber",
-    haze:
-      "radial-gradient(circle at 18% 18%, rgba(45,212,191,.14), transparent 22%), radial-gradient(circle at 82% 14%, rgba(251,113,133,.12), transparent 22%), radial-gradient(circle at 50% 88%, rgba(96,165,250,.05), transparent 20%)",
-    grid:
-      "repeating-linear-gradient(135deg, rgba(45,212,191,.05) 0, rgba(45,212,191,.05) 1px, transparent 1px, transparent 22px), repeating-linear-gradient(45deg, rgba(56,189,248,.04) 0, rgba(56,189,248,.04) 1px, transparent 1px, transparent 24px)",
+    haze: "radial-gradient(circle at 18% 18%, rgba(45,212,191,.14), transparent 22%), radial-gradient(circle at 82% 14%, rgba(251,113,133,.12), transparent 22%), radial-gradient(circle at 50% 88%, rgba(96,165,250,.05), transparent 20%)",
+    grid: "repeating-linear-gradient(135deg, rgba(45,212,191,.05) 0, rgba(45,212,191,.05) 1px, transparent 1px, transparent 22px), repeating-linear-gradient(45deg, rgba(56,189,248,.04) 0, rgba(56,189,248,.04) 1px, transparent 1px, transparent 24px)",
     sweep:
       "linear-gradient(90deg, transparent 0%, rgba(45,212,191,.2) 48%, rgba(251,113,133,.12) 52%, transparent 100%)",
     signals:
@@ -250,10 +237,8 @@ const AMBIENT_SPECS: Record<SurfaceMotionSurface, SurfaceAmbientSpec> = {
   },
   recon: {
     surface: "recon",
-    haze:
-      "radial-gradient(circle at 18% 18%, rgba(192,132,252,.12), transparent 24%), radial-gradient(circle at 82% 14%, rgba(103,232,249,.1), transparent 22%), radial-gradient(circle at 52% 90%, rgba(255,255,255,.04), transparent 18%)",
-    grid:
-      "linear-gradient(90deg, rgba(192,132,252,.04) 0, rgba(192,132,252,.04) 1px, transparent 1px, transparent 180px), linear-gradient(180deg, rgba(103,232,249,.03) 0, rgba(103,232,249,.03) 1px, transparent 1px, transparent 146px)",
+    haze: "radial-gradient(circle at 18% 18%, rgba(192,132,252,.12), transparent 24%), radial-gradient(circle at 82% 14%, rgba(103,232,249,.1), transparent 22%), radial-gradient(circle at 52% 90%, rgba(255,255,255,.04), transparent 18%)",
+    grid: "linear-gradient(90deg, rgba(192,132,252,.04) 0, rgba(192,132,252,.04) 1px, transparent 1px, transparent 180px), linear-gradient(180deg, rgba(103,232,249,.03) 0, rgba(103,232,249,.03) 1px, transparent 1px, transparent 146px)",
     sweep:
       "linear-gradient(90deg, transparent 0%, rgba(192,132,252,.14) 46%, rgba(103,232,249,.08) 52%, transparent 100%)",
     signals:
@@ -264,10 +249,8 @@ const AMBIENT_SPECS: Record<SurfaceMotionSurface, SurfaceAmbientSpec> = {
   },
   vault: {
     surface: "vault",
-    haze:
-      "radial-gradient(circle at 18% 18%, rgba(147,197,253,.14), transparent 24%), radial-gradient(circle at 82% 12%, rgba(253,164,175,.1), transparent 22%), radial-gradient(circle at 56% 88%, rgba(255,255,255,.05), transparent 20%)",
-    grid:
-      "linear-gradient(90deg, rgba(147,197,253,.04) 0, rgba(147,197,253,.04) 1px, transparent 1px, transparent 200px), linear-gradient(180deg, rgba(255,255,255,.02) 0, rgba(255,255,255,.02) 1px, transparent 1px, transparent 164px)",
+    haze: "radial-gradient(circle at 18% 18%, rgba(147,197,253,.14), transparent 24%), radial-gradient(circle at 82% 12%, rgba(253,164,175,.1), transparent 22%), radial-gradient(circle at 56% 88%, rgba(255,255,255,.05), transparent 20%)",
+    grid: "linear-gradient(90deg, rgba(147,197,253,.04) 0, rgba(147,197,253,.04) 1px, transparent 1px, transparent 200px), linear-gradient(180deg, rgba(255,255,255,.02) 0, rgba(255,255,255,.02) 1px, transparent 1px, transparent 164px)",
     sweep:
       "linear-gradient(180deg, transparent 0%, rgba(147,197,253,.16) 48%, rgba(253,164,175,.08) 54%, transparent 100%)",
     signals:
@@ -278,10 +261,8 @@ const AMBIENT_SPECS: Record<SurfaceMotionSurface, SurfaceAmbientSpec> = {
   },
   resources: {
     surface: "resources",
-    haze:
-      "radial-gradient(circle at 18% 18%, rgba(251,191,36,.14), transparent 24%), radial-gradient(circle at 82% 14%, rgba(103,232,249,.12), transparent 24%), radial-gradient(circle at 44% 84%, rgba(255,255,255,.05), transparent 18%)",
-    grid:
-      "linear-gradient(90deg, rgba(251,191,36,.05) 0, rgba(251,191,36,.05) 1px, transparent 1px, transparent 124px), linear-gradient(180deg, rgba(103,232,249,.04) 0, rgba(103,232,249,.04) 1px, transparent 1px, transparent 108px)",
+    haze: "radial-gradient(circle at 18% 18%, rgba(251,191,36,.14), transparent 24%), radial-gradient(circle at 82% 14%, rgba(103,232,249,.12), transparent 24%), radial-gradient(circle at 44% 84%, rgba(255,255,255,.05), transparent 18%)",
+    grid: "linear-gradient(90deg, rgba(251,191,36,.05) 0, rgba(251,191,36,.05) 1px, transparent 1px, transparent 124px), linear-gradient(180deg, rgba(103,232,249,.04) 0, rgba(103,232,249,.04) 1px, transparent 1px, transparent 108px)",
     sweep:
       "linear-gradient(90deg, transparent 0%, rgba(251,191,36,.14) 48%, rgba(103,232,249,.12) 52%, transparent 100%)",
     signals:
@@ -292,10 +273,8 @@ const AMBIENT_SPECS: Record<SurfaceMotionSurface, SurfaceAmbientSpec> = {
   },
   vehicle: {
     surface: "vehicle",
-    haze:
-      "radial-gradient(circle at 18% 18%, rgba(56,189,248,.14), transparent 24%), radial-gradient(circle at 82% 14%, rgba(245,158,11,.1), transparent 24%), radial-gradient(circle at 50% 88%, rgba(255,255,255,.04), transparent 20%)",
-    grid:
-      "linear-gradient(90deg, rgba(56,189,248,.05) 0, rgba(56,189,248,.05) 1px, transparent 1px, transparent 170px), linear-gradient(180deg, rgba(245,158,11,.04) 0, rgba(245,158,11,.04) 1px, transparent 1px, transparent 126px)",
+    haze: "radial-gradient(circle at 18% 18%, rgba(56,189,248,.14), transparent 24%), radial-gradient(circle at 82% 14%, rgba(245,158,11,.1), transparent 24%), radial-gradient(circle at 50% 88%, rgba(255,255,255,.04), transparent 20%)",
+    grid: "linear-gradient(90deg, rgba(56,189,248,.05) 0, rgba(56,189,248,.05) 1px, transparent 1px, transparent 170px), linear-gradient(180deg, rgba(245,158,11,.04) 0, rgba(245,158,11,.04) 1px, transparent 1px, transparent 126px)",
     sweep:
       "linear-gradient(90deg, transparent 0%, rgba(56,189,248,.18) 48%, rgba(245,158,11,.1) 52%, transparent 100%)",
     signals:
@@ -306,10 +285,8 @@ const AMBIENT_SPECS: Record<SurfaceMotionSurface, SurfaceAmbientSpec> = {
   },
   iot: {
     surface: "iot",
-    haze:
-      "radial-gradient(circle at 18% 18%, rgba(79,213,255,.13), transparent 24%), radial-gradient(circle at 82% 14%, rgba(132,204,22,.1), transparent 24%), radial-gradient(circle at 50% 88%, rgba(255,255,255,.04), transparent 20%)",
-    grid:
-      "linear-gradient(90deg, rgba(79,213,255,.05) 0, rgba(79,213,255,.05) 1px, transparent 1px, transparent 154px), linear-gradient(180deg, rgba(132,204,22,.04) 0, rgba(132,204,22,.04) 1px, transparent 1px, transparent 118px)",
+    haze: "radial-gradient(circle at 18% 18%, rgba(79,213,255,.13), transparent 24%), radial-gradient(circle at 82% 14%, rgba(132,204,22,.1), transparent 24%), radial-gradient(circle at 50% 88%, rgba(255,255,255,.04), transparent 20%)",
+    grid: "linear-gradient(90deg, rgba(79,213,255,.05) 0, rgba(79,213,255,.05) 1px, transparent 1px, transparent 154px), linear-gradient(180deg, rgba(132,204,22,.04) 0, rgba(132,204,22,.04) 1px, transparent 1px, transparent 118px)",
     sweep:
       "linear-gradient(90deg, transparent 0%, rgba(79,213,255,.16) 48%, rgba(132,204,22,.1) 54%, transparent 100%)",
     signals:
@@ -320,10 +297,8 @@ const AMBIENT_SPECS: Record<SurfaceMotionSurface, SurfaceAmbientSpec> = {
   },
   security: {
     surface: "security",
-    haze:
-      "radial-gradient(circle at 18% 18%, rgba(134,162,182,.12), transparent 24%), radial-gradient(circle at 82% 14%, rgba(196,211,224,.1), transparent 24%), radial-gradient(circle at 52% 88%, rgba(255,255,255,.04), transparent 18%)",
-    grid:
-      "linear-gradient(90deg, rgba(134,162,182,.05) 0, rgba(134,162,182,.05) 1px, transparent 1px, transparent 176px), linear-gradient(180deg, rgba(196,211,224,.04) 0, rgba(196,211,224,.04) 1px, transparent 1px, transparent 128px)",
+    haze: "radial-gradient(circle at 18% 18%, rgba(134,162,182,.12), transparent 24%), radial-gradient(circle at 82% 14%, rgba(196,211,224,.1), transparent 24%), radial-gradient(circle at 52% 88%, rgba(255,255,255,.04), transparent 18%)",
+    grid: "linear-gradient(90deg, rgba(134,162,182,.05) 0, rgba(134,162,182,.05) 1px, transparent 1px, transparent 176px), linear-gradient(180deg, rgba(196,211,224,.04) 0, rgba(196,211,224,.04) 1px, transparent 1px, transparent 128px)",
     sweep:
       "linear-gradient(90deg, transparent 0%, rgba(196,211,224,.16) 48%, rgba(134,162,182,.12) 54%, transparent 100%)",
     signals:
@@ -334,10 +309,8 @@ const AMBIENT_SPECS: Record<SurfaceMotionSurface, SurfaceAmbientSpec> = {
   },
   skills: {
     surface: "skills",
-    haze:
-      "radial-gradient(circle at 18% 18%, rgba(160,176,190,.12), transparent 24%), radial-gradient(circle at 82% 14%, rgba(120,141,162,.12), transparent 24%), radial-gradient(circle at 44% 84%, rgba(255,255,255,.05), transparent 18%)",
-    grid:
-      "linear-gradient(90deg, rgba(160,176,190,.05) 0, rgba(160,176,190,.05) 1px, transparent 1px, transparent 152px), linear-gradient(180deg, rgba(120,141,162,.04) 0, rgba(120,141,162,.04) 1px, transparent 1px, transparent 110px)",
+    haze: "radial-gradient(circle at 18% 18%, rgba(160,176,190,.12), transparent 24%), radial-gradient(circle at 82% 14%, rgba(120,141,162,.12), transparent 24%), radial-gradient(circle at 44% 84%, rgba(255,255,255,.05), transparent 18%)",
+    grid: "linear-gradient(90deg, rgba(160,176,190,.05) 0, rgba(160,176,190,.05) 1px, transparent 1px, transparent 152px), linear-gradient(180deg, rgba(120,141,162,.04) 0, rgba(120,141,162,.04) 1px, transparent 1px, transparent 110px)",
     sweep:
       "linear-gradient(90deg, transparent 0%, rgba(160,176,190,.16) 48%, rgba(120,141,162,.12) 52%, transparent 100%)",
     signals:
@@ -357,7 +330,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "signal",
     accentBeam: "cool",
     vignette: "command",
-    frameStyle: "sanctum",
+    frameStyle: "primary",
   },
   hq: {
     surface: "hq",
@@ -367,7 +340,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "ceremonial",
     accentBeam: "cool",
     vignette: "command",
-    frameStyle: "sanctum",
+    frameStyle: "primary",
   },
   command: {
     surface: "command",
@@ -377,7 +350,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "signal",
     accentBeam: "warm",
     vignette: "command",
-    frameStyle: "campaign",
+    frameStyle: "operations",
   },
   intel: {
     surface: "intel",
@@ -387,7 +360,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "analysis",
     accentBeam: "spectral",
     vignette: "scan",
-    frameStyle: "librarium",
+    frameStyle: "analysis",
   },
   alpha: {
     surface: "alpha",
@@ -397,7 +370,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "signal",
     accentBeam: "cool",
     vignette: "command",
-    frameStyle: "altar",
+    frameStyle: "markets",
   },
   cyber: {
     surface: "cyber",
@@ -407,7 +380,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "signal",
     accentBeam: "spectral",
     vignette: "sealed",
-    frameStyle: "bastion",
+    frameStyle: "defense",
   },
   recon: {
     surface: "recon",
@@ -417,7 +390,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "analysis",
     accentBeam: "quiet",
     vignette: "scan",
-    frameStyle: "auspex",
+    frameStyle: "analysis",
   },
   vault: {
     surface: "vault",
@@ -427,7 +400,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "analysis",
     accentBeam: "quiet",
     vignette: "sealed",
-    frameStyle: "reliquary",
+    frameStyle: "archive",
   },
   resources: {
     surface: "resources",
@@ -437,7 +410,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "manual",
     accentBeam: "warm",
     vignette: "manual",
-    frameStyle: "codex",
+    frameStyle: "reference",
   },
   vehicle: {
     surface: "vehicle",
@@ -447,7 +420,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "signal",
     accentBeam: "cool",
     vignette: "command",
-    frameStyle: "campaign",
+    frameStyle: "operations",
   },
   iot: {
     surface: "iot",
@@ -457,7 +430,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "signal",
     accentBeam: "cool",
     vignette: "command",
-    frameStyle: "campaign",
+    frameStyle: "operations",
   },
   security: {
     surface: "security",
@@ -467,7 +440,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "manual",
     accentBeam: "quiet",
     vignette: "sealed",
-    frameStyle: "bastion",
+    frameStyle: "defense",
   },
   skills: {
     surface: "skills",
@@ -477,7 +450,7 @@ const HERO_MEDIA_SPECS: Record<SurfaceMotionSurface, SurfaceHeroMediaSpec> = {
     badgeMood: "manual",
     accentBeam: "quiet",
     vignette: "manual",
-    frameStyle: "codex",
+    frameStyle: "reference",
   },
 };
 
@@ -984,7 +957,10 @@ const SEQUENCE_PRESETS: Record<SurfaceMotionSurface, SurfaceSequencePreset> = {
   },
 };
 
-const SIGNAL_MOTION_SPECS: Record<SurfaceMotionSurface, SurfaceSignalMotionSpec> = {
+const SIGNAL_MOTION_SPECS: Record<
+  SurfaceMotionSurface,
+  SurfaceSignalMotionSpec
+> = {
   default: {
     surface: "default",
     navBeamMs: 2800,
@@ -1102,9 +1078,12 @@ function buildTransitionPreset(
     exit,
     transition: {
       duration,
-      ease: [
-        ...DESIGN_MD_MOTION.ease.emphasis,
-      ] as [number, number, number, number],
+      ease: [...DESIGN_MD_MOTION.ease.emphasis] as [
+        number,
+        number,
+        number,
+        number,
+      ],
       opacity: {
         duration: Math.max(DESIGN_MD_MOTION.durations.fastSec, duration - 0.06),
       },
@@ -1202,36 +1181,33 @@ export function resolveSurfaceTransitionPreset(
   }
 
   const sequence = resolveSurfaceSequencePreset(surface);
-  const durationScale = profile === "flagship" ? 1 : 0.82;
-  const flagshipDelta = profile === "flagship" ? 1 : 0.68;
+  const durationScale = profile === "flagship" ? 0.85 : 0.7;
+  const flagshipDelta = profile === "flagship" ? 0.55 : 0.4;
   const initial = {
     ...sequence.ingress.initial,
     y:
       typeof sequence.ingress.initial.y === "number"
-        ? sequence.ingress.initial.y * flagshipDelta
+        ? Math.min(12, sequence.ingress.initial.y * flagshipDelta)
         : undefined,
     x:
       typeof sequence.ingress.initial.x === "number"
         ? sequence.ingress.initial.x * flagshipDelta
         : undefined,
-    filter:
-      profile === "standard"
-        ? String(sequence.ingress.initial.filter ?? "").replace(
-            /blur\(([\d.]+)px\)/,
-            (_match, value) => `blur(${Math.max(2, Number(value) * 0.72)}px)`,
-          )
-        : sequence.ingress.initial.filter,
+    scale: undefined,
+    filter: undefined,
   };
   const exit = {
     ...sequence.ingress.exit,
     y:
       typeof sequence.ingress.exit.y === "number"
-        ? sequence.ingress.exit.y * flagshipDelta
+        ? Math.min(8, Math.abs(sequence.ingress.exit.y) * flagshipDelta)
         : undefined,
     x:
       typeof sequence.ingress.exit.x === "number"
         ? sequence.ingress.exit.x * flagshipDelta
         : undefined,
+    scale: undefined,
+    filter: undefined,
   };
 
   return buildTransitionPreset(
@@ -1347,10 +1323,13 @@ export function resolveOfficeSceneCue({
     missionState,
     roomMood: missionState,
     lightingEmphasis:
-      0.18 + (missionLift * 0.42 + tempoLift * 0.18 + toneLift * 0.12) * profileScale,
+      0.18 +
+      (missionLift * 0.42 + tempoLift * 0.18 + toneLift * 0.12) * profileScale,
     beaconStrength: 0.24 + missionLift * 0.56 * profileScale,
     tempoPulse: 0.86 + tempoLift * 0.46 * profileScale,
-    dispatchEmphasis: dispatchActive ? 0.34 + 0.56 * profileScale : 0.08 + 0.12 * profileScale,
+    dispatchEmphasis: dispatchActive
+      ? 0.34 + 0.56 * profileScale
+      : 0.08 + 0.12 * profileScale,
     emissiveBoost: 0.14 + (missionLift * 0.34 + toneLift * 0.22) * profileScale,
     practicalWarmth: 0.08 + toneLift * 0.34 * profileScale,
     accentColor,

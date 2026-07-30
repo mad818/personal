@@ -29,7 +29,9 @@ function pillStyle(active = false) {
   return {
     padding: "8px 10px",
     borderRadius: "999px",
-    border: active ? "1px solid rgba(120, 196, 255, 0.55)" : "1px solid var(--border)",
+    border: active
+      ? "1px solid rgba(120, 196, 255, 0.55)"
+      : "1px solid var(--border)",
     background: active ? "rgba(56, 122, 255, 0.18)" : "rgba(10, 15, 30, 0.58)",
     color: "var(--text)",
     fontSize: "11px",
@@ -135,7 +137,9 @@ export default function SystemDesignConsole() {
             <ShellBadge tone="accent">
               {BOUNDARY_LABELS[selectedSystem.boundary]}
             </ShellBadge>
-            <ShellBadge tone={selectedSystem.changeRisk === "high" ? "default" : "muted"}>
+            <ShellBadge
+              tone={selectedSystem.changeRisk === "high" ? "default" : "muted"}
+            >
               {RISK_LABELS[selectedSystem.changeRisk]}
             </ShellBadge>
             <ShellBadge tone="muted">{selectedSystem.primaryRoute}</ShellBadge>
@@ -158,12 +162,16 @@ export default function SystemDesignConsole() {
           }}
         >
           <div style={{ display: "grid", gap: "10px" }}>
-            <SectionLabel detail={`${selectedSystem.entryPoints.length} anchors`}>
+            <SectionLabel
+              detail={`${selectedSystem.entryPoints.length} anchors`}
+            >
               Entry points
             </SectionLabel>
             {selectedSystem.entryPoints.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>
@@ -174,25 +182,33 @@ export default function SystemDesignConsole() {
             </SectionLabel>
             {selectedSystem.readFirst.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>
 
           <div style={{ display: "grid", gap: "10px" }}>
-            <SectionLabel detail={`${selectedSystem.dependencies.length} constraints`}>
+            <SectionLabel
+              detail={`${selectedSystem.dependencies.length} constraints`}
+            >
               Dependencies
             </SectionLabel>
             {selectedSystem.dependencies.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>
         </div>
 
         <div style={{ display: "grid", gap: "10px" }}>
-          <SectionLabel detail={`${selectedSystem.readFirst.length} file starts`}>
+          <SectionLabel
+            detail={`${selectedSystem.readFirst.length} file starts`}
+          >
             Open read-first analysis
           </SectionLabel>
           <ActionSessionCluster
@@ -212,12 +228,16 @@ export default function SystemDesignConsole() {
           }}
         >
           <div style={{ display: "grid", gap: "10px" }}>
-            <SectionLabel detail={`${selectedSystem.failureModes.length} watchpoints`}>
+            <SectionLabel
+              detail={`${selectedSystem.failureModes.length} watchpoints`}
+            >
               Failure modes
             </SectionLabel>
             {selectedSystem.failureModes.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>
@@ -228,7 +248,9 @@ export default function SystemDesignConsole() {
             </SectionLabel>
             {selectedSystem.guardrails.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>
@@ -242,41 +264,55 @@ export default function SystemDesignConsole() {
           }}
         >
           <div style={{ display: "grid", gap: "10px" }}>
-            <SectionLabel detail={`${selectedSystem.performanceHotspots.length} hotspots`}>
+            <SectionLabel
+              detail={`${selectedSystem.performanceHotspots.length} hotspots`}
+            >
               Performance
             </SectionLabel>
             {selectedSystem.performanceHotspots.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>
 
           <div style={{ display: "grid", gap: "10px" }}>
-            <SectionLabel detail={`${selectedSystem.microOptimizations.length} small wins`}>
+            <SectionLabel
+              detail={`${selectedSystem.microOptimizations.length} small wins`}
+            >
               Micro-optimizations
             </SectionLabel>
             {selectedSystem.microOptimizations.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>
 
           <div style={{ display: "grid", gap: "10px" }}>
-            <SectionLabel detail={`${selectedSystem.securityAuditChecks.length} checks`}>
+            <SectionLabel
+              detail={`${selectedSystem.securityAuditChecks.length} checks`}
+            >
               Security audit
             </SectionLabel>
             {selectedSystem.securityAuditChecks.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>
         </div>
 
         <div style={{ display: "grid", gap: "10px" }}>
-          <SectionLabel detail={`${selectedSystem.nextActions.length} fix sessions`}>
+          <SectionLabel
+            detail={`${selectedSystem.nextActions.length} fix sessions`}
+          >
             Open the right repair next
           </SectionLabel>
           <ActionSessionCluster
@@ -288,7 +324,9 @@ export default function SystemDesignConsole() {
         </div>
 
         <div style={{ display: "grid", gap: "10px" }}>
-          <SectionLabel detail={`${selectedSystem.impactSeedFiles.length} file starts`}>
+          <SectionLabel
+            detail={`${selectedSystem.impactSeedFiles.length} file starts`}
+          >
             Send to Impact
           </SectionLabel>
           <ActionSessionCluster

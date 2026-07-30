@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "id": "no-mistakes",
+  "name": "no-mistakes",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/kunchenguid/no-mistakes",
+    "version": "v1.34.0",
+    "reviewedAt": "2026-07-12",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/kunchenguid/no-mistakes/blob/v1.34.0/README.md",
+      "https://github.com/kunchenguid/no-mistakes/blob/v1.34.0/.no-mistakes.yaml",
+      "https://github.com/kunchenguid/no-mistakes/blob/v1.34.0/go.mod",
+      "https://github.com/kunchenguid/no-mistakes/blob/v1.34.0/skills/no-mistakes/SKILL.md"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "explicit-operator-intent",
+      "title": "Require the operator's objective so review can distinguish intent from mistakes",
+      "sourceEvidence": "skills/no-mistakes/SKILL.md Intent is required",
+      "disposition": "implemented",
+      "proof": [
+        "scripts/nexus-release-gate.mjs",
+        "scripts/check-nexus-release-gate-runtime.mjs"
+      ]
+    },
+    {
+      "id": "ordered-validation-pipeline",
+      "title": "Run an ordered review, test, documentation, lint, and release validation pipeline",
+      "sourceEvidence": "README.md How it works; skills/no-mistakes/SKILL.md pipeline steps",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/nexus-release-gate.mjs",
+        "package.json",
+        ".husky/pre-push"
+      ]
+    },
+    {
+      "id": "deterministic-repository-commands",
+      "title": "Use repository-owned deterministic test, lint, format, and documentation commands",
+      "sourceEvidence": ".no-mistakes.yaml commands",
+      "disposition": "adapted",
+      "proof": [
+        "package.json",
+        ".husky/pre-push",
+        "scripts/operator-preflight.mjs"
+      ]
+    },
+    {
+      "id": "human-controlled-findings",
+      "title": "Keep intent-changing findings and release decisions under human control",
+      "sourceEvidence": "README.md Human stays in charge; SKILL.md ask-user findings",
+      "disposition": "implemented",
+      "proof": [
+        "scripts/nexus-release-gate.mjs",
+        "specs/features/no-mistakes-release-gate.md"
+      ]
+    },
+    {
+      "id": "machine-readable-gate-outcomes",
+      "title": "Expose machine-readable gate state, blockers, and next actions",
+      "sourceEvidence": "skills/no-mistakes/SKILL.md AXI TOON output and terminal outcomes",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/nexus-release-gate.mjs",
+        "scripts/check-nexus-release-gate-runtime.mjs"
+      ]
+    },
+    {
+      "id": "block-remote-forwarding-on-local-failure",
+      "title": "Do not forward changes to a real remote while local checks are failing",
+      "sourceEvidence": "README.md Nothing reaches the push target until every check is green",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/nexus-release-gate.mjs",
+        "scripts/validate-nexus-release-gate.mjs"
+      ]
+    },
+    {
+      "id": "disposable-worktree-isolation",
+      "title": "Run validation in a disposable worktree without disrupting the active checkout",
+      "sourceEvidence": "README.md How it works",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/isolated-verify.mjs",
+        "scripts/check-isolated-verification-runtime.mjs",
+        "specs/features/no-mistakes-isolated-verification.md"
+      ]
+    },
+    {
+      "id": "safe-mechanical-auto-fixes",
+      "title": "Apply bounded mechanical fixes and re-run affected gates",
+      "sourceEvidence": "README.md and SKILL.md auto-fix findings",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/isolated-safe-fix.mjs",
+        "scripts/check-isolated-safe-fix-runtime.mjs",
+        "specs/features/no-mistakes-isolated-safe-fixes.md"
+      ]
+    },
+    {
+      "id": "durable-run-evidence",
+      "title": "Persist gate runs, findings, step logs, and evidence for later inspection",
+      "sourceEvidence": ".no-mistakes/evidence, SQLite run state, and AXI status/logs",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/isolated-verify.mjs",
+        "scripts/check-isolated-verification-runtime.mjs",
+        "specs/features/no-mistakes-isolated-verification.md"
+      ]
+    },
+    {
+      "id": "git-proxy-daemon-and-tui",
+      "title": "Install a Git proxy remote, daemon, and interactive terminal UI",
+      "sourceEvidence": "README.md Install, Quick Start, and trigger modes",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus already owns its Git wrapper, hooks, operator commands, and product UI; a second daemon and TUI would duplicate the operational surface."
+    },
+    {
+      "id": "external-agent-fallbacks",
+      "title": "Drive configurable external coding-agent binaries with ordered fallbacks",
+      "sourceEvidence": "README.md Agent-agnostic pipeline and SKILL.md configured pipeline agent",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The Nexus release gate composes deterministic repository checks and does not introduce another external-agent orchestration layer."
+    },
+    {
+      "id": "automatic-push-pr-and-ci-mutation",
+      "title": "Forward branches, create pull requests, monitor or fix CI, rebase, and merge automatically",
+      "sourceEvidence": "README.md Clean PR flow and SKILL.md CI monitor/rebase behavior",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Remote writes and intent-changing branch operations remain explicit operator actions; the local gate only reports when they are required."
+    }
+  ]
+}

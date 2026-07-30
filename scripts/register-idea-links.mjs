@@ -8,6 +8,13 @@ const queuePath = path.join(root, "docs", "ideas", "pending-links.json");
 const URL_RE = /https?:\/\/[^\s<>"')\]]+/gi;
 const SCRIPT_BUDGET_MS = 30_000;
 const STDIN_READ_TIMEOUT_MS = 15_000;
+const CODE_HOSTS = new Set(["github.com", "www.github.com", "gitlab.com"]);
+const SOCIAL_HOSTS = new Set([
+  "x.com",
+  "www.x.com",
+  "twitter.com",
+  "www.twitter.com",
+]);
 
 const scriptBudget = setTimeout(() => {
   console.error(
@@ -18,9 +25,13 @@ const scriptBudget = setTimeout(() => {
 scriptBudget.unref?.();
 
 function classifyIdeaLink(url) {
-  const lower = url.toLowerCase();
-  if (lower.includes("github.com") || lower.includes("gitlab.com")) return "github";
-  if (lower.includes("x.com/") || lower.includes("twitter.com/")) return "x";
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    if (CODE_HOSTS.has(hostname)) return "github";
+    if (SOCIAL_HOSTS.has(hostname)) return "x";
+  } catch {
+    return "other";
+  }
   return "other";
 }
 
@@ -34,24 +45,36 @@ function hashLinkFallback(input) {
 
 function slugifyIdeaLinkId(url) {
   const kind = classifyIdeaLink(url);
-  if (kind === "github") {
-    const match = url.match(/github\.com\/([^/\s]+)\/([^/\s#?]+)/i);
-    if (match) {
-      return `${match[1]}-${match[2]}`.toLowerCase().replace(/[^a-z0-9-]+/g, "-");
+  try {
+    const parsed = new URL(url);
+    const segments = parsed.pathname.split("/").filter(Boolean);
+    if (kind === "github" && segments.length >= 2) {
+      return `${segments[0]}-${segments[1]}`
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, "-");
     }
-  }
-  if (kind === "x") {
-    const match = url.match(/status\/(\d+)/i);
-    if (match) return `x-${match[1]}`;
+    if (kind === "x") {
+      const statusIndex = segments.findIndex(
+        (segment) => segment.toLowerCase() === "status",
+      );
+      const statusId = statusIndex >= 0 ? segments[statusIndex + 1] : "";
+      if (statusId && /^\d+$/.test(statusId)) return `x-${statusId}`;
+    }
+  } catch {
+    // Fall through to the stable local hash.
   }
   return `link-${hashLinkFallback(url)}`;
 }
 
+function trimTrailingPunctuation(value) {
+  let end = value.length;
+  while (end > 0 && [")", ",", ".", ";"].includes(value[end - 1])) end -= 1;
+  return value.slice(0, end).trim();
+}
+
 function parseIdeaLinksFromText(text) {
   const matches = text.match(URL_RE) ?? [];
-  return [...new Set(matches.map((url) => url.replace(/[),.;]+$/g, "").trim()))].filter(
-    Boolean,
-  );
+  return [...new Set(matches.map(trimTrailingPunctuation))].filter(Boolean);
 }
 
 function buildIdeaLinkIntakeItem(url, extra = {}) {
@@ -76,7 +99,9 @@ function mergeIdeaLinkIntakeItems(existing, incoming) {
     added.push(item);
   }
   return {
-    merged: [...bySource.values()].sort((a, b) => b.addedAt.localeCompare(a.addedAt)),
+    merged: [...bySource.values()].sort((a, b) =>
+      b.addedAt.localeCompare(a.addedAt),
+    ),
     added,
   };
 }
@@ -137,7 +162,10 @@ function writeStubMatrix(item) {
       version: "pending-review",
       reviewedAt: new Date().toISOString().slice(0, 10),
       license: "unknown",
-      primaryEvidence: [item.source, ...(item.sourcePost ? [item.sourcePost] : [])],
+      primaryEvidence: [
+        item.source,
+        ...(item.sourcePost ? [item.sourcePost] : []),
+      ],
     },
     capabilities: [
       {
@@ -167,14 +195,19 @@ async function main() {
 
   const queue = readQueue();
   const incoming = urls.map((url) => buildIdeaLinkIntakeItem(url));
-  const { merged, added } = mergeIdeaLinkIntakeItems(queue.items ?? [], incoming);
+  const { merged, added } = mergeIdeaLinkIntakeItems(
+    queue.items ?? [],
+    incoming,
+  );
   queue.items = merged;
   writeQueue(queue);
 
   let matricesCreated = 0;
   for (const item of added) {
     if (writeStubMatrix(item)) matricesCreated++;
-    console.log(`+ ${item.source} → ${item.targetMatrix ?? "(x post, no matrix)"}`);
+    console.log(
+      `+ ${item.source} → ${item.targetMatrix ?? "(x post, no matrix)"}`,
+    );
   }
 
   clearTimeout(scriptBudget);
@@ -190,6 +223,8 @@ async function main() {
 
 main().catch((error) => {
   clearTimeout(scriptBudget);
-  console.error(`x ideas:register: ${error instanceof Error ? error.message : String(error)}`);
+  console.error(
+    `x ideas:register: ${error instanceof Error ? error.message : String(error)}`,
+  );
   process.exit(1);
 });

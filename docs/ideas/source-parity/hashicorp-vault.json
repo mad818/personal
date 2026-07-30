@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "hashicorp-vault",
   "name": "HashiCorp Vault",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/hashicorp/vault",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "BSL-1.1",
     "primaryEvidence": [
       "https://github.com/hashicorp/vault",
@@ -26,22 +26,33 @@
       "id": "secrets-engine-pattern",
       "title": "Pluggable secrets engine pattern: mount different secret backends at paths",
       "sourceEvidence": "Vault secrets engine mount path model",
-      "disposition": "pending",
-      "reason": "Nexus VAULT could adapt the mount-path secrets engine pattern for organizing different credential categories (API keys, local model keys, etc.)."
+      "disposition": "adapted",
+      "reason": "Nexus adapts the mount-path organization concept as bounded encrypted record paths. It does not load executable secret backends or claim dynamic infrastructure credentials.",
+      "proof": [
+        "lib/sealedVault.ts",
+        "components/vault/SealedVaultPanel.tsx",
+        "scripts/check-sealed-vault-runtime.mjs"
+      ]
     },
     {
       "id": "transit-encryption-as-a-service",
       "title": "Transit encryption: encrypt/decrypt data without storing it, via API",
       "sourceEvidence": "Vault transit engine: encrypt in transit without key management by caller",
-      "disposition": "pending",
-      "reason": "Nexus could adapt transit-style encryption for sensitive VAULT data operations; deferred pending VAULT crypto model design."
+      "disposition": "adapted",
+      "reason": "Sensitive VAULT payloads pass through one client-local seal/open boundary using AES-GCM-256, authenticated additional data, a fresh salt and IV per reseal, and no provider or network call.",
+      "proof": [
+        "lib/sealedVault.ts",
+        "scripts/check-sealed-vault-runtime.mjs",
+        "scripts/validate-sealed-vault.mjs"
+      ]
     },
     {
       "id": "audit-log-every-request",
       "title": "Immutable audit log of every secret access and administrative action",
       "sourceEvidence": "Vault audit devices: structured JSONL audit trail",
-      "disposition": "pending",
-      "reason": "Nexus CYBER has governance posture; an immutable audit log for all sensitive data access is a useful pattern pending implementation."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "A browser-local envelope cannot honestly provide immutable access auditing: same-origin code can alter storage and logging unlock reads would increase sensitive-state churn. Nexus implements bounded encrypted mutation receipts but does not mislabel them immutable."
     },
     {
       "id": "enterprise-secrets-infra",

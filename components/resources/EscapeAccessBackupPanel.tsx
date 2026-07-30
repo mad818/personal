@@ -13,6 +13,10 @@ import {
 } from "@/lib/subscriptionEscape";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { ActionDialog } from "@/components/ui/ActionDialog";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
+import { takeSelectedFile } from "@/components/ui/fileInput";
+import { useActionDialog } from "@/hooks/useActionDialog";
 
 interface EscapeAccessBackupPanelProps {
   state: SubscriptionEscapeState;
@@ -134,25 +138,27 @@ export default function EscapeAccessBackupPanel({
   const [draftRole, setDraftRole] =
     useState<SubscriptionEscapeAccessRole>("family");
   const [message, setMessage] = useState("");
+  const actionDialog = useActionDialog();
   const counts = getSubscriptionEscapeAccessCounts(state.access);
 
   function exportBackup() {
+    const filename = getBackupFileName();
     const payload = {
       kind: "nexus-subscription-escape-backup-v1",
       exportedAt: new Date().toISOString(),
       source: "Nexus Prime Escape",
       state,
     };
-    const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], {
-      type: "application/json",
+    const requested = requestTextDownload({
+      filename,
+      content: `${JSON.stringify(payload, null, 2)}\n`,
+      label: "Escape backup",
+      mimeType: "application/json",
+      announce: false,
     });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = getBackupFileName();
-    anchor.click();
-    URL.revokeObjectURL(url);
-    setMessage("Backup downloaded.");
+    setMessage(
+      requested ? "Backup download requested." : "Backup download failed.",
+    );
   }
 
   async function importBackup(file: File | null) {
@@ -161,18 +167,19 @@ export default function EscapeAccessBackupPanel({
       const raw = await file.text();
       const candidate = getImportCandidate(JSON.parse(raw));
       const description = describeImport(candidate);
-      if (
-        typeof window !== "undefined" &&
-        !window.confirm(`Restore this backup? It contains ${description}.`)
-      ) {
-        return;
-      }
+      const confirmed = await actionDialog.requestActionDialog({
+        eyebrow: "Backup restore",
+        title: "Restore this backup?",
+        description: `This replaces the current Escape state with ${description}. Download a current backup first if you may need to undo the restore.`,
+        confirmLabel: "Restore backup",
+        tone: "danger",
+      });
+      if (!confirmed) return;
+
       onReplaceState(candidate);
       setMessage(`Restore started: ${description}.`);
     } catch {
       setMessage("Backup import failed.");
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
 
@@ -282,11 +289,12 @@ export default function EscapeAccessBackupPanel({
             Import backup
           </button>
           <input
+            aria-label="Import access backup"
             ref={fileInputRef}
             type="file"
             accept="application/json,.json"
             onChange={(event) =>
-              void importBackup(event.currentTarget.files?.[0] ?? null)
+              void importBackup(takeSelectedFile(event.currentTarget))
             }
             style={{ display: "none" }}
           />
@@ -307,7 +315,11 @@ export default function EscapeAccessBackupPanel({
                   ? "Save failed"
                   : "Local source of truth"}
           </ShellBadge>
-          {message ? <ShellBadge tone="accent">{message}</ShellBadge> : null}
+          {message ? (
+            <ShellBadge role="status" tone="accent">
+              {message}
+            </ShellBadge>
+          ) : null}
         </div>
         <p
           style={{
@@ -483,6 +495,7 @@ export default function EscapeAccessBackupPanel({
           ))}
         </div>
       </section>
+      <ActionDialog controller={actionDialog} />
     </div>
   );
 }

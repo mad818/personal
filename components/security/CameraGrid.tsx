@@ -134,7 +134,7 @@ export default function CameraGrid() {
     "cam-03": true,
   });
 
-  // Listen for typed eventBus camera alerts (emitted by wsManager)
+  // Listen for typed camera alerts from any active eventBus producer.
   useEventBus("camera:alert", (data) => {
     const id = data?.cameraId;
     if (!id) return;
@@ -402,29 +402,15 @@ export default function CameraGrid() {
                   {isConnected ? "DISCONNECT" : "CONNECT"}
                 </button>
                 <div style={{ flex: 1 }} />
-                {/* Screenshot */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                  title="Screenshot"
-                  style={{
-                    fontSize: "12px",
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "2px 4px",
-                    opacity: isConnected ? 1 : 0.3,
-                  }}
-                >
-                  📸
-                </button>
                 {/* Record */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleRecording(cam.id);
                   }}
+                  aria-label={
+                    isRec ? "Stop camera recording" : "Start camera recording"
+                  }
                   title="Record"
                   style={{
                     fontSize: "10px",
@@ -522,6 +508,7 @@ export default function CameraGrid() {
                 </span>
                 <button
                   onClick={() => setExpanded(null)}
+                  aria-label="Close expanded camera"
                   style={{
                     marginLeft: "auto",
                     background: "transparent",

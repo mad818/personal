@@ -82,7 +82,9 @@ function percent(completed: number, total: number) {
   return Math.round((completed / total) * 100);
 }
 
-function dispositionComplete(disposition: LocalAccelerationCapabilityDisposition) {
+function dispositionComplete(
+  disposition: LocalAccelerationCapabilityDisposition,
+) {
   return disposition !== "pending";
 }
 
@@ -90,7 +92,9 @@ export function assessLocalAccelerationCompletion({
   capabilities,
   evidence,
 }: LocalAccelerationCompletionInput): LocalAccelerationCompletion {
-  const nexusOwned = capabilities.filter((capability) => capability.owner === "nexus");
+  const nexusOwned = capabilities.filter(
+    (capability) => capability.owner === "nexus",
+  );
   const nexusOwnedComplete = nexusOwned.filter((capability) =>
     dispositionComplete(capability.disposition),
   ).length;
@@ -154,17 +158,19 @@ export function assessLocalAccelerationCompletion({
 
   const nexusOwnedPercent = percent(nexusOwnedComplete, nexusOwned.length);
   const offlineOperationalPercent = percent(
-    [
-      evidence.staticChecksPassed,
-      evidence.localFallbackLifecyclePassed,
-    ].filter(Boolean).length,
+    [evidence.staticChecksPassed, evidence.localFallbackLifecyclePassed].filter(
+      Boolean,
+    ).length,
     2,
   );
   const optionalUpstreamRuntimePercent = percent(
     runtimeGates.filter(Boolean).length,
     runtimeGates.length,
   );
-  const sourceParityPercent = percent(sourceComplete, sourceCapabilities.length);
+  const sourceParityPercent = percent(
+    sourceComplete,
+    sourceCapabilities.length,
+  );
   const integrationGates = [
     evidence.staticChecksPassed,
     evidence.localFallbackLifecyclePassed,

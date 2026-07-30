@@ -10,7 +10,10 @@ import type { AssetKit, RegistryItem } from "@/lib/assimilation/types";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const [items, kits] = await Promise.all([listRegistryItems(), listAssetKits()]);
+  const [items, kits] = await Promise.all([
+    listRegistryItems(),
+    listAssetKits(),
+  ]);
   return NextResponse.json({ items, kits });
 }
 

@@ -1,0 +1,3 @@
+Read REPO_CONTEXT.md before Last30Days-related work.
+Keep the external runtime optional and review-first.
+Do not add credentials, browser-session access, direct provider calls, installers, or a duplicate Nexus research system.

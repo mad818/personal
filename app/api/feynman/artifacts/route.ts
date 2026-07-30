@@ -15,7 +15,10 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const artifact = await readFeynmanContinuityArtifact(sessionId, artifactKind);
+    const artifact = await readFeynmanContinuityArtifact(
+      sessionId,
+      artifactKind,
+    );
     const response = new NextResponse(new Uint8Array(artifact.buffer), {
       status: 200,
       headers: {

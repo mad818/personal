@@ -49,13 +49,7 @@ export interface FreeLocalMajorUpdate {
 }
 
 export const FREE_LOCAL_ASSISTANT_TURN_PROOF: AssistantTurnProof = {
-  requiredReceiptItems: [
-    "Runtime",
-    "Model",
-    "Network",
-    "Paid APIs",
-    "Files",
-  ],
+  requiredReceiptItems: ["Runtime", "Model", "Network", "Paid APIs", "Files"],
   localFastPathPrompt: "ping",
   localModelPrompt:
     "Are you using local Ollama, what model, and are paid APIs blocked?",
@@ -68,37 +62,43 @@ export const FREE_LOCAL_MAJOR_UPDATES: FreeLocalMajorUpdate[] = [
     id: "phone-acceptance",
     label: "Phone acceptance command flow",
     status: "active",
-    detail: "Prove desktop-on LAN access from phone through HQ and a local AI receipt.",
+    detail:
+      "Prove desktop-on LAN access from phone through HQ and a local AI receipt.",
   },
   {
     id: "local-ai-hardening",
     label: "Local AI operations hardening",
     status: "active",
-    detail: "Keep Ollama, model, network, paid-API, and file-change proof visible.",
+    detail:
+      "Keep Ollama, model, network, paid-API, and file-change proof visible.",
   },
   {
     id: "repo-sync-recovery",
     label: "Git + repo sync recovery",
     status: "blocked",
-    detail: "Manual .git ACL recovery is required before pull, fetch, stage, commit, or push work.",
+    detail:
+      "Manual .git ACL recovery is required before pull, fetch, stage, commit, or push work.",
   },
   {
     id: "mobile-hq-usability",
     label: "Mobile HQ usability",
     status: "next",
-    detail: "Keep input, send actions, readiness, and receipts usable on phone widths.",
+    detail:
+      "Keep input, send actions, readiness, and receipts usable on phone widths.",
   },
   {
     id: "assistant-practical-work",
     label: "Assistant practical work mode",
     status: "next",
-    detail: "Make every turn explain answer mode, workspace, tool posture, recovery, and file changes.",
+    detail:
+      "Make every turn explain answer mode, workspace, tool posture, recovery, and file changes.",
   },
   {
     id: "local-knowledge",
     label: "Local knowledge + source intelligence",
     status: "next",
-    detail: "File useful source patterns into RESOURCES and VAULT without unsafe automation.",
+    detail:
+      "File useful source patterns into RESOURCES and VAULT without unsafe automation.",
   },
   {
     id: "workplane-compression",
@@ -110,7 +110,8 @@ export const FREE_LOCAL_MAJOR_UPDATES: FreeLocalMajorUpdate[] = [
     id: "free-release-readiness",
     label: "Free release readiness prep",
     status: "deferred",
-    detail: "Keep deployment optional until local, phone, and repo-sync operations are stable.",
+    detail:
+      "Keep deployment optional until local, phone, and repo-sync operations are stable.",
   },
 ];
 
@@ -129,7 +130,9 @@ export function buildPhoneAcceptanceBrief(
     `Phone home: ${phoneHome}`,
     `Direct HQ: ${directHq}`,
     "Keep the desktop runtime and Ollama running.",
-    "Log in with NEXUS_TOKEN on the phone; never paste token values into chat, docs, or screenshots.",
+    snapshot?.phoneLan.phoneTokenConfigured
+      ? "Log in on the phone with NEXUS_PHONE_TOKEN (or NEXUS_TOKEN); never paste token values into chat, docs, or screenshots."
+      : "Log in with NEXUS_TOKEN on the phone; never paste token values into chat, docs, or screenshots.",
     `HQ fast-path prompt: ${FREE_LOCAL_ASSISTANT_TURN_PROOF.localFastPathPrompt}`,
     `Local AI prompt: ${FREE_LOCAL_ASSISTANT_TURN_PROOF.localModelPrompt}`,
     `Expected receipt: ${FREE_LOCAL_ASSISTANT_TURN_PROOF.expectedProof}`,
@@ -168,7 +171,9 @@ export function buildPhoneAcceptanceChecklist(
         ? "LAN mode is reporting a reachable phone HQ URL."
         : "Run the explicit LAN launcher from the desktop before using the phone.",
       command: phoneReady ? undefined : "npm run phone:lan:start",
-      proof: phoneReady ? "LAN enabled" : "Printed phone URL appears in terminal.",
+      proof: phoneReady
+        ? "LAN enabled"
+        : "Printed phone URL appears in terminal.",
     },
     {
       id: "open-phone-hq",
@@ -185,7 +190,9 @@ export function buildPhoneAcceptanceChecklist(
       label: "Log in with token",
       status: sessionReady ? "done" : "manual",
       detail: snapshot?.phoneLan.tokenRequired
-        ? "Enter NEXUS_TOKEN on the phone before protected routes open."
+        ? snapshot.phoneLan.phoneTokenConfigured
+          ? "Enter NEXUS_PHONE_TOKEN on the phone, or NEXUS_TOKEN for full desktop privileges."
+          : "Enter NEXUS_TOKEN on the phone before protected routes open."
         : "The current local runtime is not requiring a token.",
       proof: "HQ opens without returning to the access gate.",
     },
@@ -221,10 +228,12 @@ export function buildPhoneAcceptanceChecklist(
     summary: phoneReady
       ? "Phone HQ is staged. Finish the manual chat and PWA proof on the device."
       : "Start LAN mode from the desktop, then use this checklist on the phone.",
-    overallStatus: allCriticalReady(steps.map((step) => ({
-      ...step,
-      status: step.id === "install-pwa" ? "manual" : step.status,
-    })))
+    overallStatus: allCriticalReady(
+      steps.map((step) => ({
+        ...step,
+        status: step.id === "install-pwa" ? "manual" : step.status,
+      })),
+    )
       ? "warning"
       : "blocked",
     steps,
@@ -262,7 +271,8 @@ export function buildLocalAiProofSnapshot(
       id: "paid-apis",
       label: "Paid APIs blocked",
       status: snapshot?.paidApisAllowed.allowed === false ? "done" : "blocked",
-      detail: snapshot?.paidApisAllowed.detail ?? "Paid API posture not loaded.",
+      detail:
+        snapshot?.paidApisAllowed.detail ?? "Paid API posture not loaded.",
       proof: "Readiness and receipt show paid APIs blocked.",
     },
     {

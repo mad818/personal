@@ -2,7 +2,8 @@ import { normalizeSessionHref } from "@/lib/exactSessionLinks";
 
 const GITHUB_HOSTS = new Set(["github.com", "www.github.com"]);
 const REPO_ID_RE = /^[A-Za-z0-9._-]{1,100}\/[A-Za-z0-9._-]{1,100}$/;
-const GITHUB_URL_RE = /https?:\/\/(?:www\.)?github\.com\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+/i;
+const GITHUB_URL_RE =
+  /https?:\/\/(?:www\.)?github\.com\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+/i;
 const OWNER_REPO_RE = /\b[A-Za-z0-9._-]{1,100}\/[A-Za-z0-9._-]{1,100}\b/;
 const REPO_INTEL_RE =
   /\b(?:github|open source|oss|dependency|dependencies|reference repo|reference library|competitor repo|compare repos?|assess repo|analy(?:s|z)e repo|repo intel|repository assessment|library assessment)\b/i;
@@ -49,7 +50,10 @@ export type RepoIntelNormalizationResult =
   | RepoIntelNormalizationSuccess
   | RepoIntelNormalizationFailure;
 
-function normalizeOwnerRepo(owner: string, repo: string): RepoIntelNormalizationResult {
+function normalizeOwnerRepo(
+  owner: string,
+  repo: string,
+): RepoIntelNormalizationResult {
   const candidate = `${owner.trim()}/${repo.trim()}`;
   if (!REPO_ID_RE.test(candidate)) {
     return {
@@ -72,7 +76,10 @@ export function normalizeRepoIntelReference(
 ): RepoIntelNormalizationResult {
   const trimmed = (rawValue ?? "").trim();
   if (!trimmed) {
-    return { ok: false, error: "A GitHub repo URL or owner/repo reference is required." };
+    return {
+      ok: false,
+      error: "A GitHub repo URL or owner/repo reference is required.",
+    };
   }
 
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
@@ -181,7 +188,10 @@ export function inferRepoIntelStack(input: {
   }
 
   if (
-    hasTreeEntry(tree, /^(requirements\.txt|pyproject\.toml|poetry\.lock|environment\.ya?ml)$/i) ||
+    hasTreeEntry(
+      tree,
+      /^(requirements\.txt|pyproject\.toml|poetry\.lock|environment\.ya?ml)$/i,
+    ) ||
     languages.includes("python")
   ) {
     stack.push("Python");
@@ -215,7 +225,10 @@ export function inferRepoIntelStack(input: {
   }
 
   if (
-    hasTreeEntry(tree, /^(pom\.xml|build\.gradle|settings\.gradle|gradle\.properties)$/i) ||
+    hasTreeEntry(
+      tree,
+      /^(pom\.xml|build\.gradle|settings\.gradle|gradle\.properties)$/i,
+    ) ||
     languages.includes("java") ||
     languages.includes("kotlin")
   ) {
@@ -226,31 +239,42 @@ export function inferRepoIntelStack(input: {
 }
 
 function summarizeTopLevelTree(tree: RepoIntelTreeEntry[]) {
-  const dirs = tree.filter((entry) => entry.type === "dir").map((entry) => entry.name);
-  const files = tree.filter((entry) => entry.type === "file").map((entry) => entry.name);
+  const dirs = tree
+    .filter((entry) => entry.type === "dir")
+    .map((entry) => entry.name);
+  const files = tree
+    .filter((entry) => entry.type === "file")
+    .map((entry) => entry.name);
   const signals = [
-    dirs.length > 0 ? `top-level directories: ${dirs.slice(0, 4).join(", ")}` : "",
+    dirs.length > 0
+      ? `top-level directories: ${dirs.slice(0, 4).join(", ")}`
+      : "",
     files.length > 0 ? `key files: ${files.slice(0, 5).join(", ")}` : "",
   ].filter(Boolean);
   return signals.join("; ");
 }
 
-export function buildRepoIntelBrief(profile: Omit<RepoIntelProfile, "implementationBrief">) {
-  const stack = profile.inferredStack.length > 0
-    ? profile.inferredStack.join(", ")
-    : profile.languageHints.length > 0
-      ? profile.languageHints.join(", ")
-      : "no clear stack signal";
+export function buildRepoIntelBrief(
+  profile: Omit<RepoIntelProfile, "implementationBrief">,
+) {
+  const stack =
+    profile.inferredStack.length > 0
+      ? profile.inferredStack.join(", ")
+      : profile.languageHints.length > 0
+        ? profile.languageHints.join(", ")
+        : "no clear stack signal";
   const description =
     cleanTextBlock(profile.description, 180) ||
     (profile.readmeExcerpt
       ? cleanTextBlock(profile.readmeExcerpt, 180)
       : "No description or README summary was available.");
   const structuralSignals =
-    summarizeTopLevelTree(profile.topLevelTree) || "top-level structure is minimal.";
-  const topicText = profile.topics.length > 0
-    ? `Topics suggest ${profile.topics.slice(0, 4).join(", ")}.`
-    : "Topics are sparse, so fit should be judged from the README and file layout.";
+    summarizeTopLevelTree(profile.topLevelTree) ||
+    "top-level structure is minimal.";
+  const topicText =
+    profile.topics.length > 0
+      ? `Topics suggest ${profile.topics.slice(0, 4).join(", ")}.`
+      : "Topics are sparse, so fit should be judged from the README and file layout.";
 
   return cleanTextBlock(
     `${profile.normalizedRepoId} looks like a public reference repo for ${description} Likely stack: ${stack}. ${topicText} Structural signals: ${structuralSignals}. Best fit for Nexus is read-only assessment first, then an ORBIT implementation plan only if the pattern is worth adapting locally.`,
@@ -270,9 +294,10 @@ export function hasRepoIntelSignal(input: string) {
 }
 
 export function buildRepoIntelOrbitPrompt(profile: RepoIntelProfile) {
-  const stack = profile.inferredStack.length > 0
-    ? profile.inferredStack.join(", ")
-    : profile.languageHints.join(", ") || "Unknown";
+  const stack =
+    profile.inferredStack.length > 0
+      ? profile.inferredStack.join(", ")
+      : profile.languageHints.join(", ") || "Unknown";
   const treeSummary =
     profile.topLevelTree
       .slice(0, 8)
@@ -308,8 +333,12 @@ export function formatRepoIntelToolResult(profile: RepoIntelProfile) {
     `Default branch: ${profile.defaultBranch ?? "unknown"}`,
     `License: ${profile.license ?? "unknown"}`,
     `Top-level tree: ${
-      profile.topLevelTree.map((entry) => `${entry.type === "dir" ? "[dir]" : "[file]"} ${entry.name}`).join(", ") ||
-      "No tree available."
+      profile.topLevelTree
+        .map(
+          (entry) =>
+            `${entry.type === "dir" ? "[dir]" : "[file]"} ${entry.name}`,
+        )
+        .join(", ") || "No tree available."
     }`,
     `README excerpt: ${profile.readmeExcerpt || "No README excerpt available."}`,
     `Implementation brief: ${profile.implementationBrief}`,

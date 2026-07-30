@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "id": "dmore-agency-ai-agents-crafted-personali-danger-hidden-content-via-css",
+  "name": "dmore/agency-ai-agents-crafted-personali-danger-hidden-content-via-CSS",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/dmore/agency-ai-agents-crafted-personali-danger-hidden-content-via-CSS",
+    "version": "main re-reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "unknown",
+    "primaryEvidence": [
+      "https://github.com/dmore/agency-ai-agents-crafted-personali-danger-hidden-content-via-CSS",
+      "https://github.com/dmore/agency-ai-agents-crafted-personali-danger-hidden-content-via-CSS/tree/main"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "agency-role-catalog",
+      "title": "Multi-role agency agent catalog with specialized personas and workflows",
+      "sourceEvidence": "Repository positions itself as a complete AI agency with crafted agent roles",
+      "disposition": "adapted",
+      "proof": [
+        "lib/agentRoleTaxonomy.ts",
+        "lib/centralOrchestrator.ts",
+        "lib/nexusCompanyMap.ts"
+      ]
+    },
+    {
+      "id": "css-hidden-prompt-injection",
+      "title": "CSS-concealed instructions smuggled into agent-facing content",
+      "sourceEvidence": "Repository name explicitly advertises hidden content via CSS as a personalization technique",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus does not implement CSS-hidden channels. The attack surface is documented as an adversarial reference: detectCssHiddenPromptPatterns() in lib/skillSpectrumPolicy.ts flags these patterns in any third-party skill markdown before it can be loaded.",
+      "adversarialProof": [
+        "lib/skillSpectrumPolicy.ts (detectCssHiddenPromptPatterns)",
+        "CSS_HIDDEN_PATTERNS covers display:none, visibility:hidden, opacity:0, font-size:0, color:transparent, absolute off-screen"
+      ]
+    },
+    {
+      "id": "third-party-agent-pack-vendoring",
+      "title": "Vendoring a full external agent prompt pack into the runtime",
+      "sourceEvidence": "Monolithic agency pack intended for drop-in agent configuration",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Unreviewed third-party prompt packs are blocked; adapt individual patterns into native skills after SkillSpector review."
+    },
+    {
+      "id": "agency-workflow-decomposition",
+      "title": "Decompose operator goals into agency-style specialist handoffs",
+      "sourceEvidence": "Agency framing implies multi-agent specialization by function",
+      "disposition": "implemented",
+      "proof": [
+        "lib/centralOrchestrator.ts",
+        "lib/assistantOperatorWorkflow.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-central-orchestrator-runtime.mjs"
+      ]
+    }
+  ]
+}

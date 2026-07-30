@@ -1,31 +1,38 @@
-// ── api/polymarket ──────────────────────────────────────────
-// Polymarket API: prediction market odds and event metadata.
-
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { executePredictionMarkets } from "@/lib/coreMarketFeedsServer";
+import { protectedJson } from "@/lib/protectedApi";
+import {
+  applyRateLimitHeaders,
+  checkRateLimit,
+} from "@/lib/security/rateLimit";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  try {
-    const url =
-      "https://gamma-api.polymarket.com/events?active=true&limit=40&order=volume&ascending=false";
-    const r = await fetch(url, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(12000),
-    });
+const POLYMARKET_RATE_LIMIT = {
+  bucket: "api-polymarket",
+  windowMs: 60_000,
+  maxAttempts: 20,
+} as const;
 
-    if (!r.ok) {
-      return NextResponse.json(
-        { events: [], error: `Polymarket ${r.status}` },
-        { status: 200 },
-      );
-    }
+function respond(body: unknown, status: number, retryAfterSec?: number) {
+  const response = protectedJson(body, { status });
+  applyRateLimitHeaders(response, POLYMARKET_RATE_LIMIT, retryAfterSec);
+  return response;
+}
 
-    const d = await r.json();
-    const events = Array.isArray(d) ? d : (d.events ?? []);
-    return NextResponse.json({ events });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Unknown";
-    return NextResponse.json({ events: [], error: msg }, { status: 200 });
+export async function GET(req: NextRequest) {
+  const rateLimit = checkRateLimit(req, POLYMARKET_RATE_LIMIT);
+  if (!rateLimit.ok) {
+    return respond(
+      {
+        ok: false,
+        error: "Prediction market rate limit reached. Try again shortly.",
+      },
+      429,
+      rateLimit.retryAfterSec,
+    );
   }
+
+  const result = await executePredictionMarkets();
+  return respond(result.body, result.status);
 }

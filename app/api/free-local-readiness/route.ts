@@ -2,13 +2,11 @@ import { existsSync, readFileSync } from "fs";
 import { networkInterfaces } from "os";
 import { join } from "path";
 import { NextRequest } from "next/server";
-import {
-  DEFAULT_LOCAL_MODEL,
-  type AITask,
-} from "@/lib/aiModelRouting";
+import { DEFAULT_LOCAL_MODEL, type AITask } from "@/lib/aiModelRouting";
 import {
   getConfiguredNexusToken,
   isNexusAuthEnabled,
+  isNexusPhoneTokenConfigured,
 } from "@/lib/authSession";
 import type {
   FreeLocalReadinessAction,
@@ -116,6 +114,7 @@ async function readAgentHealth() {
 
 function buildPhoneLanSnapshot(input: {
   tokenRequired: boolean;
+  phoneTokenConfigured: boolean;
 }): PhoneLanReadinessSnapshot {
   const enabled = process.env.NEXUS_PHONE_LAN_ENABLED === "true";
   const bindHost =
@@ -143,6 +142,7 @@ function buildPhoneLanSnapshot(input: {
     preferredLanUrl: lanUrls[0] ?? null,
     preferredHqLanUrl: hqLanUrls[0] ?? null,
     tokenRequired: input.tokenRequired,
+    phoneTokenConfigured: input.phoneTokenConfigured,
     pwaReady: true,
     firewallStatus: enabled
       ? "Allow Node/Next on this port through Windows Firewall before using phone LAN access."
@@ -181,11 +181,13 @@ export async function GET(req: NextRequest) {
   const authEnabled = isNexusAuthEnabled();
   const tokenConfigured = Boolean(getConfiguredNexusToken());
   const tokenRequired = authEnabled && tokenConfigured;
+  const phoneTokenConfigured = isNexusPhoneTokenConfigured();
   const paidApisAllowed = process.env.NEXUS_ALLOW_PAID_APIS === "true";
   const requestedModel =
     req.nextUrl.searchParams.get("model")?.trim() || DEFAULT_LOCAL_MODEL;
-  const task = (req.nextUrl.searchParams.get("task")?.trim() ||
-    "default") as AITask | "default";
+  const task = (req.nextUrl.searchParams.get("task")?.trim() || "default") as
+    | AITask
+    | "default";
 
   const [catalog, running, resolution, agentHealth] = await Promise.all([
     listReachableOllamaModels(),
@@ -204,7 +206,10 @@ export async function GET(req: NextRequest) {
   const sessionAuthenticated = authEnabled
     ? trustContext.sessionAuthenticated
     : true;
-  const phoneLanSnapshot = buildPhoneLanSnapshot({ tokenRequired });
+  const phoneLanSnapshot = buildPhoneLanSnapshot({
+    tokenRequired,
+    phoneTokenConfigured,
+  });
 
   const freeInvariant = {
     ...section(

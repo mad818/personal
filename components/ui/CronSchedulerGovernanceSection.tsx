@@ -1,6 +1,6 @@
 "use client";
 
-import type { ChangeEvent, RefObject } from "react";
+import type { RefObject } from "react";
 import type { ScheduledJob } from "@/store/useStore";
 import CronSchedulerAuditFiltersSection from "@/components/ui/CronSchedulerAuditFiltersSection";
 import CronSchedulerGovernanceStatusSection from "@/components/ui/CronSchedulerGovernanceStatusSection";
@@ -34,7 +34,7 @@ interface Props {
   onExportSavedAuditViews: () => void;
   onImportSavedAuditViewsClick: () => void;
   onTogglePasteAuditViews: () => void;
-  onImportSavedAuditViewsFromFile: (event: ChangeEvent<HTMLInputElement>) => void;
+  onImportSavedAuditViewsFromFile: (file: File | null) => void;
   onPastedAuditViewsTextChange: (value: string) => void;
   onPreviewPastedAuditViewsImport: () => void;
   onApplyImportedSavedAuditViews: () => void;

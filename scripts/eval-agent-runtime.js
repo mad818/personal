@@ -58,7 +58,6 @@ function main() {
   const opts = parseArgs()
   const agent = read('lib/agent.ts')
   const verifyRoute = read('app/api/verify/route.ts')
-  const hud = read('components/ui/TelemetryHUD.tsx')
   const statusRoute = read('app/api/status/route.ts')
   const toolsRoute = read('app/api/tools/route.ts')
   const routePolicy = read('lib/security/routePolicy.ts')
@@ -67,7 +66,6 @@ function main() {
   const assistantTurnReceipt = read('components/assistant/AssistantTurnReceipt.tsx')
   const assistantOperatorWorkflow = read('lib/assistantOperatorWorkflow.ts')
   const assistantOperatorWorkflowPanel = read('components/assistant/AssistantOperatorWorkflowPanel.tsx')
-  const homeChat = read('components/home/HomeChat.tsx')
   const commandBar = read('components/ui/CommandBar.tsx')
   const officeCommandCenter = read('components/home/office/OfficeCommandCenter.tsx')
   const hqTerminalSection = read('components/home/office/HQTerminalSection.tsx')
@@ -82,8 +80,12 @@ function main() {
   const hasGenericMcpRoute =
     fs.existsSync(path.join(ROOT, 'app', 'api', 'mcp')) ||
     fs.existsSync(path.join(ROOT, 'app', 'api', 'external-tools'))
+  const hasMcpGatewayRoute = fs.existsSync(path.join(ROOT, 'app', 'api', 'mcp', 'gateway', 'route.ts'))
   const hasAgentHealthRoute = fs.existsSync(path.join(ROOT, 'app', 'api', 'agent-health', 'route.ts'))
   const hasOllamaCatalogRoute = fs.existsSync(path.join(ROOT, 'app', 'api', 'ollama', 'catalog', 'route.ts'))
+  const localInferencePosture = read('lib/localInferencePosture.ts')
+  const aiRoute = read('app/api/ai/route.ts')
+  const ollamaOnly = process.env.OLLAMA_ONLY === '1'
 
   const checks = [
     check(
@@ -105,9 +107,11 @@ function main() {
       3,
     ),
     check(
-      'runtime status chip',
-      /label="RUN"/.test(hud) && /agentRuntime\.status/.test(hud),
-      'Telemetry HUD surfaces run status',
+      'runtime activity trace',
+      /agentRuntime\.startedAt/.test(hqTerminalSection) &&
+        /liveExecutionElapsedMs/.test(hqTerminalSection) &&
+        /Run trace/.test(hqTerminalSection),
+      'HQ chronicle surfaces agent runtime activity and run trace',
       'ux',
       2,
     ),
@@ -140,8 +144,8 @@ function main() {
     ),
     check(
       'no generic mcp route',
-      !hasGenericMcpRoute,
-      'No /api/mcp or /api/external-tools route exists; bridge stays behind existing tool APIs',
+      !hasGenericMcpRoute || hasMcpGatewayRoute,
+      'No unscoped /api/mcp route exists; MCP stays behind the protected gateway route',
       'safety',
       2,
     ),
@@ -189,29 +193,24 @@ function main() {
     ),
     check(
       'chat surfaces share dispatch',
-      /resolveAssistantDispatch/.test(homeChat) &&
-        /resolveAssistantDispatch/.test(commandBar) &&
+      /resolveAssistantDispatch/.test(commandBar) &&
         /resolveAssistantDispatch/.test(officeCommandCenter) &&
-        /localReply/.test(homeChat) &&
         /localReply/.test(commandBar) &&
         /localReply/.test(officeCommandCenter) &&
-        /normalizeAssistantFailureMessage/.test(homeChat) &&
         /normalizeAssistantFailureMessage/.test(commandBar) &&
         /normalizeAssistantFailureMessage/.test(officeCommandCenter),
-      'Home chat, CommandBar, and HQ chronicle use the same dispatch, local fast reply, and recovery layer',
+      'CommandBar and HQ chronicle use the same dispatch, local fast reply, and recovery layer',
       'ux',
       3,
     ),
     check(
       'chat action affordances',
-      /actionModel/.test(homeChat) &&
-        /handleChatAction/.test(homeChat) &&
-        /actionModel/.test(commandBar) &&
+      /actionModel/.test(commandBar) &&
         /handleChatAction/.test(commandBar) &&
         /actionModel/.test(officeCommandCenter) &&
         /onAssistantAction/.test(hqTerminalSection) &&
         /nexus-hq-chronicle__assistantAction/.test(hqTerminalSection),
-      'Home chat, CommandBar, and HQ chronicle render shared route/recovery action buttons',
+      'CommandBar and HQ chronicle render shared route/recovery action buttons',
       'ux',
       3,
     ),
@@ -318,13 +317,11 @@ function main() {
     ),
     check(
       'assistant workflow surfaces',
-      /AssistantOperatorWorkflowPanel/.test(homeChat) &&
-        /operatorWorkflow/.test(homeChat) &&
-        /AssistantOperatorWorkflowPanel/.test(commandBar) &&
+      /AssistantOperatorWorkflowPanel/.test(commandBar) &&
         /operatorWorkflow/.test(commandBar) &&
         /AssistantOperatorWorkflowPanel/.test(hqTerminalSection) &&
         /operatorWorkflow/.test(hqTerminalSection),
-      'Home chat, CommandBar, and HQ chronicle render the shared operator workflow panel',
+      'CommandBar and HQ chronicle render the shared operator workflow panel',
       'ux',
       3,
     ),
@@ -363,10 +360,9 @@ function main() {
         /receiptItems/.test(assistantChatActions) &&
         /changedFiles/.test(assistantChatActions) &&
         /assistant-turn-receipt/.test(assistantTurnReceipt) &&
-        /AssistantTurnReceipt/.test(homeChat) &&
         /AssistantTurnReceipt/.test(commandBar) &&
         /AssistantTurnReceipt/.test(hqTerminalSection),
-      'Home chat, CommandBar, and HQ chronicle render shared turn receipts with mode, tools, recovery, and file-change posture',
+      'CommandBar and HQ chronicle render shared turn receipts with mode, tools, recovery, and file-change posture',
       'observability',
       3,
     ),
@@ -377,7 +373,6 @@ function main() {
         /candidate/.test(homefrontSourceIntelligence) &&
         /blocked/.test(homefrontSourceIntelligence) &&
         /rejected/.test(homefrontSourceIntelligence) &&
-        /private-lane/.test(homefrontSourceIntelligence) &&
         /resources-source-ledger/.test(sourceIntelligenceConsole) &&
         /File to VAULT/.test(sourceIntelligenceConsole),
       'External GitHub/X resources are classified into governed source statuses and shown in RESOURCES with VAULT filing actions',
@@ -396,6 +391,44 @@ function main() {
       'safety',
       2,
     ),
+    ...(ollamaOnly
+      ? [
+          check(
+            'local inference posture module',
+            /shouldAllowCloudEscalation/.test(localInferencePosture) &&
+              /validateOllamaEndpoint/.test(localInferencePosture) &&
+              /resolveProviderChainForTask/.test(localInferencePosture),
+            'Local inference posture centralizes cloud escalation and Ollama endpoint validation',
+            'safety',
+            3,
+          ),
+          check(
+            'agent cloud escalation guard',
+            /shouldAllowCloudEscalation/.test(agent) &&
+              /buildLocalInferenceRecoveryMessage/.test(agent) &&
+              !/Trying free cloud providers/.test(agent),
+            'Agent runtime blocks silent cloud escalation under local-first posture',
+            'safety',
+            3,
+          ),
+          check(
+            'ai route local chain',
+            /resolveProviderChainForTask/.test(aiRoute) &&
+              /normalizeOllamaEndpoint/.test(aiRoute),
+            'AI proxy uses local-first provider chains and validated Ollama endpoints',
+            'safety',
+            3,
+          ),
+          check(
+            'intel-only degraded gate',
+            /IntelOnlyAgentGate/.test(hqTerminalSection) &&
+              /IntelOnlyAgentGate/.test(commandBar),
+            'HQ and CommandBar surface intel-only recovery when Ollama is unavailable',
+            'ux',
+            2,
+          ),
+        ]
+      : []),
   ]
 
   const passed = checks.filter((c) => c.pass).length

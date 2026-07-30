@@ -60,6 +60,13 @@ assertIncludes(runner, "archive/", "audit runner");
 assertIncludes(runner, "firstPatchedVersion", "audit runner");
 assertIncludes(runner, "dependabot-alerts-source", "audit runner");
 assertIncludes(runner, "upgradesPerformed: false", "audit runner");
+assertIncludes(runner, "historical: true", "audit runner");
+assertIncludes(
+  runner,
+  "the historical push-warning count is not reused",
+  "audit runner",
+);
+assertIncludes(runner, "currentAlertCountAvailable", "audit runner");
 
 assertIncludes(nextPatchRunner, "firstPatchedVersion", "next patch runner");
 assertIncludes(nextPatchRunner, "npm install", "next patch runner");

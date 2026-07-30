@@ -2,6 +2,8 @@
 
 import type { Article } from "@/store/useStore";
 import type { VaultGraphData } from "@/components/home/office/types";
+import { copyTextWithFeedback } from "@/components/ui/clipboardFeedback";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
 import TrustOperationsRail from "@/components/ui/TrustOperationsRail";
 import {
   OpsField,
@@ -52,7 +54,8 @@ function getGraphViewLabel(
 ) {
   if (source === "compiled" && visibility === "all") return "Compiled research";
   if (source === "all" && visibility === "safe") return "Safe-only topology";
-  if (source === "all" && visibility === "restricted") return "Restricted topology";
+  if (source === "all" && visibility === "restricted")
+    return "Restricted topology";
   if (source === "clips") return "Saved clips";
   if (visibility === "sensitive") return "Sensitive topology";
   return "Balanced topology";
@@ -109,7 +112,9 @@ export default function VaultRelationsChamber({
                 compact
               >
                 <div className="nexus-shell-copy nexus-shell-copy--compact">
-                  Relation mode keeps the graph primary. Stewardship, trust posture, and durable archive continuity stay one rail away instead of competing with the topology view.
+                  Relation mode keeps the graph primary. Stewardship, trust
+                  posture, and durable archive continuity stay one rail away
+                  instead of competing with the topology view.
                 </div>
                 <div
                   className="nexus-vault-rail-preview"
@@ -144,7 +149,8 @@ export default function VaultRelationsChamber({
           >
             <OpsField title={relationsTitle} detail={relationsDetail}>
               <div className="nexus-shell-copy nexus-shell-copy--compact">
-                Trace how clips, compiled pages, and durable notes connect before promoting, exporting, or repairing archive state.
+                Trace how clips, compiled pages, and durable notes connect
+                before promoting, exporting, or repairing archive state.
               </div>
               <div style={{ marginTop: "14px" }}>
                 <VaultGraphControlsSection
@@ -172,30 +178,32 @@ export default function VaultRelationsChamber({
                   }}
                   onCopyGraphViewSummary={async () => {
                     const summary = [
-                      getGraphViewLabel(graphSourceFilter, graphVisibilityFilter),
+                      getGraphViewLabel(
+                        graphSourceFilter,
+                        graphVisibilityFilter,
+                      ),
                       `${filteredGraph.nodes.length} nodes`,
                       `${filteredGraph.edges.length} edges`,
                       `${filteredGraph.orphans.length} orphans`,
                     ].join(" · ");
-                    await navigator.clipboard.writeText(summary);
+                    await copyTextWithFeedback(summary, "Graph view summary");
                   }}
                   onCopyVisibleGraphNodes={async () => {
                     const visibleNodes = filteredGraph.nodes
                       .map((node) => node.title)
                       .join("\n");
-                    await navigator.clipboard.writeText(visibleNodes);
+                    await copyTextWithFeedback(
+                      visibleNodes,
+                      "Visible graph nodes",
+                    );
                   }}
                   onDownloadVisibleGraphNodes={() => {
-                    const blob = new Blob(
-                      [JSON.stringify(filteredGraph.nodes, null, 2)],
-                      { type: "application/json" },
-                    );
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement("a");
-                    link.href = url;
-                    link.download = "vault-visible-nodes.json";
-                    link.click();
-                    URL.revokeObjectURL(url);
+                    requestTextDownload({
+                      filename: "vault-visible-nodes.json",
+                      content: JSON.stringify(filteredGraph.nodes, null, 2),
+                      label: "Visible graph nodes",
+                      mimeType: "application/json",
+                    });
                   }}
                   onResetGraphView={() => {
                     const reset = resetGraphFiltersToBalanced();

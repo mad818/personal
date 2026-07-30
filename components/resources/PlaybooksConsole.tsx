@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ActionSessionCluster from "@/components/ui/ActionSessionCluster";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
 import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
 import {
   ENGINEERING_PLAYBOOKS,
@@ -17,7 +18,9 @@ function pillStyle(active = false) {
   return {
     padding: "8px 10px",
     borderRadius: "999px",
-    border: active ? "1px solid rgba(120, 196, 255, 0.55)" : "1px solid var(--border)",
+    border: active
+      ? "1px solid rgba(120, 196, 255, 0.55)"
+      : "1px solid var(--border)",
     background: active ? "rgba(56, 122, 255, 0.18)" : "rgba(10, 15, 30, 0.58)",
     color: "var(--text)",
     fontSize: "11px",
@@ -38,7 +41,9 @@ function listCardStyle() {
 export default function PlaybooksConsole() {
   const router = useRouter();
   const { normalizedParams } = useSessionHrefAutoHeal();
-  const [briefStatus, setBriefStatus] = useState<"" | "copied" | "downloaded" | "failed">("");
+  const [briefStatus, setBriefStatus] = useState<
+    "" | "copied" | "requested" | "failed"
+  >("");
 
   const selectedId = useMemo(() => {
     return normalizedParams.get("playbook") ?? DEFAULT_ENGINEERING_PLAYBOOK_ID;
@@ -72,23 +77,14 @@ export default function PlaybooksConsole() {
   };
 
   const handleDownloadBrief = () => {
-    if (typeof window === "undefined") {
-      setBriefStatus("failed");
-      return;
-    }
-
-    try {
-      const blob = new Blob([briefText], { type: "text/plain;charset=utf-8" });
-      const url = window.URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `playbook-${selectedPlaybook.id}.txt`;
-      anchor.click();
-      window.URL.revokeObjectURL(url);
-      setBriefStatus("downloaded");
-    } catch {
-      setBriefStatus("failed");
-    }
+    const requested = requestTextDownload({
+      filename: `playbook-${selectedPlaybook.id}.txt`,
+      content: briefText,
+      label: "Playbook brief",
+      mimeType: "text/plain;charset=utf-8",
+      announce: false,
+    });
+    setBriefStatus(requested ? "requested" : "failed");
   };
 
   return (
@@ -146,7 +142,9 @@ export default function PlaybooksConsole() {
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <ShellBadge tone="accent">Start in Resources</ShellBadge>
-            <ShellBadge tone="muted">{selectedPlaybook.startSurface}</ShellBadge>
+            <ShellBadge tone="muted">
+              {selectedPlaybook.startSurface}
+            </ShellBadge>
           </div>
         </div>
 
@@ -168,16 +166,33 @@ export default function PlaybooksConsole() {
           >
             Use outside Nexus
           </summary>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "10px" }}>
-            <button type="button" onClick={() => void handleCopyBrief()} style={pillStyle()}>
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              flexWrap: "wrap",
+              marginTop: "10px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => void handleCopyBrief()}
+              style={pillStyle()}
+            >
               Copy brief
             </button>
-            <button type="button" onClick={handleDownloadBrief} style={pillStyle()}>
+            <button
+              type="button"
+              onClick={handleDownloadBrief}
+              style={pillStyle()}
+            >
               Download brief
             </button>
-            {briefStatus === "copied" ? <ShellBadge tone="success">Brief copied</ShellBadge> : null}
-            {briefStatus === "downloaded" ? (
-              <ShellBadge tone="success">Brief downloaded</ShellBadge>
+            {briefStatus === "copied" ? (
+              <ShellBadge tone="success">Brief copied</ShellBadge>
+            ) : null}
+            {briefStatus === "requested" ? (
+              <ShellBadge tone="success">Download requested</ShellBadge>
             ) : null}
             {briefStatus === "failed" ? (
               <ShellBadge tone="default">Brief export failed</ShellBadge>
@@ -198,18 +213,24 @@ export default function PlaybooksConsole() {
             </SectionLabel>
             {selectedPlaybook.steps.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>
 
           <div style={{ display: "grid", gap: "10px" }}>
-            <SectionLabel detail={`${selectedPlaybook.verification.length} checks`}>
+            <SectionLabel
+              detail={`${selectedPlaybook.verification.length} checks`}
+            >
               Verification
             </SectionLabel>
             {selectedPlaybook.verification.map((entry) => (
               <article key={entry} style={listCardStyle()}>
-                <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry}</div>
+                <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                  {entry}
+                </div>
               </article>
             ))}
           </div>

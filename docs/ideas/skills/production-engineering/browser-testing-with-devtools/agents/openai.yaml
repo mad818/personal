@@ -1,0 +1,4 @@
+interface:
+  display_name: "Browser Testing With Devtools"
+  short_description: "Verify reachable browser behavior with runtime evidence."
+  default_prompt: "Use $browser-testing-with-devtools to prove this Nexus browser flow at runtime."

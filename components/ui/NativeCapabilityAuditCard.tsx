@@ -51,7 +51,9 @@ export default function NativeCapabilityAuditCard({
   const contextLoadReport = useStore((s) => s.contextLoadReport);
   const { snapshot: browserOps, loadError } = useBrowserOpsReadiness();
   const resolvedSurfaceId =
-    surfaceId === "global" ? "global" : resolveSurfaceCapabilityId(surfaceId) ?? "global";
+    surfaceId === "global"
+      ? "global"
+      : (resolveSurfaceCapabilityId(surfaceId) ?? "global");
 
   const memorySnapshot = useMemo(
     () =>
@@ -91,7 +93,9 @@ export default function NativeCapabilityAuditCard({
   const watchCount = audit.signals.filter(
     (signal) => signal.state === "watch",
   ).length;
-  const gapCount = audit.signals.filter((signal) => signal.state === "gap").length;
+  const gapCount = audit.signals.filter(
+    (signal) => signal.state === "gap",
+  ).length;
 
   return (
     <div style={{ display: "grid", gap: "12px" }}>
@@ -159,7 +163,9 @@ export default function NativeCapabilityAuditCard({
             {audit.governance.baselinePackId} baseline
           </ShellBadge>
         </div>
-        <div style={{ fontSize: "11px", lineHeight: 1.6, color: "var(--text2)" }}>
+        <div
+          style={{ fontSize: "11px", lineHeight: 1.6, color: "var(--text2)" }}
+        >
           {audit.governance.detail}
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
@@ -185,7 +191,9 @@ export default function NativeCapabilityAuditCard({
             {audit.governance.missingPackJobs} pack repair
           </ShellBadge>
           <ShellBadge
-            tone={audit.governance.highRiskUngatedJobs > 0 ? "accent" : "success"}
+            tone={
+              audit.governance.highRiskUngatedJobs > 0 ? "accent" : "success"
+            }
           >
             {audit.governance.highRiskUngatedJobs} ungated tier-2
           </ShellBadge>
@@ -233,7 +241,9 @@ export default function NativeCapabilityAuditCard({
               >
                 {signal.label}
               </div>
-              <ShellBadge tone={signalTone(signal.state)}>{signal.state}</ShellBadge>
+              <ShellBadge tone={signalTone(signal.state)}>
+                {signal.state}
+              </ShellBadge>
             </div>
             <div
               style={{
@@ -254,6 +264,7 @@ export default function NativeCapabilityAuditCard({
         resolvedSurfaceId === "recon" ||
         resolvedSurfaceId === "resources") ? (
         <SurfaceCallout
+          role="alert"
           tone="warning"
           compact
           icon="↺"

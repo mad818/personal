@@ -59,8 +59,13 @@ const TOOL_CAPABILITY_REGISTRY: Record<string, ToolCapabilityClass> = {
   remember: "mutate",
   recall: "read",
   ask_max: "analyze",
+  delegate_specialist: "analyze",
   read_project_file: "read",
   list_project_files: "read",
+  list_design_skills: "read",
+  resolve_design_skill: "read",
+  list_go_to_market_skills: "read",
+  resolve_go_to_market_skill: "read",
   patch_project_file: "mutate",
   create_project_file: "mutate",
   reddit_search: "networked",
@@ -70,6 +75,10 @@ const TOOL_CAPABILITY_REGISTRY: Record<string, ToolCapabilityClass> = {
   assimilate_repo: "analyze",
   deep_research: "networked",
   feynman_research: "networked",
+  feynman_paper_rank: "analyze",
+  feynman_paper_inspect: "networked",
+  feynman_paper_ask: "networked",
+  feynman_paper_code_audit: "networked",
   feynman_outputs: "read",
   rss_fetch: "networked",
   hf_papers_search: "networked",
@@ -87,7 +96,8 @@ export function getToolCapabilityClass(tool: string): ToolCapabilityClass {
 export function requiresToolStepUp(
   toolOrCapability: string | ToolCapabilityClass,
 ) {
-  const capability = TOOL_CAPABILITY_REGISTRY[toolOrCapability] ?? toolOrCapability;
+  const capability =
+    TOOL_CAPABILITY_REGISTRY[toolOrCapability] ?? toolOrCapability;
   return capability === "mutate" || capability === "exec";
 }
 
@@ -96,14 +106,15 @@ export async function readProtectedActionContext(
 ): Promise<ProtectedActionContext> {
   const stepUpState = await readStepUpAuthState(req);
   const connectorPolicy = readConnectorPolicy();
-  const connectorEnabled = Object.values(connectorPolicy).filter(Boolean).length;
+  const connectorEnabled =
+    Object.values(connectorPolicy).filter(Boolean).length;
   const connectorTotal = Object.keys(connectorPolicy).length;
   const networkMode =
     parseNetworkModeCookie(req.cookies.get(NEXUS_NETWORK_MODE_COOKIE)?.value) ??
     readNetworkMode();
   const highRiskEnabled =
     parseBooleanPolicyCookie(req.cookies.get(NEXUS_HIGH_RISK_COOKIE)?.value) ??
-    (process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true");
+    process.env.NEXUS_ENABLE_HIGH_RISK_TOOLS === "true";
 
   return {
     session: stepUpState.session,
@@ -123,6 +134,17 @@ export function resolveProtectedActionStatus(
 ): ProtectedActionStatus {
   if (!context.sessionAuthenticated) return "session_required";
 
+  const phoneTierSession = context.session?.authTier === "phone";
+  if (
+    phoneTierSession &&
+    (action === "settings_writes" ||
+      action === "verification" ||
+      action === "tools_mutate_exec" ||
+      action === "tools_networked")
+  ) {
+    return "blocked_policy";
+  }
+
   if (action === "settings_writes" || action === "verification") {
     return context.stepUpActive ? "ready" : "revalidate";
   }
@@ -139,6 +161,7 @@ export function resolveProtectedActionStatus(
 
 export function resolveProtectedActionBlockedReason(
   status: ProtectedActionStatus,
+  options: { phoneTokenLimited?: boolean } = {},
 ) {
   switch (status) {
     case "revalidate":
@@ -152,7 +175,9 @@ export function resolveProtectedActionBlockedReason(
     case "connector_limited":
       return "connector_limited";
     case "blocked_policy":
-      return "blocked_policy";
+      return options.phoneTokenLimited
+        ? "phone_token_limited"
+        : "blocked_policy";
     default:
       return undefined;
   }
@@ -168,7 +193,11 @@ export function resolveProtectedActionDescriptor(
 ): ProtectedActionDescriptor {
   const status = resolveProtectedActionStatus(action, context);
   const blockedReason =
-    options.blockedReason ?? resolveProtectedActionBlockedReason(status);
+    options.blockedReason ??
+    resolveProtectedActionBlockedReason(status, {
+      phoneTokenLimited:
+        context.session?.authTier === "phone" && status === "blocked_policy",
+    });
 
   return {
     action,

@@ -4,7 +4,14 @@
 "use client";
 
 import Image from "next/image";
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { BRAND_NAME } from "@/lib/brand";
 import {
@@ -30,6 +37,7 @@ type AuthDiagnostics = {
   };
   auth: {
     tokenConfigured?: boolean;
+    phoneTokenConfigured?: boolean;
     authenticated?: boolean;
   };
   release?: {
@@ -60,10 +68,7 @@ async function probeAuthDiagnostics(timeoutMs = 4000) {
   }
 }
 
-export default function AuthGate({
-  children,
-  initiallyAuthed = false,
-}: Props) {
+export default function AuthGate({ children, initiallyAuthed = false }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const preparedWorkspace = useStore((state) => state.preparedWorkspace);
@@ -81,8 +86,11 @@ export default function AuthGate({
   const [tokenInput, setTokenInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [runtimeBootId, setRuntimeBootId] = useState("");
-  const [runtimeAgeSeconds, setRuntimeAgeSeconds] = useState<number | null>(null);
+  const [runtimeAgeSeconds, setRuntimeAgeSeconds] = useState<number | null>(
+    null,
+  );
   const [tokenConfigured, setTokenConfigured] = useState<boolean | null>(null);
+  const [phoneTokenConfigured, setPhoneTokenConfigured] = useState(false);
   const destinationBase = pathname === "/" ? getDefaultEntrypoint() : pathname;
   const destinationQuery = searchParams.toString();
   const destination = destinationQuery
@@ -127,7 +135,11 @@ export default function AuthGate({
 
       setSubmitting(false);
       if (status === "invalid") {
-        setTransientStatus("Invalid token. Check your .env.local NEXUS_TOKEN.");
+        setTransientStatus(
+          phoneTokenConfigured
+            ? "Invalid token. Use NEXUS_PHONE_TOKEN or NEXUS_TOKEN from .env.local."
+            : "Invalid token. Check your .env.local NEXUS_TOKEN.",
+        );
         return;
       }
       if (status === "rate_limited") {
@@ -142,9 +154,11 @@ export default function AuthGate({
       }
       setRuntimeOnline(false);
       setTokenRouteWarm("failed");
-      setTransientStatus("Runtime validation is unreachable. Check the local server.");
+      setTransientStatus(
+        "Runtime validation is unreachable. Check the local server.",
+      );
     },
-    [],
+    [phoneTokenConfigured],
   );
 
   useEffect(() => {
@@ -183,6 +197,7 @@ export default function AuthGate({
           : null,
       );
       setTokenConfigured(Boolean(payload.auth.tokenConfigured));
+      setPhoneTokenConfigured(Boolean(payload.auth.phoneTokenConfigured));
       if (payload.auth.authenticated) {
         setAuthed(true);
         setRuntimeOnline(true);
@@ -219,6 +234,7 @@ export default function AuthGate({
             : null,
         );
         setTokenConfigured(Boolean(payload.auth.tokenConfigured));
+        setPhoneTokenConfigured(Boolean(payload.auth.phoneTokenConfigured));
         setTransientStatus("Runtime diagnostics refreshed.");
       }
     } finally {
@@ -254,7 +270,12 @@ export default function AuthGate({
         }, 1800);
       });
     },
-    [clearSubmitFallbackTimer, recoverStalledSubmit, submitDestination, submitting],
+    [
+      clearSubmitFallbackTimer,
+      recoverStalledSubmit,
+      submitDestination,
+      submitting,
+    ],
   );
 
   useEffect(() => {
@@ -272,7 +293,9 @@ export default function AuthGate({
   const authErrorCode = searchParams.get("authError");
   const authErrorMessage =
     authErrorCode === "invalid"
-      ? "Invalid token. Check your .env.local NEXUS_TOKEN."
+      ? phoneTokenConfigured
+        ? "Invalid token. Use NEXUS_PHONE_TOKEN or NEXUS_TOKEN from .env.local."
+        : "Invalid token. Check your .env.local NEXUS_TOKEN."
       : authErrorCode === "server"
         ? "Token validation is not configured on the server."
         : "";
@@ -281,7 +304,9 @@ export default function AuthGate({
     authErrorMessage ||
     transientStatus ||
     "Token validation happens locally against your server.";
-  const runtimeBootLabel = runtimeBootId ? runtimeBootId.slice(0, 8) : "unknown";
+  const runtimeBootLabel = runtimeBootId
+    ? runtimeBootId.slice(0, 8)
+    : "unknown";
 
   return (
     <div
@@ -545,10 +570,13 @@ export default function AuthGate({
             flexDirection: "column",
             gap: "22px",
             backdropFilter: "blur(22px)",
-            boxShadow: "0 0 70px rgba(103,232,249,.08), 0 28px 70px rgba(0,0,0,.58)",
+            boxShadow:
+              "0 0 70px rgba(103,232,249,.08), 0 28px 70px rgba(0,0,0,.58)",
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+          >
             <div
               style={{
                 display: "inline-flex",
@@ -588,8 +616,8 @@ export default function AuthGate({
               }}
             >
               Token validation stays local to this server. This flow uses a
-              direct secure form submit so the real auth path reaches the
-              server without extra client-side ceremony.
+              direct secure form submit so the real auth path reaches the server
+              without extra client-side ceremony.
             </div>
           </div>
 
@@ -602,7 +630,9 @@ export default function AuthGate({
           >
             <input type="hidden" name="next" value={submitDestination} />
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
+            >
               <label
                 htmlFor="nexus-access-token"
                 style={{
@@ -623,7 +653,11 @@ export default function AuthGate({
                 required
                 value={tokenInput}
                 onChange={(e) => setTokenInput(e.target.value)}
-                placeholder="Paste your NEXUS_TOKEN…"
+                placeholder={
+                  phoneTokenConfigured
+                    ? "Paste NEXUS_PHONE_TOKEN or NEXUS_TOKEN…"
+                    : "Paste your NEXUS_TOKEN…"
+                }
                 autoFocus
                 disabled={submitting}
                 style={{
@@ -718,7 +752,8 @@ export default function AuthGate({
                     lineHeight: 1.45,
                   }}
                 >
-                  You can paste just the token value, a quoted value, or the full{" "}
+                  You can paste just the token value, a quoted value, or the
+                  full{" "}
                   <code
                     style={{
                       background: "var(--surf2)",
@@ -843,7 +878,7 @@ export default function AuthGate({
               gap: "10px",
             }}
           >
-            {[ 
+            {[
               {
                 label: "runtime",
                 value: runtimeOnline
@@ -899,7 +934,8 @@ export default function AuthGate({
               lineHeight: 1.6,
             }}
           >
-            {BRAND_NAME} expects your NEXUS_TOKEN {tokenConfigured ? "configured in" : "in"}{" "}
+            {BRAND_NAME} expects your NEXUS_TOKEN{" "}
+            {tokenConfigured ? "configured in" : "in"}{" "}
             <code
               style={{
                 background: "var(--surf2)",

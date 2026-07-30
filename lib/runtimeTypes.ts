@@ -193,7 +193,9 @@ const SchedulerEfficiencyRunSchema = z.object({
     .optional(),
   queue: SchedulerEfficiencyQueueSchema.optional(),
   ledger: z.array(SchedulerEfficiencyLedgerEntrySchema).optional(),
-  repairCandidates: z.array(SchedulerEfficiencyRepairCandidateSchema).optional(),
+  repairCandidates: z
+    .array(SchedulerEfficiencyRepairCandidateSchema)
+    .optional(),
 });
 
 export const ForecastEvalPayloadSchema = z.object({
@@ -318,7 +320,9 @@ export const StatusPayloadSchema = z.object({
           adapterReady: z.boolean().optional(),
           requiredExecTools: z.number().optional(),
           approvedExecTools: z.number().optional(),
-          status: z.enum(["not_required", "ready", "unavailable", "blocked"]).optional(),
+          status: z
+            .enum(["not_required", "ready", "unavailable", "blocked"])
+            .optional(),
           reason: z.string().nullable().optional(),
         })
         .optional(),

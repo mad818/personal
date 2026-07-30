@@ -9,6 +9,7 @@ import {
   ShellGrid,
   ShellStack,
 } from "@/components/ui/shell";
+import { formatIntelRegionLabel } from "@/lib/intelRegionFilter";
 
 const LazyWorldTopicHeatmap = dynamic(
   () => import("@/components/ops/WorldTopicHeatmap"),
@@ -31,6 +32,10 @@ const LazySweepEnginePanel = dynamic(
   () => import("@/components/intel/SweepEnginePanel"),
   { ssr: false },
 );
+const LazyConflictFeed = dynamic(
+  () => import("@/components/ops/ConflictFeed"),
+  { ssr: false },
+);
 
 export type IntelDeferredSegmentId = "world" | "markets" | "sweeps";
 
@@ -38,17 +43,28 @@ interface IntelDeferredSegmentProps {
   segment: IntelDeferredSegmentId;
   workplaneClass: string;
   railClass: string;
+  regionFilter?: string | null;
 }
 
 export default function IntelDeferredSegment({
   segment,
   workplaneClass,
   railClass,
+  regionFilter = null,
 }: IntelDeferredSegmentProps) {
   if (segment === "world") {
     return (
       <div id="intel-world" style={{ scrollMarginTop: "120px" }}>
         <ShellStack>
+          {regionFilter ? (
+            <OpsField
+              title="Regional conflict feed"
+              detail={`Headlines matching ${formatIntelRegionLabel(regionFilter)}`}
+              tone="muted"
+            >
+              <LazyConflictFeed regionFilter={regionFilter} />
+            </OpsField>
+          ) : null}
           <OpsWorkplane className={workplaneClass}>
             <ShellStack gap="12px">
               <OpsField

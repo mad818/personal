@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "knadh-listmonk",
   "name": "Listmonk",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/knadh/listmonk",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main re-reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "AGPL-3.0",
     "primaryEvidence": [
       "https://github.com/knadh/listmonk",
@@ -26,15 +26,20 @@
       "id": "template-engine",
       "title": "Campaign template engine: variable substitution, HTML templates with preview",
       "sourceEvidence": "Listmonk template engine: Go templates with subscriber variable injection",
-      "disposition": "pending",
-      "reason": "Nexus agent prompt templates could adapt Listmonk's template variable injection patterns for dynamic prompt assembly."
+      "disposition": "adapted",
+      "proof": [
+        "components/home/office/workflowCommands.ts",
+        "components/ui/CronSchedulerWorkflowTemplatesSection.tsx",
+        "components/ui/CronSchedulerComposerSection.tsx"
+      ]
     },
     {
       "id": "high-performance-go-server",
       "title": "High-performance single-binary Go server with embedded PostgreSQL migrations",
       "sourceEvidence": "Listmonk: single binary, built-in migration runner, ~10MB binary",
-      "disposition": "pending",
-      "reason": "Nexus desktop runtime architecture could reference Listmonk's single-binary embedding pattern for a future Go-based local service."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus ships a Next.js standalone runtime inside Tauri; adding a separate Go/PostgreSQL service would duplicate the runtime and storage architecture without a current need."
     }
   ]
 }

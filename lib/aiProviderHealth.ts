@@ -41,13 +41,13 @@ function getOrCreate(provider: string): ProviderStats {
   if (!_stats.has(provider)) {
     _stats.set(provider, {
       consecutiveFails: 0,
-      totalSuccesses:   0,
-      totalFailures:    0,
-      circuitOpenAt:    0,
-      lastSuccessAt:    0,
-      lastFailAt:       0,
-      avgResponseMs:    0,
-      score:            0.5, // neutral on first use
+      totalSuccesses: 0,
+      totalFailures: 0,
+      circuitOpenAt: 0,
+      lastSuccessAt: 0,
+      lastFailAt: 0,
+      avgResponseMs: 0,
+      score: 0.5, // neutral on first use
     });
   }
   return _stats.get(provider)!;
@@ -64,10 +64,10 @@ function getOrCreate(provider: string): ProviderStats {
 // keeping a truly dead provider out of the chain for longer.
 
 const COOLDOWN_STEPS_MS = [
-  2  * 60_000,  // 1st consecutive fail
-  5  * 60_000,  // 2nd
-  15 * 60_000,  // 3rd
-  30 * 60_000,  // 4th+
+  2 * 60_000, // 1st consecutive fail
+  5 * 60_000, // 2nd
+  15 * 60_000, // 3rd
+  30 * 60_000, // 4th+
 ];
 
 function cooldownMs(consecutiveFails: number): number {
@@ -93,19 +93,19 @@ export function isCircuitOpen(provider: string): boolean {
 export function recordFailure(provider: string): void {
   const s = getOrCreate(provider);
   s.consecutiveFails += 1;
-  s.totalFailures    += 1;
-  s.lastFailAt        = Date.now();
-  s.circuitOpenAt     = Date.now(); // (re)open circuit
-  s.score             = computeScore(s);
+  s.totalFailures += 1;
+  s.lastFailAt = Date.now();
+  s.circuitOpenAt = Date.now(); // (re)open circuit
+  s.score = computeScore(s);
 }
 
 /** Record a success for a provider. Resets the circuit and updates timing. */
 export function recordSuccess(provider: string, responseMs: number): void {
   const s = getOrCreate(provider);
-  s.consecutiveFails  = 0;
-  s.totalSuccesses   += 1;
-  s.circuitOpenAt     = 0;
-  s.lastSuccessAt     = Date.now();
+  s.consecutiveFails = 0;
+  s.totalSuccesses += 1;
+  s.circuitOpenAt = 0;
+  s.lastSuccessAt = Date.now();
   // Exponential moving average (α = 0.25) — new value weighted at 25%
   s.avgResponseMs =
     s.avgResponseMs === 0
@@ -125,9 +125,7 @@ function computeScore(s: ProviderStats): number {
   const total = s.totalSuccesses + s.totalFailures;
   const successRate = total === 0 ? 0.5 : s.totalSuccesses / total;
   const speedScore =
-    s.avgResponseMs > 0
-      ? Math.max(0, 1 - s.avgResponseMs / 30_000)
-      : 0.5;
+    s.avgResponseMs > 0 ? Math.max(0, 1 - s.avgResponseMs / 30_000) : 0.5;
   const recencyScore =
     s.lastSuccessAt > 0
       ? Math.max(0, 1 - (Date.now() - s.lastSuccessAt) / (24 * 3_600_000))
@@ -138,7 +136,9 @@ function computeScore(s: ProviderStats): number {
 /** Return all provider stats sorted by score descending. */
 export function getAllStats(): Record<string, ProviderStats> {
   const out: Record<string, ProviderStats> = {};
-  _stats.forEach((v, k) => { out[k] = { ...v }; });
+  _stats.forEach((v, k) => {
+    out[k] = { ...v };
+  });
   return out;
 }
 
@@ -170,34 +170,34 @@ export function scoreSortedChain(
 
 const TIMEOUT_MS: Record<string, number> = {
   // Local — model warmups and first-token latency can be much slower than cloud.
-  ollama:     90_000,
+  ollama: 90_000,
   // Speed tier — should answer in <3s; 8s = generous
-  cerebras:    8_000,
-  groq:        8_000,
+  cerebras: 8_000,
+  groq: 8_000,
   // Quality free tier
-  sambanova:  15_000,
-  nvidia:     15_000,
+  sambanova: 15_000,
+  nvidia: 15_000,
   hyperbolic: 15_000,
-  together:   15_000,
-  siliconflow:15_000,
-  zai:        15_000,
-  iflow:      15_000,
+  together: 15_000,
+  siliconflow: 15_000,
+  zai: 15_000,
+  iflow: 15_000,
   // Bulk / specialty
-  deepinfra:  20_000,
-  fireworks:  20_000,
-  scaleway:   20_000,
-  qwen:       20_000,
-  huggingface:20_000,
-  codestral:  20_000,
-  googleai:   20_000,
+  deepinfra: 20_000,
+  fireworks: 20_000,
+  scaleway: 20_000,
+  qwen: 20_000,
+  huggingface: 20_000,
+  codestral: 20_000,
+  googleai: 20_000,
   cloudflare: 20_000,
   perplexity: 20_000,
   // Paid — can be slower (complex routing, prompt caching, etc.)
   openrouter: 30_000,
-  google:     30_000,
-  minimax:    30_000,
-  anthropic:  60_000,
-  openai:     60_000,
+  google: 30_000,
+  minimax: 30_000,
+  anthropic: 60_000,
+  openai: 60_000,
 };
 
 const DEFAULT_TIMEOUT_MS = 20_000;
@@ -209,47 +209,47 @@ export function getTimeoutMs(provider: string): number {
 // ── Request sanitization ──────────────────────────────────────────────────────
 // Strip/clamp dangerous or malformed input before it reaches any provider.
 
-const MAX_MESSAGES        = 100;
-const MAX_MESSAGE_CHARS   = 128_000; // 128K chars per message
-const MAX_SYSTEM_CHARS    = 32_000;
-const MAX_ROLE_CHARS      = 20;
-const ALLOWED_ROLES       = new Set(["user", "assistant", "system", "tool"]);
+const MAX_MESSAGES = 100;
+const MAX_MESSAGE_CHARS = 128_000; // 128K chars per message
+const MAX_SYSTEM_CHARS = 32_000;
+const MAX_ROLE_CHARS = 20;
+const ALLOWED_ROLES = new Set(["user", "assistant", "system", "tool"]);
 
 export function sanitizeMessages(messages: unknown): unknown[] {
   if (!Array.isArray(messages)) return [];
 
   return messages
     .slice(-MAX_MESSAGES)
-    .filter((m): m is Record<string, unknown> =>
-      typeof m === "object" && m !== null && !Array.isArray(m),
+    .filter(
+      (m): m is Record<string, unknown> =>
+        typeof m === "object" && m !== null && !Array.isArray(m),
     )
     .map((m) => {
-      const rawRole = typeof m.role === "string" ? m.role.slice(0, MAX_ROLE_CHARS) : "user";
-      const role    = ALLOWED_ROLES.has(rawRole) ? rawRole : "user";
+      const rawRole =
+        typeof m.role === "string" ? m.role.slice(0, MAX_ROLE_CHARS) : "user";
+      const role = ALLOWED_ROLES.has(rawRole) ? rawRole : "user";
 
       let content: unknown = m.content;
       if (typeof content === "string") {
         content = content.slice(0, MAX_MESSAGE_CHARS);
       } else if (Array.isArray(content)) {
         // Multi-part content (images, tool results) — pass through, cap text parts
-        content = content
-          .slice(0, 20)
-          .map((part: unknown) => {
-            if (
-              typeof part === "object" &&
-              part !== null &&
-              (part as Record<string, unknown>).type === "text"
-            ) {
-              return {
-                ...(part as Record<string, unknown>),
-                text: String((part as Record<string, unknown>).text ?? "").slice(
-                  0,
-                  MAX_MESSAGE_CHARS,
-                ),
-              };
-            }
-            return part;
-          });
+        content = content.slice(0, 20).map((part: unknown) => {
+          if (
+            typeof part === "object" &&
+            part !== null &&
+            (part as Record<string, unknown>).type === "text"
+          ) {
+            return {
+              ...(part as Record<string, unknown>),
+              text: String((part as Record<string, unknown>).text ?? "").slice(
+                0,
+                MAX_MESSAGE_CHARS,
+              ),
+            };
+          }
+          return part;
+        });
       }
 
       // Only forward known safe fields — strip any injected metadata
@@ -326,14 +326,14 @@ export function getOpenCircuits(): CooldownInfo[] {
   const result: CooldownInfo[] = [];
   _stats.forEach((s, provider) => {
     if (s.circuitOpenAt === 0) return;
-    const cd  = cooldownMs(s.consecutiveFails);
+    const cd = cooldownMs(s.consecutiveFails);
     const rem = cd - (now - s.circuitOpenAt);
     if (rem > 0) {
       result.push({
         provider,
-        circuitOpenAt:    s.circuitOpenAt,
-        cooldownMs:       cd,
-        remainingMs:      rem,
+        circuitOpenAt: s.circuitOpenAt,
+        cooldownMs: cd,
+        remainingMs: rem,
         consecutiveFails: s.consecutiveFails,
       });
     }

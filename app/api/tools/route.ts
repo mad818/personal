@@ -2,6 +2,7 @@
 // Tools API: dynamic tool discovery and execution framework.
 
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "node:crypto";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { getBrandServiceName } from "@/lib/brand";
@@ -10,6 +11,34 @@ import {
   runFeynmanResearch,
   type FeynmanWorkflowId,
 } from "@/lib/feynmanResearch";
+import { parseFeynmanResearchIntegrityInput } from "@/lib/feynmanResearchIntegrity";
+import {
+  formatFeynmanPaperRank,
+  parseFeynmanPaperRankInput,
+  rankFeynmanPapers,
+} from "@/lib/feynmanPaperRank";
+import {
+  FEYNMAN_PAPER_SECTIONS,
+  formatFeynmanPaperInspection,
+  inspectFeynmanPaper,
+  normalizeFeynmanPaperReference,
+  parseFeynmanPaperSections,
+} from "@/lib/feynmanPaperInspection";
+import {
+  FEYNMAN_PAPER_QUESTION_LIMITS,
+  auditFeynmanPaperQuestionAnswer,
+  buildFeynmanPaperQuestionPrompt,
+  formatFeynmanPaperQuestionAnswer,
+  normalizeFeynmanPaperQuestion,
+} from "@/lib/feynmanPaperQuestion";
+import {
+  FEYNMAN_PAPER_CODE_AUDIT_LIMITS,
+  auditFeynmanPaperCodeAuditAnswer,
+  buildFeynmanPaperCodeAuditPrompt,
+  formatFeynmanPaperCodeAudit,
+  parseFeynmanPaperCodeAuditInput,
+  resolveFeynmanPaperCodeRepository,
+} from "@/lib/feynmanPaperCodeAudit";
 import {
   formatHuggingFaceInspection,
   inspectHuggingFaceRepository,
@@ -45,8 +74,13 @@ import {
 } from "@/lib/repoAssimilation";
 import {
   assertSafeExternalUrl,
+  fetchSafePublicUrl,
   readResponseTextWithLimit,
 } from "@/lib/security/networkGuards";
+import {
+  htmlToPlainText,
+  splitOnStandaloneVs,
+} from "@/lib/security/textSafety";
 import { isSensitiveLocalDataPath } from "@/lib/security/localDataPolicy";
 import {
   applyRateLimitHeaders,
@@ -55,9 +89,7 @@ import {
 import { applyProtectedActionHeaders } from "@/lib/security/protectedActionTelemetry";
 import { buildStepUpRequiredResponse } from "@/lib/security/stepUpAuth";
 import { runToolInIsolation } from "@/lib/security/toolIsolationRunner";
-import {
-  applyToolIsolationHeaders,
-} from "@/lib/security/toolIsolationTelemetry";
+import { applyToolIsolationHeaders } from "@/lib/security/toolIsolationTelemetry";
 import {
   resolveToolIsolationDescriptor,
   type ToolIsolationDescriptor,
@@ -75,10 +107,28 @@ import {
 import { formatRepoIntelToolResult } from "@/lib/repoIntel";
 import { getRepoIntelProfile, RepoIntelError } from "@/lib/serverRepoIntel";
 import { loadSavedRepoAssimilationBrief } from "@/lib/serverRepoCompare";
+import { buildProjectFileContext } from "@/lib/projectFileContext";
+import {
+  formatDesignSkillContract,
+  formatDesignSkillList,
+} from "@/lib/designSkillAtlas";
+import {
+  formatGoToMarketSkillContract,
+  formatGoToMarketSkillList,
+} from "@/lib/goToMarketSkillAtlas";
 import {
   buildExternalToolResultEnvelope,
   type ExternalToolResultEnvelope,
 } from "@/lib/externalToolBridge";
+import { parseToolsPostBody } from "@/lib/toolsRequestSchema";
+import {
+  CENTRAL_ORCHESTRATOR_MAX_WORKERS,
+  buildFailedSpecialistHandoff,
+  buildSpecialistWorkerMessages,
+  formatSpecialistHandoff,
+  normalizeSpecialistMission,
+  parseSpecialistHandoff,
+} from "@/lib/centralOrchestrator";
 
 const TOOL_USER_AGENT = `${getBrandServiceName()}/1.0`;
 
@@ -93,7 +143,10 @@ interface ToolResult {
   meta: ToolResponseMeta;
 }
 
-function withToolResult(result: string, meta: ToolResponseMeta = {}): ToolResult {
+function withToolResult(
+  result: string,
+  meta: ToolResponseMeta = {},
+): ToolResult {
   return { result, meta };
 }
 
@@ -105,10 +158,12 @@ async function ensureWorkspace() {
   await fs.mkdir(WORKSPACE, { recursive: true });
 }
 
-function getToolProtectedAction(capability: ReturnType<typeof getToolCapabilityClass>) {
-  return (capability === "networked"
-    ? "tools_networked"
-    : "tools_mutate_exec") as ProtectedActionKind;
+function getToolProtectedAction(
+  capability: ReturnType<typeof getToolCapabilityClass>,
+) {
+  return (
+    capability === "networked" ? "tools_networked" : "tools_mutate_exec"
+  ) as ProtectedActionKind;
 }
 
 function buildToolBlockedMessage(status: ProtectedActionStatus) {
@@ -144,15 +199,7 @@ async function webSearch(query: string): Promise<string> {
   const trimmedQuery = query.trim();
 
   function stripHtml(value: string) {
-    return value
-      .replace(/<[^>]+>/g, " ")
-      .replace(/&amp;/g, "&")
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/\s+/g, " ")
-      .trim();
+    return htmlToPlainText(value).replace(/\s+/g, " ").trim();
   }
 
   function decodeDuckDuckGoHref(value: string) {
@@ -177,7 +224,10 @@ async function webSearch(query: string): Promise<string> {
       if (!lower.includes("site:twitch.tv")) {
         queries.unshift(`site:twitch.tv ${value}`);
       }
-      if (!lower.includes("site:x.com") && !lower.includes("site:twitter.com")) {
+      if (
+        !lower.includes("site:x.com") &&
+        !lower.includes("site:twitter.com")
+      ) {
         queries.push(`site:x.com OR site:twitter.com ${value}`);
       }
     }
@@ -190,15 +240,15 @@ async function webSearch(query: string): Promise<string> {
 
     for (const candidate of buildOpenWebQueries(value)) {
       try {
-        const response = await fetch(
-          `https://html.duckduckgo.com/html/?q=${encodeURIComponent(candidate)}`,
-          {
-            headers: {
-              "User-Agent": `Mozilla/5.0 (compatible; ${TOOL_USER_AGENT})`,
-            },
-            signal: AbortSignal.timeout(8000),
+        const searchUrl = new URL("https://html.duckduckgo.com/html/");
+        searchUrl.search = new URLSearchParams({ q: candidate }).toString();
+        const response = await fetch(searchUrl, {
+          headers: {
+            "User-Agent": `Mozilla/5.0 (compatible; ${TOOL_USER_AGENT})`,
           },
-        );
+          signal: AbortSignal.timeout(8000),
+          redirect: "error",
+        });
         if (!response.ok) continue;
         const html = await response.text();
         const matches = Array.from(
@@ -229,18 +279,19 @@ async function webSearch(query: string): Promise<string> {
     if (!collected.length) return "";
     return collected
       .slice(0, 8)
-      .map(
-        (a, i) =>
-          `${i + 1}. ${a.title}\n   Source: ${a.source} | ${a.url}`,
-      )
+      .map((a, i) => `${i + 1}. ${a.title}\n   Source: ${a.source} | ${a.url}`)
       .join("\n\n");
   }
 
   // ── Brave Search (preferred, much better quality) ──────────────────────────
   if (braveKey) {
     try {
-      const q = encodeURIComponent(trimmedQuery);
-      const url = `https://api.search.brave.com/res/v1/web/search?q=${q}&count=8&text_decorations=0`;
+      const url = new URL("https://api.search.brave.com/res/v1/web/search");
+      url.search = new URLSearchParams({
+        q: trimmedQuery,
+        count: "8",
+        text_decorations: "0",
+      }).toString();
       const r = await fetch(url, {
         headers: {
           Accept: "application/json",
@@ -248,6 +299,7 @@ async function webSearch(query: string): Promise<string> {
           "X-Subscription-Token": braveKey,
         },
         signal: AbortSignal.timeout(8000),
+        redirect: "error",
       });
       const d = await r.json();
       const results = (d.web?.results ?? []) as {
@@ -275,9 +327,17 @@ async function webSearch(query: string): Promise<string> {
 
   // ── GDELT fallback (no key required) ───────────────────────────────────────
   try {
-    const q = encodeURIComponent(trimmedQuery);
-    const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${q}&mode=artlist&maxrecords=10&format=json`;
-    const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const url = new URL("https://api.gdeltproject.org/api/v2/doc/doc");
+    url.search = new URLSearchParams({
+      query: trimmedQuery,
+      mode: "artlist",
+      maxrecords: "10",
+      format: "json",
+    }).toString();
+    const r = await fetch(url, {
+      signal: AbortSignal.timeout(8000),
+      redirect: "error",
+    });
     const d = await r.json();
     const articles = (d.articles ?? []) as {
       title: string;
@@ -301,18 +361,14 @@ async function webSearch(query: string): Promise<string> {
 async function fetchUrl(url: string): Promise<string> {
   try {
     const safeUrl = assertSafeExternalUrl(url);
-    const r = await fetch(safeUrl, {
+    const r = await fetchSafePublicUrl(safeUrl.toString(), {
       headers: { "User-Agent": `Mozilla/5.0 (compatible; ${TOOL_USER_AGENT})` },
       signal: AbortSignal.timeout(10000),
     });
     if (!r.ok) return `Could not fetch that URL (HTTP ${r.status}).`;
     const html = await readResponseTextWithLimit(r, 24_000);
-    // Strip tags, collapse whitespace
-    const text = html
-      .replace(/<script[\s\S]*?<\/script>/gi, "")
-      .replace(/<style[\s\S]*?<\/style>/gi, "")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s{2,}/g, " ")
+    const text = htmlToPlainText(html)
+      .replace(/\s+/g, " ")
       .trim()
       .slice(0, 4000);
     return text || "Page returned no readable text.";
@@ -418,6 +474,92 @@ async function askMax(message: string): Promise<string> {
   }
 }
 
+// ── Nexus central orchestrator specialist delegation ────────────────────────
+const specialistDelegationRuns = new Map<
+  string,
+  { count: number; touchedAt: number }
+>();
+
+function claimSpecialistDelegationSlot(runId: string) {
+  const now = Date.now();
+  const key =
+    runId && runId !== "anon"
+      ? runId
+      : `anon-${Math.floor(now / 60_000).toString(36)}`;
+  const current = specialistDelegationRuns.get(key) ?? {
+    count: 0,
+    touchedAt: now,
+  };
+  if (current.count >= CENTRAL_ORCHESTRATOR_MAX_WORKERS) return false;
+
+  specialistDelegationRuns.set(key, {
+    count: current.count + 1,
+    touchedAt: now,
+  });
+  if (specialistDelegationRuns.size > 256) {
+    const oldest = [...specialistDelegationRuns.entries()].sort(
+      (left, right) => left[1].touchedAt - right[1].touchedAt,
+    )[0]?.[0];
+    if (oldest) specialistDelegationRuns.delete(oldest);
+  }
+  return true;
+}
+
+async function delegateSpecialist(
+  input: Record<string, string>,
+  runId: string,
+): Promise<string> {
+  const mission = normalizeSpecialistMission({
+    worker: input.worker,
+    taskId: input.task_id,
+    mission: input.mission,
+    context: input.context,
+    expectedOutput: input.expected_output,
+  });
+  if (!mission) {
+    return "Specialist delegation blocked: choose orbit, nova, cipher, or flux and provide a non-empty bounded mission.";
+  }
+
+  if (!claimSpecialistDelegationSlot(runId)) {
+    return formatSpecialistHandoff({
+      ...buildFailedSpecialistHandoff(
+        mission,
+        `Delegation cap reached: MAX may use at most ${CENTRAL_ORCHESTRATOR_MAX_WORKERS} workers per run.`,
+      ),
+      status: "blocked",
+      nextAction: "MAX should synthesize the handoffs already received.",
+    });
+  }
+
+  try {
+    const aiResult = await callInternalAi({
+      origin: resolveInternalServiceOrigin(),
+      task: "central_orchestrator_worker",
+      maxTokens: 1_200,
+      timeoutMs: 45_000,
+      messages: buildSpecialistWorkerMessages(mission),
+    });
+    if (!aiResult.ok || !aiResult.text.trim()) {
+      return formatSpecialistHandoff(
+        buildFailedSpecialistHandoff(
+          mission,
+          `Specialist provider failed with status ${aiResult.status}.`,
+        ),
+      );
+    }
+    return formatSpecialistHandoff(
+      parseSpecialistHandoff(aiResult.text, mission),
+    );
+  } catch {
+    return formatSpecialistHandoff(
+      buildFailedSpecialistHandoff(
+        mission,
+        "Specialist worker could not be reached.",
+      ),
+    );
+  }
+}
+
 // ── Safe math evaluator (no eval / no Function constructor) ──────────────────
 // Recursive descent parser: handles +, -, *, /, (), unary minus, %
 function mathEval(expr: string): number {
@@ -494,7 +636,7 @@ async function calculate(expression: string): Promise<string> {
 //  - .env* files always blocked
 //  - node_modules, .git, .next, archive blocked
 //  - Write only allowed inside safe source dirs
-//  - Max read: 60,000 chars (~1,500 lines)
+//  - Max response: 60,000 chars with semantic selection for larger files
 
 const PROJECT_ROOT = process.cwd();
 
@@ -550,7 +692,10 @@ function resolveProjectPath(relPath: string): {
   )
     return { safe: "", blocked: `"${topLevel}" is off-limits.` };
   if (isSensitiveLocalDataPath(cleaned))
-    return { safe: "", blocked: `"${cleaned}" is treated as sensitive local data.` };
+    return {
+      safe: "",
+      blocked: `"${cleaned}" is treated as sensitive local data.`,
+    };
   const full = path.join(PROJECT_ROOT, cleaned);
   return { safe: full, blocked: null };
 }
@@ -562,6 +707,8 @@ function normalizeProjectPathKey(relPath: string): string {
 async function readProjectFile(
   relPath: string,
   runId: string,
+  rawFocus = "",
+  rawChunk = "",
 ): Promise<ToolResult> {
   const { safe, blocked } = resolveProjectPath(relPath);
   if (blocked) return withToolResult(`Blocked: ${blocked}`);
@@ -572,32 +719,48 @@ async function readProjectFile(
     );
   const normalizedPath = normalizeProjectPathKey(relPath);
   if (isSensitiveLocalDataPath(normalizedPath)) {
-    return withToolResult(`Blocked: "${relPath}" is treated as sensitive local data.`, {
-      duplicateRead: false,
-    });
+    return withToolResult(
+      `Blocked: "${relPath}" is treated as sensitive local data.`,
+      {
+        duplicateRead: false,
+      },
+    );
   }
+  const selectorKey = createHash("sha256")
+    .update(`${rawChunk.trim()}\0${rawFocus.trim().toLowerCase()}`)
+    .digest("hex")
+    .slice(0, 24);
   const duplicateRead = recordDuplicateRead(
     runId,
     "read_project_file",
-    normalizedPath,
+    `${normalizedPath}|${selectorKey}`,
   );
-  const cacheKey = `read_project_file:${normalizedPath}`;
+  const cacheKey = `read_project_file:${normalizedPath}:${selectorKey}`;
   const cached = cacheGet(cacheKey);
   if (cached !== null) {
     return withToolResult(cached, { cacheHit: true, duplicateRead });
   }
+  let content: string;
   try {
-    const content = await fs.readFile(safe, "utf-8");
-    const preview = content.slice(0, 60_000);
-    const truncated =
-      content.length > 60_000
-        ? `\n\n[Truncated — showing first 60,000 of ${content.length} chars]`
-        : "";
-    const result = preview + truncated;
-    cachePut(cacheKey, result);
-    return withToolResult(result, { duplicateRead });
+    content = await fs.readFile(safe, "utf-8");
   } catch {
     return withToolResult(`File not found: ${relPath}`, { duplicateRead });
+  }
+  try {
+    const result = buildProjectFileContext(content, {
+      extension: ext,
+      focus: rawFocus,
+      chunk: rawChunk,
+    }).text;
+    cachePut(cacheKey, result);
+    return withToolResult(result, { duplicateRead });
+  } catch (error) {
+    return withToolResult(
+      error instanceof Error
+        ? error.message
+        : "Could not build bounded project-file context.",
+      { duplicateRead },
+    );
   }
 }
 
@@ -627,7 +790,9 @@ async function listProjectFiles(
   try {
     const entries = await fs.readdir(targetPath, { withFileTypes: true });
     const lines = entries
-      .filter((e) => !isSensitiveLocalDataPath(path.posix.join(cleanDir, e.name)))
+      .filter(
+        (e) => !isSensitiveLocalDataPath(path.posix.join(cleanDir, e.name)),
+      )
       .map((e) => `${e.isDirectory() ? "📁" : "📄"} ${e.name}`);
     const result = lines.length ? lines.join("\n") : "Directory is empty.";
     cachePut(cacheKey, result);
@@ -884,6 +1049,8 @@ async function feynmanResearch(
   rawWorkflow: string,
   topic: string,
   origin: string,
+  rawExperimentIntakeDeclaration: string,
+  rawExperimentProvenanceJson: string,
 ): Promise<ToolResult> {
   const workflow = rawWorkflow.trim().toLowerCase() as FeynmanWorkflowId;
   if (!FEYNMAN_WORKFLOWS.has(workflow)) {
@@ -894,34 +1061,53 @@ async function feynmanResearch(
   if (!topic.trim()) {
     return withToolResult("feynman_research: topic or artifact is required.");
   }
+  let integrityInput;
+  try {
+    integrityInput = parseFeynmanResearchIntegrityInput({
+      experimentIntakeDeclaration: rawExperimentIntakeDeclaration,
+      experimentProvenanceJson: rawExperimentProvenanceJson,
+    });
+  } catch {
+    return withToolResult(
+      "feynman_research: experiment integrity input is invalid.",
+    );
+  }
 
   let continuitySession: FeynmanContinuitySession | null = null;
   try {
-    continuitySession = await startFeynmanContinuitySession({ workflow, topic });
+    continuitySession = await startFeynmanContinuitySession({
+      workflow,
+      topic,
+    });
   } catch {
     // Research remains available when local continuity storage is unavailable.
   }
 
   try {
-    const result = await runFeynmanResearch(workflow, topic, {
-      searchPapers: hfPapersSearch,
-      webSearch,
-      fetchUrl,
-      inspectHuggingFace: inspectHuggingFaceTopic,
-      write: (prompt) =>
-        callFeynmanStage(origin, "feynman_writer", prompt, 1_800),
-      verify: (prompt) =>
-        callFeynmanStage(origin, "feynman_verifier", prompt, 1_300),
-      review: (prompt) =>
-        callFeynmanStage(origin, "feynman_reviewer", prompt, 1_100),
-      progress: continuitySession
-        ? (event) =>
-            appendFeynmanNotebookEntry(continuitySession.id, {
-              ...event,
-              at: new Date().toISOString(),
-            })
-        : undefined,
-    });
+    const result = await runFeynmanResearch(
+      workflow,
+      topic,
+      {
+        searchPapers: hfPapersSearch,
+        webSearch,
+        fetchUrl,
+        inspectHuggingFace: inspectHuggingFaceTopic,
+        write: (prompt) =>
+          callFeynmanStage(origin, "feynman_writer", prompt, 1_800),
+        verify: (prompt) =>
+          callFeynmanStage(origin, "feynman_verifier", prompt, 1_300),
+        review: (prompt) =>
+          callFeynmanStage(origin, "feynman_reviewer", prompt, 1_100),
+        progress: continuitySession
+          ? (event) =>
+              appendFeynmanNotebookEntry(continuitySession.id, {
+                ...event,
+                at: new Date().toISOString(),
+              })
+          : undefined,
+      },
+      integrityInput,
+    );
     let completedSession: FeynmanContinuitySession | null = null;
     if (continuitySession) {
       try {
@@ -952,7 +1138,9 @@ async function feynmanResearch(
       try {
         await degradeFeynmanContinuitySession(
           continuitySession.id,
-          error instanceof Error ? error.message : "Feynman research workflow failed.",
+          error instanceof Error
+            ? error.message
+            : "Feynman research workflow failed.",
         );
       } catch {
         // Preserve the original workflow failure.
@@ -966,12 +1154,158 @@ async function feynmanResearch(
   }
 }
 
-async function deepResearch(topic: string, origin: string): Promise<ToolResult> {
-  return feynmanResearch("deepresearch", topic, origin);
+function feynmanPaperRank(input: Record<string, string>): ToolResult {
+  try {
+    const parsed = parseFeynmanPaperRankInput(
+      input.topic ?? "",
+      input.candidates_json ?? "",
+    );
+    return withToolResult(
+      formatFeynmanPaperRank(
+        rankFeynmanPapers(parsed.topic, parsed.candidates),
+      ),
+    );
+  } catch {
+    return withToolResult(
+      "feynman_paper_rank: provide a topic and candidates_json containing a valid JSON array of 2-25 paper objects with direct metadata and a title for each paper.",
+    );
+  }
+}
+
+async function feynmanPaperInspect(
+  input: Record<string, string>,
+): Promise<ToolResult> {
+  try {
+    const reference = normalizeFeynmanPaperReference(
+      input.paper ?? input.reference ?? input.arxiv_id ?? "",
+    );
+    const sections = parseFeynmanPaperSections(input.sections ?? "");
+    return withToolResult(
+      formatFeynmanPaperInspection(
+        await inspectFeynmanPaper(reference, sections),
+      ),
+    );
+  } catch (error) {
+    return withToolResult(
+      error instanceof Error
+        ? `feynman_paper_inspect: ${error.message}`
+        : "feynman_paper_inspect failed.",
+    );
+  }
+}
+
+async function feynmanPaperAsk(
+  input: Record<string, string>,
+  origin: string,
+): Promise<ToolResult> {
+  try {
+    const reference = normalizeFeynmanPaperReference(
+      input.paper ?? input.reference ?? input.arxiv_id ?? "",
+    );
+    const question = normalizeFeynmanPaperQuestion(input.question ?? "");
+    const inspection = await inspectFeynmanPaper(reference, [
+      ...FEYNMAN_PAPER_SECTIONS,
+    ]);
+    const prompt = buildFeynmanPaperQuestionPrompt(inspection, question);
+    const aiResult = await callInternalAi({
+      origin,
+      task: "research",
+      maxTokens: FEYNMAN_PAPER_QUESTION_LIMITS.maximumOutputTokens,
+      timeoutMs: 45_000,
+      messages: [
+        { role: "system", content: prompt.systemPrompt },
+        { role: "user", content: prompt.userPrompt },
+      ],
+    });
+    if (!aiResult.ok || !aiResult.text.trim()) {
+      return withToolResult(
+        "feynman_paper_ask: Paper evidence was collected, but internal AI answering was unavailable. Check local AI and retry.",
+      );
+    }
+    const audit = auditFeynmanPaperQuestionAnswer(
+      aiResult.text,
+      prompt.evidenceSections,
+    );
+    return withToolResult(
+      formatFeynmanPaperQuestionAnswer(inspection, question, audit),
+    );
+  } catch (error) {
+    return withToolResult(
+      error instanceof Error
+        ? `feynman_paper_ask: ${error.message}`
+        : "feynman_paper_ask failed.",
+    );
+  }
+}
+
+async function feynmanPaperCodeAudit(
+  input: Record<string, string>,
+  origin: string,
+): Promise<ToolResult> {
+  try {
+    const reference = normalizeFeynmanPaperReference(
+      input.paper ?? input.reference ?? input.arxiv_id ?? "",
+    );
+    const parsed = parseFeynmanPaperCodeAuditInput(
+      input.question ?? "",
+      input.repository ?? input.repository_url ?? "",
+      input.code_evidence_json ?? "",
+    );
+    const inspection = await inspectFeynmanPaper(reference, [
+      ...FEYNMAN_PAPER_SECTIONS,
+    ]);
+    const repositoryUrl = resolveFeynmanPaperCodeRepository(
+      inspection,
+      parsed.requestedRepositoryUrl,
+    );
+    const prompt = buildFeynmanPaperCodeAuditPrompt(
+      inspection,
+      parsed.question,
+      repositoryUrl,
+      parsed.codeEvidence,
+    );
+    const aiResult = await callInternalAi({
+      origin,
+      task: "research",
+      maxTokens: FEYNMAN_PAPER_CODE_AUDIT_LIMITS.maximumOutputTokens,
+      timeoutMs: 45_000,
+      messages: [
+        { role: "system", content: prompt.systemPrompt },
+        { role: "user", content: prompt.userPrompt },
+      ],
+    });
+    if (!aiResult.ok || !aiResult.text.trim()) {
+      return withToolResult(
+        "feynman_paper_code_audit: Evidence was collected, but internal AI auditing was unavailable. Check local AI and retry.",
+      );
+    }
+    const audit = auditFeynmanPaperCodeAuditAnswer(
+      aiResult.text,
+      prompt.paperEvidenceSections,
+      prompt.codeEvidencePaths,
+    );
+    return withToolResult(
+      formatFeynmanPaperCodeAudit(inspection, prompt, audit),
+    );
+  } catch (error) {
+    return withToolResult(
+      error instanceof Error
+        ? `feynman_paper_code_audit: ${error.message}`
+        : "feynman_paper_code_audit failed.",
+    );
+  }
+}
+
+async function deepResearch(
+  topic: string,
+  origin: string,
+): Promise<ToolResult> {
+  return feynmanResearch("deepresearch", topic, origin, "", "");
 }
 
 function formatFeynmanSessionIndex(sessions: FeynmanContinuitySession[]) {
-  if (sessions.length === 0) return "No local Feynman continuity sessions exist yet.";
+  if (sessions.length === 0)
+    return "No local Feynman continuity sessions exist yet.";
   return sessions
     .map(
       (session, index) =>
@@ -980,7 +1314,9 @@ function formatFeynmanSessionIndex(sessions: FeynmanContinuitySession[]) {
     .join("\n");
 }
 
-async function feynmanOutputs(input: Record<string, string> = {}): Promise<ToolResult> {
+async function feynmanOutputs(
+  input: Record<string, string> = {},
+): Promise<ToolResult> {
   const action = (input.action ?? "list").trim().toLowerCase();
   try {
     switch (action) {
@@ -989,19 +1325,29 @@ async function feynmanOutputs(input: Record<string, string> = {}): Promise<ToolR
         if (!query) {
           return withToolResult("feynman_outputs search requires query.");
         }
-        const sessions = await searchFeynmanContinuitySessions(query, { limit: 20 });
+        const sessions = await searchFeynmanContinuitySessions(query, {
+          limit: 20,
+        });
         return withToolResult(
-          [`# Feynman Session Search · ${query}`, "", formatFeynmanSessionIndex(sessions)].join(
-            "\n",
-          ),
+          [
+            `# Feynman Session Search · ${query}`,
+            "",
+            formatFeynmanSessionIndex(sessions),
+          ].join("\n"),
         );
       }
       case "resume": {
         const session = input.session_id?.trim()
           ? await getFeynmanContinuitySession(input.session_id.trim())
-          : (await searchFeynmanContinuitySessions(input.query ?? "", { limit: 1 }))[0];
+          : (
+              await searchFeynmanContinuitySessions(input.query ?? "", {
+                limit: 1,
+              })
+            )[0];
         if (!session) {
-          return withToolResult("No matching Feynman continuity session was found.");
+          return withToolResult(
+            "No matching Feynman continuity session was found.",
+          );
         }
         return withToolResult(buildFeynmanResumeContext(session));
       }
@@ -1016,7 +1362,10 @@ async function feynmanOutputs(input: Record<string, string> = {}): Promise<ToolR
             "feynman_outputs export format must be plan, notebook, report, evidence, claims, review, provenance, preview, or pdf.",
           );
         }
-        const exportArtifact = await readFeynmanContinuityArtifact(sessionId, artifact);
+        const exportArtifact = await readFeynmanContinuityArtifact(
+          sessionId,
+          artifact,
+        );
         return withToolResult(
           [
             `# Feynman ${artifact} export`,
@@ -1064,7 +1413,9 @@ async function feynmanOutputs(input: Record<string, string> = {}): Promise<ToolR
       ].join("\n"),
     );
   } catch {
-    return withToolResult("Could not read Feynman outputs from the local VAULT.");
+    return withToolResult(
+      "Could not read Feynman outputs from the local VAULT.",
+    );
   }
 }
 
@@ -1306,7 +1657,9 @@ async function secEdgarSearch(
     const fFilter = forms ? `&forms=${encodeURIComponent(forms)}` : "";
     const url = `https://efts.sec.gov/LATEST/search-index?q=%22${q}%22&dateRange=custom&startdt=2024-01-01&enddt=2026-12-31${fFilter}&hits.hits.total.value=1&hits.hits._source=file_date,display_names,form_type,period_of_report,entity_name,biz_location`;
     const r = await fetch(url, {
-      headers: { "User-Agent": `${TOOL_USER_AGENT} research@aegis-vector.local` },
+      headers: {
+        "User-Agent": `${TOOL_USER_AGENT} research@aegis-vector.local`,
+      },
       signal: AbortSignal.timeout(10_000),
     });
     if (!r.ok) return `SEC EDGAR returned HTTP ${r.status}`;
@@ -1411,10 +1764,29 @@ export async function POST(req: NextRequest) {
 
   try {
     const runId = req.headers.get("x-nexus-run-id") ?? "anon";
-    const { tool, input } = (await req.json()) as {
-      tool: string;
-      input: Record<string, string>;
-    };
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return NextResponse.json(
+        {
+          result: "Tool execution blocked.",
+          error: "Invalid or empty JSON body.",
+        },
+        { status: 400 },
+      );
+    }
+    const parsedBody = parseToolsPostBody(rawBody);
+    if (!parsedBody.ok) {
+      return NextResponse.json(
+        {
+          result: "Tool execution blocked.",
+          error: parsedBody.error,
+        },
+        { status: 400 },
+      );
+    }
+    const { tool, input } = parsedBody.data;
 
     const capability = getToolCapabilityClass(tool);
     toolCapability = capability;
@@ -1432,7 +1804,8 @@ export async function POST(req: NextRequest) {
 
       if (capability === "networked" && capabilityStatus !== "ready") {
         const blockedReason =
-          resolveProtectedActionBlockedReason(capabilityStatus) ?? "blocked_policy";
+          resolveProtectedActionBlockedReason(capabilityStatus) ??
+          "blocked_policy";
         const response = NextResponse.json(
           {
             result: "Tool execution blocked.",
@@ -1472,7 +1845,8 @@ export async function POST(req: NextRequest) {
 
         if (capabilityStatus !== "ready") {
           const blockedReason =
-            resolveProtectedActionBlockedReason(capabilityStatus) ?? "blocked_policy";
+            resolveProtectedActionBlockedReason(capabilityStatus) ??
+            "blocked_policy";
           const response = NextResponse.json(
             {
               result: "Tool execution blocked.",
@@ -1506,7 +1880,9 @@ export async function POST(req: NextRequest) {
         {
           result: "Tool execution blocked.",
           error: buildToolIsolationBlockedMessage(toolIsolationMeta),
-          ...(protectedActionMeta ? { protectedAction: protectedActionMeta } : {}),
+          ...(protectedActionMeta
+            ? { protectedAction: protectedActionMeta }
+            : {}),
           toolIsolation: toolIsolationMeta,
         },
         { status: 403 },
@@ -1553,9 +1929,41 @@ export async function POST(req: NextRequest) {
       case "ask_max":
         result = await askMax(input.message ?? "");
         break;
+      case "delegate_specialist":
+        result = await delegateSpecialist(input, runId);
+        break;
+      case "list_design_skills":
+        result = formatDesignSkillList({
+          query: input.query ?? "",
+          sourceCategory: input.category ?? "",
+          family: input.family ?? "",
+          availability: input.availability ?? "",
+          limit: Number(input.limit),
+        });
+        break;
+      case "resolve_design_skill":
+        result = formatDesignSkillContract(input.skill ?? "");
+        break;
+      case "list_go_to_market_skills":
+        result = formatGoToMarketSkillList({
+          query: input.query ?? "",
+          sourceCategory: input.category ?? "",
+          family: input.family ?? "",
+          availability: input.availability ?? "",
+          limit: Number(input.limit),
+        });
+        break;
+      case "resolve_go_to_market_skill":
+        result = formatGoToMarketSkillContract(input.skill ?? "");
+        break;
       case "read_project_file":
         {
-          const toolResult = await readProjectFile(input.path ?? "", runId);
+          const toolResult = await readProjectFile(
+            input.path ?? "",
+            runId,
+            input.focus ?? "",
+            input.chunk ?? "",
+          );
           result = toolResult.result;
           meta = toolResult.meta;
         }
@@ -1572,7 +1980,9 @@ export async function POST(req: NextRequest) {
         break;
       case "patch_project_file":
         // Evict any cached reads for this file path before patching
-        cacheEvict(`read_project_file:${normalizeProjectPathKey(input.path ?? "")}`);
+        cacheEvict(
+          `read_project_file:${normalizeProjectPathKey(input.path ?? "")}`,
+        );
         cacheEvict("list_project_files:");
         result = await patchProjectFile(
           input.path ?? "",
@@ -1581,7 +1991,9 @@ export async function POST(req: NextRequest) {
         );
         break;
       case "create_project_file":
-        cacheEvict(`read_project_file:${normalizeProjectPathKey(input.path ?? "")}`);
+        cacheEvict(
+          `read_project_file:${normalizeProjectPathKey(input.path ?? "")}`,
+        );
         cacheEvict("list_project_files:");
         result = await createProjectFile(input.path ?? "", input.content ?? "");
         break;
@@ -1615,10 +2027,7 @@ export async function POST(req: NextRequest) {
                 (value): value is string => typeof value === "string",
               )
             : typeof rawRepoRefs === "string"
-              ? rawRepoRefs
-                  .split(/\s+\bvs\b\s+/i)
-                  .map((value) => value.trim())
-                  .filter(Boolean)
+              ? splitOnStandaloneVs(rawRepoRefs)
               : [];
           const toolResult = await compareRepos(
             parsedRepoRefs,
@@ -1653,6 +2062,42 @@ export async function POST(req: NextRequest) {
           const toolResult = await feynmanResearch(
             input.workflow ?? "deepresearch",
             input.topic ?? input.question ?? input.artifact ?? "",
+            resolveInternalServiceOrigin(),
+            input.experiment_intake_declaration ?? "",
+            input.experiment_provenance_json ?? "",
+          );
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
+      case "feynman_paper_rank":
+        {
+          const toolResult = feynmanPaperRank(input);
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
+      case "feynman_paper_inspect":
+        {
+          const toolResult = await feynmanPaperInspect(input);
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
+      case "feynman_paper_ask":
+        {
+          const toolResult = await feynmanPaperAsk(
+            input,
+            resolveInternalServiceOrigin(),
+          );
+          result = toolResult.result;
+          meta = toolResult.meta;
+        }
+        break;
+      case "feynman_paper_code_audit":
+        {
+          const toolResult = await feynmanPaperCodeAudit(
+            input,
             resolveInternalServiceOrigin(),
           );
           result = toolResult.result;
@@ -1696,7 +2141,10 @@ export async function POST(req: NextRequest) {
         const payload = input.payload
           ? (JSON.parse(input.payload) as Record<string, unknown>)
           : {};
-        const toolResult = await n8nRunWorkflow(input.workflow_id ?? "", payload);
+        const toolResult = await n8nRunWorkflow(
+          input.workflow_id ?? "",
+          payload,
+        );
         result = toolResult.result;
         meta = toolResult.meta;
         break;
@@ -1705,14 +2153,12 @@ export async function POST(req: NextRequest) {
         result = `Unknown tool: ${tool}`;
     }
 
-    const response = NextResponse.json(
-      {
-        result,
-        ...(protectedActionMeta ? { protectedAction: protectedActionMeta } : {}),
-        ...(toolIsolationMeta ? { toolIsolation: toolIsolationMeta } : {}),
-        ...(meta.externalTool ? { externalTool: meta.externalTool } : {}),
-      },
-    );
+    const response = NextResponse.json({
+      result,
+      ...(protectedActionMeta ? { protectedAction: protectedActionMeta } : {}),
+      ...(toolIsolationMeta ? { toolIsolation: toolIsolationMeta } : {}),
+      ...(meta.externalTool ? { externalTool: meta.externalTool } : {}),
+    });
     response.headers.set("X-Tool-Capability", capability);
     if (protectedActionMeta) {
       applyProtectedActionHeaders(response, protectedActionMeta);

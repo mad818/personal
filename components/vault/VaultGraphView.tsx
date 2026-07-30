@@ -4,36 +4,39 @@
 // No external dependencies — pure canvas + requestAnimationFrame.
 
 import { useEffect, useRef, useState } from "react";
-import type { VaultGraphData, VaultItemMetadata } from "@/components/home/office/types";
+import type {
+  VaultGraphData,
+  VaultItemMetadata,
+} from "@/components/home/office/types";
 
 interface NodeState {
-  id:    string;
+  id: string;
   title: string;
-  x:     number;
-  y:     number;
-  vx:    number;
-  vy:    number;
-  mass:  number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  mass: number;
   color: string;
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  note:   "#4f6ef7",
+  note: "#4f6ef7",
   report: "#10b981",
-  clip:   "#f59e0b",
-  task:   "#ef4444",
-  other:  "#6875a0",
+  clip: "#f59e0b",
+  task: "#ef4444",
+  other: "#6875a0",
 };
 
 interface VaultGraphViewProps {
-  graph:   VaultGraphData;
+  graph: VaultGraphData;
   onNode?: (id: string) => void;
 }
 
 export function VaultGraphView({ graph, onNode }: VaultGraphViewProps) {
-  const canvasRef  = useRef<HTMLCanvasElement>(null);
-  const stateRef   = useRef<NodeState[]>([]);
-  const frameRef   = useRef<number>(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const stateRef = useRef<NodeState[]>([]);
+  const frameRef = useRef<number>(0);
   const [hovered, setHovered] = useState<string | null>(null);
 
   // Initialise node positions
@@ -44,13 +47,17 @@ export function VaultGraphView({ graph, onNode }: VaultGraphViewProps) {
     const H = canvas.offsetHeight;
 
     stateRef.current = graph.nodes.map((n, i) => ({
-      id:    n.id,
+      id: n.id,
       title: n.title,
-      x:     W / 2 + Math.cos((i / graph.nodes.length) * Math.PI * 2) * 120,
-      y:     H / 2 + Math.sin((i / graph.nodes.length) * Math.PI * 2) * 120,
-      vx:    (Math.random() - 0.5) * 0.5,
-      vy:    (Math.random() - 0.5) * 0.5,
-      mass:  1 + (graph.edges.filter(e => e.source === n.id || e.target === n.id).length * 0.2),
+      x: W / 2 + Math.cos((i / graph.nodes.length) * Math.PI * 2) * 120,
+      y: H / 2 + Math.sin((i / graph.nodes.length) * Math.PI * 2) * 120,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      mass:
+        1 +
+        graph.edges.filter((e) => e.source === n.id || e.target === n.id)
+          .length *
+          0.2,
       color: TYPE_COLORS[n.type ?? "other"] ?? TYPE_COLORS.other,
     }));
   }, [graph]);
@@ -62,7 +69,10 @@ export function VaultGraphView({ graph, onNode }: VaultGraphViewProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const edgeMap: Record<string, Array<{ target: string; weight: number }>> = {};
+    const edgeMap: Record<
+      string,
+      Array<{ target: string; weight: number }>
+    > = {};
     for (const e of graph.edges) {
       (edgeMap[e.source] ??= []).push({ target: e.target, weight: e.weight });
       (edgeMap[e.target] ??= []).push({ target: e.source, weight: e.weight });
@@ -74,7 +84,7 @@ export function VaultGraphView({ graph, onNode }: VaultGraphViewProps) {
       const nodes = stateRef.current;
       const W = canvas.offsetWidth;
       const H = canvas.offsetHeight;
-      canvas.width  = W;
+      canvas.width = W;
       canvas.height = H;
 
       // Apply forces
@@ -96,7 +106,7 @@ export function VaultGraphView({ graph, onNode }: VaultGraphViewProps) {
         }
         // Attraction along edges
         for (const { target, weight } of edgeMap[a.id] ?? []) {
-          const b = nodes.find(n => n.id === target);
+          const b = nodes.find((n) => n.id === target);
           if (!b) continue;
           const dx = b.x - a.x;
           const dy = b.y - a.y;
@@ -126,8 +136,8 @@ export function VaultGraphView({ graph, onNode }: VaultGraphViewProps) {
 
       // Edges
       for (const e of graph.edges) {
-        const src = nodes.find(n => n.id === e.source);
-        const tgt = nodes.find(n => n.id === e.target);
+        const src = nodes.find((n) => n.id === e.source);
+        const tgt = nodes.find((n) => n.id === e.target);
         if (!src || !tgt) continue;
         ctx.beginPath();
         ctx.moveTo(src.x, src.y);
@@ -155,7 +165,8 @@ export function VaultGraphView({ graph, onNode }: VaultGraphViewProps) {
           ctx.fillStyle = "#dde1f0";
           ctx.font = "10px sans-serif";
           ctx.textAlign = "center";
-          const label = n.title.length > 20 ? n.title.slice(0, 18) + "…" : n.title;
+          const label =
+            n.title.length > 20 ? n.title.slice(0, 18) + "…" : n.title;
           ctx.fillText(label, n.x, n.y - r - 4);
         }
       }
@@ -177,7 +188,7 @@ export function VaultGraphView({ graph, onNode }: VaultGraphViewProps) {
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
-    const hit = stateRef.current.find(n => {
+    const hit = stateRef.current.find((n) => {
       const dx = n.x - mx;
       const dy = n.y - my;
       return Math.sqrt(dx * dx + dy * dy) < 16;
@@ -191,7 +202,7 @@ export function VaultGraphView({ graph, onNode }: VaultGraphViewProps) {
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
-    const hit = stateRef.current.find(n => {
+    const hit = stateRef.current.find((n) => {
       const dx = n.x - mx;
       const dy = n.y - my;
       return Math.sqrt(dx * dx + dy * dy) < 16;
@@ -205,9 +216,9 @@ export function VaultGraphView({ graph, onNode }: VaultGraphViewProps) {
       onMouseMove={handleMouseMove}
       onClick={handleClick}
       style={{
-        width:        "100%",
-        height:       "100%",
-        cursor:       hovered ? "pointer" : "default",
+        width: "100%",
+        height: "100%",
+        cursor: hovered ? "pointer" : "default",
         borderRadius: "var(--r)",
       }}
     />

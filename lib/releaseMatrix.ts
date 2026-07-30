@@ -1,5 +1,8 @@
 import releaseMatrixJson from "@/lib/release-matrix.json";
-import type { ConnectorKey, ConnectorPolicy } from "@/lib/security/connectorPolicy";
+import type {
+  ConnectorKey,
+  ConnectorPolicy,
+} from "@/lib/security/connectorPolicy";
 import type { NetworkMode, RouteClass } from "@/lib/security/routePolicy";
 
 export type SurfaceTier = "ga" | "beta" | "internal";
@@ -9,7 +12,10 @@ export type ConnectorAccess =
   | "free_public"
   | "free_tier_optional"
   | "paid_optional_hidden";
-export type DeploymentProfile = "local-dev" | "web-self-hosted" | "desktop-secure";
+export type DeploymentProfile =
+  | "local-dev"
+  | "web-self-hosted"
+  | "desktop-secure";
 export type BuildChannel = "dev" | "preview" | "release";
 
 export interface ReleaseDefaults {
@@ -63,20 +69,28 @@ const SURFACE_PATH_INDEX = new Map<string, ProductSurface>(
 );
 
 export function getNavProductSurfaces(): ProductSurface[] {
-  return PRODUCT_SURFACES.filter((surface) => surface.inNav && surface.tier === "ga");
+  return PRODUCT_SURFACES.filter(
+    (surface) => surface.inNav && surface.tier === "ga",
+  );
 }
 
 export function getDefaultEntrypoint() {
   return RELEASE_DEFAULTS.defaultEntrypoint;
 }
 
-export function findSurfaceByPath(pathname?: string | null): ProductSurface | null {
+export function findSurfaceByPath(
+  pathname?: string | null,
+): ProductSurface | null {
   if (!pathname) return null;
   return SURFACE_PATH_INDEX.get(pathname) ?? null;
 }
 
 export function normalizeSurfaceHref(pathname?: string | null) {
-  return findSurfaceByPath(pathname)?.href ?? pathname ?? RELEASE_DEFAULTS.defaultEntrypoint;
+  return (
+    findSurfaceByPath(pathname)?.href ??
+    pathname ??
+    RELEASE_DEFAULTS.defaultEntrypoint
+  );
 }
 
 export function listSurfaceAliases() {
@@ -108,13 +122,18 @@ export function summarizeSurfaceTiers() {
 }
 
 export function readDeploymentProfile(): DeploymentProfile {
-  const raw = (process.env.NEXUS_DEPLOYMENT_PROFILE ?? RELEASE_DEFAULTS.defaultDeploymentProfile).toLowerCase();
+  const raw = (
+    process.env.NEXUS_DEPLOYMENT_PROFILE ??
+    RELEASE_DEFAULTS.defaultDeploymentProfile
+  ).toLowerCase();
   if (raw === "web-self-hosted" || raw === "desktop-secure") return raw;
   return "local-dev";
 }
 
 export function readBuildChannel(): BuildChannel {
-  const raw = (process.env.NEXUS_BUILD_CHANNEL ?? RELEASE_DEFAULTS.defaultBuildChannel).toLowerCase();
+  const raw = (
+    process.env.NEXUS_BUILD_CHANNEL ?? RELEASE_DEFAULTS.defaultBuildChannel
+  ).toLowerCase();
   if (raw === "preview" || raw === "release") return raw;
   return "dev";
 }
@@ -162,39 +181,48 @@ export function summarizeConnectorReadiness(
   connectorPolicy: ConnectorPolicy,
   env: EnvValueMap = process.env,
 ) {
-  const items: ConnectorReadinessItem[] = CONNECTOR_METADATA.map((connector) => {
-    const enabledByPolicy = connectorPolicy[connector.key] ?? connector.defaultEnabled;
-    const allowedInMode = networkMode !== "isolated";
-    const keyConfigured = connector.requiresEnv ? isTruthyEnv(env[connector.requiresEnv]) : false;
+  const items: ConnectorReadinessItem[] = CONNECTOR_METADATA.map(
+    (connector) => {
+      const enabledByPolicy =
+        connectorPolicy[connector.key] ?? connector.defaultEnabled;
+      const allowedInMode = networkMode !== "isolated";
+      const keyConfigured = connector.requiresEnv
+        ? isTruthyEnv(env[connector.requiresEnv])
+        : false;
 
-    let status: ConnectorReadinessItem["status"] = "ready";
-    if (!allowedInMode) {
-      status = "blocked_by_mode";
-    } else if (!enabledByPolicy) {
-      status = "disabled_by_policy";
-    } else if (connector.access !== "free_public" && !keyConfigured) {
-      status = "ready_limited";
-    }
+      let status: ConnectorReadinessItem["status"] = "ready";
+      if (!allowedInMode) {
+        status = "blocked_by_mode";
+      } else if (!enabledByPolicy) {
+        status = "disabled_by_policy";
+      } else if (connector.access !== "free_public" && !keyConfigured) {
+        status = "ready_limited";
+      }
 
-    return {
-      key: connector.key,
-      primarySurface: connector.primarySurface,
-      access: connector.access,
-      enabledByPolicy,
-      allowedInMode,
-      keyConfigured,
-      status,
-      description: connector.description,
-    };
-  });
+      return {
+        key: connector.key,
+        primarySurface: connector.primarySurface,
+        access: connector.access,
+        enabledByPolicy,
+        allowedInMode,
+        keyConfigured,
+        status,
+        description: connector.description,
+      };
+    },
+  );
 
   return {
     counts: {
       total: items.length,
       ready: items.filter((item) => item.status === "ready").length,
-      readyLimited: items.filter((item) => item.status === "ready_limited").length,
-      disabledByPolicy: items.filter((item) => item.status === "disabled_by_policy").length,
-      blockedByMode: items.filter((item) => item.status === "blocked_by_mode").length,
+      readyLimited: items.filter((item) => item.status === "ready_limited")
+        .length,
+      disabledByPolicy: items.filter(
+        (item) => item.status === "disabled_by_policy",
+      ).length,
+      blockedByMode: items.filter((item) => item.status === "blocked_by_mode")
+        .length,
       needsKey: items.filter((item) => item.status === "needs_key").length,
       freePublic: items.filter((item) => item.access === "free_public").length,
       freeTierOptional: items.filter(

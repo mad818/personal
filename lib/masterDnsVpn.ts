@@ -24,7 +24,10 @@ export interface MasterDnsVpnReadiness {
 }
 
 export function isLoopbackMasterDnsVpnHost(host: string) {
-  const normalized = host.trim().toLowerCase().replace(/^\[|\]$/g, "");
+  const normalized = host
+    .trim()
+    .toLowerCase()
+    .replace(/^\[|\]$/g, "");
   return (
     normalized === "localhost" ||
     normalized === "::1" ||
@@ -52,10 +55,14 @@ export function buildMasterDnsVpnReadiness(
     blockers.push("Explicit authorization is required.");
   }
   if (!config.delegatedDomainConfigured) {
-    blockers.push("A delegated domain and operator-managed server are required.");
+    blockers.push(
+      "A delegated domain and operator-managed server are required.",
+    );
   }
   if (config.resolverCount < 1) {
-    blockers.push("At least one approved resolver must be configured externally.");
+    blockers.push(
+      "At least one approved resolver must be configured externally.",
+    );
   }
   if (config.encryption === "xor") {
     blockers.push("XOR is weak and is not approved.");
@@ -81,7 +88,8 @@ export function buildMasterDnsVpnReadiness(
       ready: false,
       listenerReachable: false,
       blockers,
-      summary: "MasterDnsVPN readiness is disabled until explicitly authorized.",
+      summary:
+        "MasterDnsVPN readiness is disabled until explicitly authorized.",
       warning,
     };
   }
@@ -91,7 +99,8 @@ export function buildMasterDnsVpnReadiness(
       ready: false,
       listenerReachable: false,
       blockers,
-      summary: "The external client configuration does not meet Nexus safety requirements.",
+      summary:
+        "The external client configuration does not meet Nexus safety requirements.",
       warning,
     };
   }

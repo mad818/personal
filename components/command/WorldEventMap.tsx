@@ -303,8 +303,8 @@ export default function WorldEventMap() {
     const name =
       typeof w.name === "string"
         ? w.name
-        : typeof (w.current as Record<string, unknown> | undefined)?.condition ===
-            "string"
+        : typeof (w.current as Record<string, unknown> | undefined)
+              ?.condition === "string"
           ? String((w.current as Record<string, unknown>).condition)
           : "Weather Alert";
     return { x, y, name };

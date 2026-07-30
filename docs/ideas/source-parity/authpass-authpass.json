@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "authpass-authpass",
   "name": "AuthPass",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/authpass/authpass",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "GPL-3.0",
     "primaryEvidence": [
       "https://github.com/authpass/authpass",
@@ -42,8 +42,9 @@
       "id": "flutter-dart-architecture",
       "title": "Flutter/Dart architecture patterns for state management and local persistence",
       "sourceEvidence": "AuthPass state management and Hive local storage",
-      "disposition": "pending",
-      "reason": "Nexus does not use Flutter; however, state management patterns (BLoC, provider isolation) from AuthPass may inform future Tauri mobile/desktop patterns."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus uses React, Zustand, and Tauri. Importing Flutter/Dart state and persistence architecture would duplicate the active platform without adding a user capability."
     }
   ]
 }

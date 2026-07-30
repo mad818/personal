@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Review And Quality"
+  short_description: "Review Nexus changes across five quality axes."
+  default_prompt: "Use $code-review-and-quality to review this Nexus diff and return evidence-backed findings."

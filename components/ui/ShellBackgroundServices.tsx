@@ -8,15 +8,22 @@ import {
 } from "@/lib/shellPerformance";
 
 const ArticlesLoader = dynamic(
-  () => import("@/components/ui/DataLoader").then((module) => module.ArticlesLoader),
+  () =>
+    import("@/components/ui/DataLoader").then(
+      (module) => module.ArticlesLoader,
+    ),
   { ssr: false },
 );
 const CVEsLoader = dynamic(
-  () => import("@/components/ui/DataLoader").then((module) => module.CVEsLoader),
+  () =>
+    import("@/components/ui/DataLoader").then((module) => module.CVEsLoader),
   { ssr: false },
 );
 const FearGreedLoader = dynamic(
-  () => import("@/components/ui/DataLoader").then((module) => module.FearGreedLoader),
+  () =>
+    import("@/components/ui/DataLoader").then(
+      (module) => module.FearGreedLoader,
+    ),
   { ssr: false },
 );
 const GlobalDataLoader = dynamic(
@@ -24,11 +31,15 @@ const GlobalDataLoader = dynamic(
   { ssr: false },
 );
 const PricesLoader = dynamic(
-  () => import("@/components/ui/DataLoader").then((module) => module.PricesLoader),
+  () =>
+    import("@/components/ui/DataLoader").then((module) => module.PricesLoader),
   { ssr: false },
 );
 const WorldRiskLoader = dynamic(
-  () => import("@/components/ui/DataLoader").then((module) => module.WorldRiskLoader),
+  () =>
+    import("@/components/ui/DataLoader").then(
+      (module) => module.WorldRiskLoader,
+    ),
   { ssr: false },
 );
 const MemorySpineSync = dynamic(
@@ -81,9 +92,14 @@ export default function ShellBackgroundServices({
       timeout: plan.deferTimeoutMs,
     });
     const timeoutHandle =
-      idleHandle == null ? window.setTimeout(activate, plan.deferTimeoutMs) : null;
+      idleHandle == null
+        ? window.setTimeout(activate, plan.deferTimeoutMs)
+        : null;
 
-    window.addEventListener("pointerdown", activate, { once: true, passive: true });
+    window.addEventListener("pointerdown", activate, {
+      once: true,
+      passive: true,
+    });
     window.addEventListener("keydown", activate, { once: true });
 
     return () => {

@@ -114,7 +114,10 @@ The user intentionally invoked a workflow-style run.
 
 function collapseNarrationReply(raw: string): string | null {
   const lines = raw.replace(/\r\n?/g, "\n").split("\n");
-  const sections: Record<"background" | "analysis" | "recommendation", string[]> = {
+  const sections: Record<
+    "background" | "analysis" | "recommendation",
+    string[]
+  > = {
     background: [],
     analysis: [],
     recommendation: [],
@@ -145,9 +148,12 @@ function collapseNarrationReply(raw: string): string | null {
   return bodyText || null;
 }
 
-export function resolveHQAnswerStylePlan(input: string, opts?: {
-  hasWorkflow?: boolean;
-}): HQAnswerStylePlan {
+export function resolveHQAnswerStylePlan(
+  input: string,
+  opts?: {
+    hasWorkflow?: boolean;
+  },
+): HQAnswerStylePlan {
   const trimmed = input.trim();
   const lower = trimmed.toLowerCase();
   const casualGreeting = GREETING_RE.test(trimmed);
@@ -298,7 +304,7 @@ export function healHQAnswerForChronicle(
   const evidence = parseInlineEvidencePosture(trimmed);
   let next = plan.showEvidencePosture
     ? trimmed
-    : (evidence?.mainText?.trim() || trimmed);
+    : evidence?.mainText?.trim() || trimmed;
   const collapsedNarration = collapseNarrationReply(next);
 
   if (plan.casualGreeting && collapsedNarration) {

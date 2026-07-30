@@ -22,16 +22,13 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { buildOrbitQueue } = require("./orbit.js");
 
 function parseTodoItem(line) {
   const normalized = line.trim().replace("- [ ] ", "");
   const match = normalized.match(/^([^—]+?)\s+—\s+(.+)$/);
   if (!match) return { id: normalized, text: "" };
   return { id: match[1].trim(), text: match[2].trim() };
-}
-
-function getTodoRoot(id) {
-  return id.match(/^[A-Z]+\d+/)?.[0] ?? id;
 }
 
 function formatTodoItem(item) {
@@ -44,39 +41,50 @@ function formatTodoItem(item) {
   return `- ${item.id} — ${text}`;
 }
 
-function getTopTodoLines(todoPathAbs) {
-  const raw = fs.readFileSync(todoPathAbs, "utf8");
-  const lines = raw.split(/\r?\n/);
-  const start = lines.findIndex((l) => l.trim() === "## Next Up");
-  if (start === -1) return [];
-  const items = [];
-  for (let i = start + 1; i < lines.length; i++) {
-    const l = lines[i];
-    if (l.startsWith("## ")) break;
-    if (l.trim().startsWith("- [ ] ")) items.push(parseTodoItem(l));
+function getHandoffQueueLines(raw) {
+  const queue = buildOrbitQueue(raw);
+  const actionable = queue.tasks.filter(
+    (task) => task.classification === "actionable",
+  );
+  const lines = [];
+
+  if (actionable.length > 0) {
+    lines.push(
+      ...actionable
+        .slice(0, 3)
+        .map((task) => formatTodoItem(parseTodoItem(task.task))),
+    );
+    if (actionable.length > 3) {
+      lines.push(
+        `- Additional actionable work — ${actionable.length - 3} more locally ready top-level tasks are classified in \`tasks/todo.md\`.`,
+      );
+    }
+  } else {
+    lines.push("- No locally actionable task is currently proven.");
   }
 
-  if (!items.length) return [];
+  lines.push(
+    `- Queue posture: ${queue.counts.actionable} actionable and ${queue.counts.blockedOrManual} blocked/manual tasks remain context-only.`,
+    "- Review the full classified queue only when prerequisites change: `npm run orbit:next -- --all`.",
+    "- Canonical task evidence: `tasks/todo.md` → `## Next Up`.",
+  );
 
-  const [first, ...rest] = items;
-  const firstRoot = getTodoRoot(first.id);
-  const childCount = rest.filter(
-    (item) => getTodoRoot(item.id) === firstRoot,
-  ).length;
-  const distinctNext = rest
-    .filter((item) => getTodoRoot(item.id) !== firstRoot)
-    .slice(0, 2);
+  return lines;
+}
 
-  const out = [formatTodoItem(first)];
-  if (childCount > 0) {
-    out.push(
-      `- ${firstRoot} child tracks — ${childCount} follow-up tracks are queued in \`tasks/todo.md\`; expand there when implementing.`,
+function getMajorVersion(version, dependencyName) {
+  const match = String(version ?? "").match(/\d+/);
+  if (!match) {
+    throw new Error(
+      `package.json is missing a readable ${dependencyName} dependency version`,
     );
   }
-  out.push(...distinctNext.map(formatTodoItem));
-  out.push("- Full queue: `tasks/todo.md` -> `## Next Up`.");
+  return Number.parseInt(match[0], 10);
+}
 
-  return out;
+function getTopTodoLines(todoPathAbs) {
+  const raw = fs.readFileSync(todoPathAbs, "utf8");
+  return getHandoffQueueLines(raw);
 }
 
 function buildHandoff() {
@@ -85,6 +93,8 @@ function buildHandoff() {
   const packageJson = JSON.parse(
     fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"),
   );
+  const nextMajor = getMajorVersion(packageJson.dependencies?.next, "Next.js");
+  const reactMajor = getMajorVersion(packageJson.dependencies?.react, "React");
   const verifyCmd = packageJson?.scripts?.verify
     ? "npm run verify"
     : "npx tsc --noEmit";
@@ -119,9 +129,9 @@ function buildHandoff() {
     "### Project pulse",
     "",
     "- Nexus Prime is a local-first, self-hosted command-and-intelligence dashboard for markets, cyber, recon, resources, and operator AI.",
-    "- Next.js 14 app is the active surface (`app/`, `components/`, `lib/`, `store/`).",
-    "- `nexus-final.html` remains as legacy reference and should stay single-file.",
-    "- Current product push is Homefront command-intelligence polish; the `/hq` RPG world is a personal/private lane and should not be used as public Nexus positioning.",
+    `- Next.js ${nextMajor} / React ${reactMajor} is the active application stack (\`app/\`, \`components/\`, \`lib/\`, \`store/\`).`,
+    "- The legacy HTML app is archived under `archive/`; active development stays in the React application.",
+    "- Current product work follows the evidence-backed queue in `tasks/todo.md`.",
     "",
     "### Machine + commands",
     "",
@@ -133,7 +143,7 @@ function buildHandoff() {
     "### Security + ops constraints",
     "",
     "- Secrets live in `.env.local` (never commit). See `.env.example`.",
-    "- Server routes are protected by `NEXUS_TOKEN` and CSP is enforced in `next.config.js`.",
+    "- Server routes are protected by `NEXUS_TOKEN`; CSP is generated per request in middleware and inline scripts require a nonce.",
     "- Prefer server-side API routes for external fetches to avoid CSP/CORS issues.",
     "- All AI provider access goes through `lib/ai.ts`; do not call providers directly.",
     "- Use Zustand selectors such as `useStore(s => s.field)`, not `useStore().field`.",
@@ -237,4 +247,11 @@ function main() {
   }
 }
 
-main();
+module.exports = {
+  buildHandoff,
+  getHandoffOutputs,
+  getHandoffQueueLines,
+  getTopTodoLines,
+};
+
+if (require.main === module) main();

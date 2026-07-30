@@ -871,6 +871,7 @@ export default function SystemBrain() {
                         return s;
                       });
                     }}
+                    aria-label="Dismiss improvement suggestion"
                     style={{
                       fontSize: "10px",
                       color: "var(--text3)",

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "frontend-slides",
+  "name": "zarazhangrui/frontend-slides",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/zarazhangrui/frontend-slides",
+    "version": "main snapshot reviewed 2026-07-27; no tagged release",
+    "reviewedAt": "2026-07-27",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/zarazhangrui/frontend-slides/blob/main/README.md",
+      "https://github.com/zarazhangrui/frontend-slides/blob/main/SKILL.md",
+      "https://github.com/zarazhangrui/frontend-slides/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    { "id": "new-single-file-html-decks", "title": "Create zero-dependency single-file HTML presentations with inline CSS and JavaScript", "sourceEvidence": "README Key Features and SKILL.md Core Principles", "disposition": "excluded", "conflict": "product_purpose", "reason": "Nexus is an intelligence dashboard, not a presentation authoring product. It will not hide an unvalidated second application inside generated HTML." },
+    { "id": "visual-style-discovery", "title": "Generate three authentic deck-title previews so the user selects a visual direction by seeing it", "sourceEvidence": "SKILL.md Phase 2 Style Discovery", "disposition": "excluded", "conflict": "product_purpose", "reason": "Deck-specific visual preview selection belongs to a presentation authoring workflow that Nexus does not provide." },
+    { "id": "progressive-template-loading", "title": "Load compact preset indexes and preview cards before reading only the selected full design recipe", "sourceEvidence": "README Architecture and SKILL.md Progressive Disclosure rules", "disposition": "excluded", "conflict": "product_purpose", "reason": "Nexus has no presentation template inventory to load; inventing one would add a separate authoring product rather than improve an active dashboard seam." },
+    { "id": "presentation-design-systems", "title": "Offer safe presets, a broad bold-template pack, and a context-specific custom wildcard", "sourceEvidence": "README Included Styles and SKILL.md Preview mix rules", "disposition": "excluded", "conflict": "product_purpose", "reason": "Nexus maintains one product design system and now exports its tokens; it does not ship a deck-template marketplace." },
+    { "id": "fixed-stage-responsive-display", "title": "Author every slide at 1920 by 1080 and uniformly scale the stage across desktop and phone viewports", "sourceEvidence": "SKILL.md Fixed Stage Rules", "disposition": "excluded", "conflict": "product_purpose", "reason": "No slide runtime exists in Nexus, and phone/PWA work is explicitly deferred." },
+    { "id": "reduced-motion-and-accessibility", "title": "Include reduced-motion support, readable density limits, navigation, and accessible presentation behavior", "sourceEvidence": "README Production Quality and SKILL.md fixed-stage/delivery rules", "disposition": "excluded", "conflict": "product_purpose", "reason": "The active Nexus application already enforces its own reduced-motion and accessibility contracts, but there is no presentation artifact where this deck-specific capability can honestly run." },
+    { "id": "content-density-modes", "title": "Choose low-density speaker-led or high-density reading-first deck behavior", "sourceEvidence": "SKILL.md Content Density Modes", "disposition": "excluded", "conflict": "product_purpose", "reason": "Speaker-led and reading-first slide density are presentation concerns, not active Nexus dashboard modes." },
+    { "id": "image-led-outline", "title": "Inspect supplied images and co-design the slide outline around usable visual evidence", "sourceEvidence": "SKILL.md Image Evaluation", "disposition": "excluded", "conflict": "product_purpose", "reason": "Nexus has no presentation image-ingest or outline-authoring lane; adding one would create a separate artifact product." },
+    { "id": "pptx-conversion", "title": "Extract and preserve PowerPoint text, images, order, and speaker notes before restyling to HTML", "sourceEvidence": "README PPT Conversion and SKILL.md Phase 4", "disposition": "excluded", "conflict": "security", "reason": "Untrusted PowerPoint conversion requires a maintained binary parser, resource sandbox, fidelity tests, and retention policy that Nexus does not provide." },
+    { "id": "existing-deck-enhancement", "title": "Improve an existing HTML presentation while preserving fixed-stage fit and splitting overflow", "sourceEvidence": "SKILL.md Mode C Modification Rules", "disposition": "excluded", "conflict": "product_purpose", "reason": "Deck enhancement and overflow repair belong to the excluded presentation authoring product." },
+    { "id": "rendered-visual-qa", "title": "Verify overflow, overlap, desktop rendering, and a phone viewport using rendered browser screenshots", "sourceEvidence": "SKILL.md modification and generation verification rules", "disposition": "excluded", "conflict": "product_purpose", "reason": "Nexus has no generated deck artifact to render, and phone/PWA acceptance remains deferred." },
+    { "id": "inline-editing-and-navigation", "title": "Provide keyboard, touch, slide navigation, and in-browser text editing for generated decks", "sourceEvidence": "SKILL.md Delivery requirements", "disposition": "excluded", "conflict": "product_purpose", "reason": "An in-browser slide editor/runtime is a separate application and is not a Nexus dashboard capability." },
+    { "id": "pdf-export", "title": "Capture slides and combine them into a static PDF export", "sourceEvidence": "SKILL.md Phase 6B and scripts/export-pdf.sh", "disposition": "excluded", "conflict": "product_purpose", "reason": "There is no Nexus slide artifact to export; adding a browser-capture PDF tool without that product lane would be unused infrastructure." },
+    { "id": "automatic-vercel-deployment", "title": "Deploy presentation artifacts to an external Vercel URL", "sourceEvidence": "SKILL.md Phase 6A and scripts/deploy.sh", "disposition": "excluded", "conflict": "product_purpose", "reason": "Nexus does not automatically publish operator artifacts; external deployment remains a separate explicit human action." },
+    { "id": "cross-agent-skill-use", "title": "Run the core skill through Claude Code, Codex, and other filesystem-capable coding agents", "sourceEvidence": "README Installation and Other Coding Agents", "disposition": "excluded", "conflict": "security", "reason": "Nexus does not install external skills or rewrite instructions for other hosts from inside the product; host configuration remains an explicit operator action." }
+  ]
+}

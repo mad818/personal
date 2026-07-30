@@ -1,123 +1,128 @@
 #!/usr/bin/env node
 // scripts/audit.js — npm run audit:full
-// Full project health audit: npm runs verify first, then this prints todo posture.
-// Prints a summary with pass/fail for each check.
-// Usage: npm run audit:full
+// Runs the canonical verifier itself, then prints honest local task posture.
 
-const { spawnSync } = require('child_process')
-const fs            = require('fs')
-const path          = require('path')
+const { spawnSync } = require("node:child_process");
+const fs = require("node:fs");
+const path = require("node:path");
 
-const node = process.execPath
-const bin = (...parts) => path.join(process.cwd(), 'node_modules', ...parts)
-const script = (...parts) => path.join(process.cwd(), 'scripts', ...parts)
+const CYAN = "\x1b[36m";
+const GREEN = "\x1b[32m";
+const RED = "\x1b[31m";
+const YELLOW = "\x1b[33m";
+const RESET = "\x1b[0m";
+const VERIFY_TIMEOUT_MS = 10 * 60 * 1000;
 
-const CHECKS = [
-  {
-    name:    'TypeScript (tsc --noEmit)',
-    cmd:     node,
-    args:    [bin('typescript', 'bin', 'tsc'), '--noEmit', '-p', 'tsconfig.typecheck.json'],
-    failOn:  /error TS/,
-  },
-  {
-    name:    'ESLint',
-    cmd:     node,
-    args:    [bin('next', 'dist', 'bin', 'next'), 'lint', '--max-warnings', '0'],
-    failOn:  /Error:|error/,
-  },
-  {
-    name:    'Security scan',
-    cmd:     node,
-    args:    [script('security-scan.js')],
-    failOn:  /CRITICAL|HIGH/,
-  },
-  {
-    name:    'Path collisions',
-    cmd:     node,
-    args:    [script('check-path-collisions.js')],
-    failOn:  /COLLISION|ERROR/i,
-  },
-]
+function getSectionLines(lines, heading) {
+  const start = lines.findIndex((line) => line.trim() === heading);
+  if (start < 0) return [];
 
-const CYAN   = '\x1b[36m'
-const GREEN  = '\x1b[32m'
-const RED    = '\x1b[31m'
-const YELLOW = '\x1b[33m'
-const RESET  = '\x1b[0m'
-
-function run(cmd, args = []) {
-  const result = spawnSync(cmd, args, {
-    encoding: 'utf-8',
-    shell: false,
-    timeout: 120_000,
-    windowsHide: true,
-  })
-  const output = [result.stdout, result.stderr, result.error?.message]
-    .filter(Boolean)
-    .join('\n')
-  return { ok: result.status === 0 && !result.error, output }
+  const section = [];
+  for (let index = start + 1; index < lines.length; index += 1) {
+    if (lines[index].trim().startsWith("## ")) break;
+    section.push(lines[index]);
+  }
+  return section;
 }
 
-function todoStats() {
-  const file = path.join(process.cwd(), 'tasks', 'todo.md')
+function taskPosture() {
+  const file = path.join(process.cwd(), "tasks", "todo.md");
   try {
-    const content = fs.readFileSync(file, 'utf-8')
-    const open   = (content.match(/\[\s\]/g)  ?? []).length
-    const closed = (content.match(/\[x\]/gi)  ?? []).length
-    return { open, closed }
+    const content = fs.readFileSync(file, "utf8");
+    const lines = content.split(/\r?\n/);
+    const nextUp = getSectionLines(lines, "## Next Up");
+    return {
+      nextUpOpen: nextUp.filter((line) => /^- \[ \]/.test(line)).length,
+      totalOpen: (content.match(/\[ \]/g) ?? []).length,
+      totalClosed: (content.match(/\[x\]/gi) ?? []).length,
+    };
   } catch {
-    return { open: 0, closed: 0 }
+    return null;
   }
+}
+
+function runCanonicalVerify() {
+  const npmCli = process.env.npm_execpath;
+  if (!npmCli || !fs.existsSync(npmCli)) {
+    return {
+      passed: false,
+      detail:
+        "npm runner unavailable; invoke this audit through npm run audit:full.",
+    };
+  }
+
+  const result = spawnSync(process.execPath, [npmCli, "run", "verify"], {
+    cwd: process.cwd(),
+    shell: false,
+    stdio: "inherit",
+    timeout: VERIFY_TIMEOUT_MS,
+    windowsHide: true,
+  });
+
+  if (result.error) {
+    return { passed: false, detail: result.error.message };
+  }
+  if (result.signal) {
+    return {
+      passed: false,
+      detail: `canonical verifier ended by signal ${result.signal}`,
+    };
+  }
+  return {
+    passed: result.status === 0,
+    detail:
+      result.status === 0
+        ? "canonical npm run verify completed"
+        : `canonical verifier exited with status ${result.status ?? "unknown"}`,
+  };
 }
 
 function main() {
-  const verifyAlreadyRan = process.argv.includes('--verified')
-
-  console.log(`\n${CYAN}═══════════════════════════════════════${RESET}`)
-  console.log(`${CYAN}  NEXUS PRIME — FULL AUDIT${RESET}`)
-  console.log(`${CYAN}═══════════════════════════════════════${RESET}\n`)
-
-  const results = []
-
-  if (verifyAlreadyRan) {
-    console.log(`  Checking npm run verify… ${GREEN}✓ PASS${RESET}`)
-    results.push({ name: 'npm run verify', pass: true })
-  } else {
-    for (const check of CHECKS) {
-      process.stdout.write(`  Checking ${check.name}… `)
-      const { ok, output } = run(check.cmd, check.args)
-      const failed = check.failOn && check.failOn.test(output)
-      const pass   = ok && !failed
-
-      if (pass) {
-        console.log(`${GREEN}✓ PASS${RESET}`)
-      } else {
-        console.log(`${RED}✗ FAIL${RESET}`)
-        // Show first error line
-        const firstErr = output.split('\n').find(l => l.trim()) ?? ''
-        if (firstErr) console.log(`    ${YELLOW}→ ${firstErr.slice(0, 120)}${RESET}`)
-      }
-      results.push({ name: check.name, pass })
-    }
+  const unsupportedArguments = process.argv.slice(2);
+  if (unsupportedArguments.length > 0) {
+    console.error(
+      "ERROR: audit:full accepts no arguments; verification cannot be bypassed.",
+    );
+    process.exit(2);
   }
 
-  // Todo stats
-  const { open, closed } = todoStats()
-  const todoColor = open === 0 ? GREEN : open <= 3 ? YELLOW : RED
-  console.log(`\n  Task backlog: ${todoColor}${open} open${RESET}, ${closed} closed`)
+  console.log(`\n${CYAN}═══════════════════════════════════════${RESET}`);
+  console.log(`${CYAN}  NEXUS PRIME — FULL LOCAL AUDIT${RESET}`);
+  console.log(`${CYAN}═══════════════════════════════════════${RESET}\n`);
+  console.log("  Running canonical npm run verify…\n");
 
-  // Summary
-  const allPassed = results.every(r => r.pass)
-  const failCount = results.filter(r => !r.pass).length
+  const verification = runCanonicalVerify();
+  const verificationColor = verification.passed ? GREEN : RED;
+  const verificationLabel = verification.passed ? "✓ PASS" : "✗ FAIL";
+  console.log(
+    `\n  Canonical verification: ${verificationColor}${verificationLabel}${RESET}`,
+  );
+  console.log(`    ${verificationColor}→ ${verification.detail}${RESET}`);
 
-  console.log(`\n${CYAN}───────────────────────────────────────${RESET}`)
-  if (allPassed) {
-    console.log(`${GREEN}  ✓ All checks passed — safe to push.${RESET}`)
+  const tasks = taskPosture();
+  if (tasks) {
+    const nextUpColor = tasks.nextUpOpen === 0 ? GREEN : YELLOW;
+    console.log(
+      `\n  Next Up queue: ${nextUpColor}${tasks.nextUpOpen} open top-level task(s)${RESET}`,
+    );
+    console.log(
+      `  All task checkboxes: ${tasks.totalOpen} open, ${tasks.totalClosed} closed`,
+    );
   } else {
-    console.log(`${RED}  ✗ ${failCount} check(s) failed — fix before pushing.${RESET}`)
-    process.exitCode = 1
+    console.log(`\n  ${YELLOW}Task posture unavailable.${RESET}`);
   }
-  console.log(`${CYAN}═══════════════════════════════════════${RESET}\n`)
+
+  console.log(`\n${CYAN}───────────────────────────────────────${RESET}`);
+  if (verification.passed) {
+    console.log(`${GREEN}  ✓ Local verification passed.${RESET}`);
+    console.log(
+      "  Publication readiness and remote CI remain separate external checks.",
+    );
+  } else {
+    console.log(`${RED}  ✗ Local verification failed; do not publish.${RESET}`);
+    process.exitCode = 1;
+  }
+  console.log(`${CYAN}═══════════════════════════════════════${RESET}\n`);
 }
 
-main()
+main();

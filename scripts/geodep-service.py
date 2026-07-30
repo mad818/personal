@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-geodep-service.py — Local GeoDeep AI scan service for Nexus Prime OPS tab.
+geodep-service.py — Local GeoDeep feature scan service for Nexus Prime OPS tab.
 
-Wraps a lightweight object-detection pass over a public satellite tile
-and returns detected objects (vehicles, structures, etc.) as lat/lng points.
+Wraps a lightweight contrast scan over a public map tile and returns
+high-contrast feature centroids as lat/lng points. It does not infer object
+classes and its confidence field is a normalized contrast-strength score.
 
 Setup: see docs/deployment/geodep.md
 Usage:
@@ -42,7 +43,7 @@ ZOOM        = int(os.getenv("GEODEP_ZOOM", "8"))
 TILE_URL    = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
 CACHE_TTL   = 300  # seconds before a fresh scan is triggered
 
-app = FastAPI(title="Nexus GeoDeep Service", version="1.0.0")
+app = FastAPI(title="Nexus GeoDeep Feature Scan", version="1.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -100,19 +101,17 @@ def fetch_tile(x: int, y: int, zoom: int) -> Image.Image | None:
         return None
 
 
-def simple_edge_detect(img: Image.Image) -> list[tuple[int, int]]:
+def simple_edge_detect(img: Image.Image) -> list[tuple[int, int, float]]:
     """
     Lightweight pixel-difference scan — no GPU, no ML model.
-    Finds high-contrast blobs that may indicate structures or vehicles.
-    Returns list of (px, py) pixel centroids within the 256x256 tile.
+    Finds high-contrast blobs that may indicate visual boundaries.
+    Returns (px, py, mean_contrast) centroids within the tile.
     """
-    import struct
-
     width, height = img.size
     pixels = list(img.getdata())
 
-    hits: list[tuple[int, int]] = []
-    threshold = 80  # contrast threshold (0–255)
+    hits: list[tuple[int, int, int]] = []
+    threshold = 80  # summed RGB contrast threshold (0–765)
     step = 8        # sample every 8 pixels for speed
 
     for y in range(step, height - step, step):
@@ -127,29 +126,39 @@ def simple_edge_detect(img: Image.Image) -> list[tuple[int, int]]:
             diff_h = abs(r - r2) + abs(g - g2) + abs(b - b2)
             diff_v = abs(r - r3) + abs(g - g3) + abs(b - b3)
 
-            if diff_h > threshold or diff_v > threshold:
-                hits.append((x, y))
+            contrast = max(diff_h, diff_v)
+            if contrast > threshold:
+                hits.append((x, y, contrast))
 
     # Cluster nearby hits to avoid duplicate markers
-    clusters: list[tuple[int, int]] = []
+    clusters: list[tuple[int, int, float]] = []
     used = [False] * len(hits)
-    for i, (x1, y1) in enumerate(hits):
+    for i, (x1, y1, contrast1) in enumerate(hits):
         if used[i]:
             continue
-        cx, cy, count = x1, y1, 1
-        for j, (x2, y2) in enumerate(hits[i + 1:], start=i + 1):
+        cx, cy, contrast_total, count = x1, y1, contrast1, 1
+        for j, (x2, y2, contrast2) in enumerate(hits[i + 1:], start=i + 1):
             if abs(x1 - x2) < 24 and abs(y1 - y2) < 24:
                 cx += x2
                 cy += y2
+                contrast_total += contrast2
                 count += 1
                 used[j] = True
-        clusters.append((cx // count, cy // count))
+        clusters.append((cx // count, cy // count, contrast_total / count))
 
     return clusters[:50]  # cap at 50 detections per tile
 
 
+def contrast_confidence(contrast: float, threshold: int = 80) -> float:
+    """Map measured RGB contrast (0–765) to the public 0.35–0.92 score range."""
+    usable_range = 765 - threshold
+    normalized = (contrast - threshold) / usable_range
+    normalized = min(1.0, max(0.0, normalized))
+    return round(0.35 + normalized * 0.57, 2)
+
+
 def run_scan(lat: float, lng: float, zoom: int) -> list[dict]:
-    """Fetch tile, run lightweight detection, return detections as lat/lng."""
+    """Fetch tile, run the contrast scan, and return feature centroids."""
     tx, ty = lat_lng_to_tile(lat, lng, zoom)
     img = fetch_tile(tx, ty, zoom)
     if img is None:
@@ -157,16 +166,13 @@ def run_scan(lat: float, lng: float, zoom: int) -> list[dict]:
 
     blobs = simple_edge_detect(img)
     detections = []
-    for px, py in blobs:
+    for px, py, contrast in blobs:
         dlat, dlng = pixel_to_lat_lng(px, py, tx, ty, zoom)
-        # Heuristic confidence from blob contrast distance — placeholder
-        confidence = round(0.45 + (px % 7 + py % 5) / 100, 2)
-        confidence = min(0.92, max(0.35, confidence))
         detections.append({
             "lat":        round(dlat, 6),
             "lng":        round(dlng, 6),
-            "label":      "Feature",
-            "confidence": confidence,
+            "label":      "High-contrast feature",
+            "confidence": contrast_confidence(contrast),
         })
     return detections
 
@@ -185,7 +191,7 @@ def scan(
     zoom: int = ZOOM,
 ) -> JSONResponse:
     """
-    Run a lightweight AI object scan over a satellite tile.
+    Run a lightweight image-contrast feature scan over a map tile.
     Query params: lat, lng, zoom (all optional — default AOI used if omitted).
     """
     global _cache

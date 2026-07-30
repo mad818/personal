@@ -105,6 +105,9 @@ export default function RepoIntelPanel() {
     RepoAssimilationPage[]
   >([]);
   const [comparePages, setComparePages] = useState<RepoComparePage[]>([]);
+  const [memoryPagesLoadIssue, setMemoryPagesLoadIssue] = useState<
+    string | null
+  >(null);
 
   const normalized = useMemo(
     () => normalizeRepoIntelReference(repoInput),
@@ -119,15 +122,27 @@ export default function RepoIntelPanel() {
         const response = await apiFetch(
           "/api/memory/pages?limit=16&workflowId=repo-assimilation",
         );
-        if (!response.ok) return;
+        if (!response.ok) {
+          if (!cancelled) {
+            setMemoryPagesLoadIssue(
+              "Assimilation history could not load from local memory.",
+            );
+          }
+          return;
+        }
         const payload = (await response.json()) as {
           pages?: RepoAssimilationPage[];
         };
         if (!cancelled && Array.isArray(payload.pages)) {
           setAssimilationPages(payload.pages);
+          setMemoryPagesLoadIssue(null);
         }
       } catch {
-        // silent
+        if (!cancelled) {
+          setMemoryPagesLoadIssue(
+            "Assimilation history is unavailable until local memory responds.",
+          );
+        }
       }
     };
 
@@ -150,15 +165,27 @@ export default function RepoIntelPanel() {
         const response = await apiFetch(
           "/api/memory/pages?limit=16&workflowId=repo-compare",
         );
-        if (!response.ok) return;
+        if (!response.ok) {
+          if (!cancelled) {
+            setMemoryPagesLoadIssue(
+              "Compare history could not load from local memory.",
+            );
+          }
+          return;
+        }
         const payload = (await response.json()) as {
           pages?: RepoComparePage[];
         };
         if (!cancelled && Array.isArray(payload.pages)) {
           setComparePages(payload.pages);
+          setMemoryPagesLoadIssue(null);
         }
       } catch {
-        // silent
+        if (!cancelled) {
+          setMemoryPagesLoadIssue(
+            "Compare history is unavailable until local memory responds.",
+          );
+        }
       }
     };
 
@@ -192,7 +219,7 @@ export default function RepoIntelPanel() {
       [...comparePages]
         .filter((page) => page.tags.includes(repoTag))
         .sort((left, right) => right.updatedAt - left.updatedAt)[0] ?? null
-      );
+    );
   }, [comparePages, profile]);
 
   const latestAssimilationSections = useMemo(
@@ -246,20 +273,17 @@ export default function RepoIntelPanel() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repo: repoInput }),
       });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            repo?: RepoIntelProfile;
-            error?: string;
-            meta?: { status?: string; warnings?: string[] };
-          }
-        | null;
+      const payload = (await response.json().catch(() => null)) as {
+        repo?: RepoIntelProfile;
+        error?: string;
+        meta?: { status?: string; warnings?: string[] };
+      } | null;
 
       if (!response.ok || !payload?.repo) {
         setProfile(null);
         setStatus("error");
         setError(
-          payload?.error ??
-            `Repo intel failed with HTTP ${response.status}.`,
+          payload?.error ?? `Repo intel failed with HTTP ${response.status}.`,
         );
         setWarnings(payload?.meta?.warnings ?? []);
         setDegraded(payload?.meta?.status === "degraded");
@@ -341,9 +365,10 @@ export default function RepoIntelPanel() {
           input: { owner_slash_repo: profile.normalizedRepoId },
         }),
       });
-      const toolPayload = (await toolResponse.json().catch(() => null)) as
-        | { result?: string; error?: string }
-        | null;
+      const toolPayload = (await toolResponse.json().catch(() => null)) as {
+        result?: string;
+        error?: string;
+      } | null;
 
       const brief = toolPayload?.result?.trim() ?? "";
       if (!toolResponse.ok || !brief || !brief.includes("## Repo snapshot")) {
@@ -381,7 +406,9 @@ export default function RepoIntelPanel() {
       });
 
       if (!saveResponse.ok) {
-        throw new Error(`Repo assimilation filing failed with HTTP ${saveResponse.status}.`);
+        throw new Error(
+          `Repo assimilation filing failed with HTTP ${saveResponse.status}.`,
+        );
       }
 
       const savePayload = (await saveResponse.json()) as {
@@ -425,11 +452,15 @@ export default function RepoIntelPanel() {
       </div>
 
       <div className="nexus-shell-copy nexus-shell-copy--compact">
-        Assess a public GitHub repo as a dependency, competitor, or reference-library brief without fetching raw source files or widening into a code-ingestion lane. Assimilation and compare stay explicit and file to VAULT only after you ask for them.
+        Assess a public GitHub repo as a dependency, competitor, or
+        reference-library brief without fetching raw source files or widening
+        into a code-ingestion lane. Assimilation and compare stay explicit and
+        file to VAULT only after you ask for them.
       </div>
 
       <div style={{ display: "grid", gap: "8px" }}>
         <input
+          aria-label="Public GitHub repository"
           type="text"
           value={repoInput}
           onChange={(event) => {
@@ -449,11 +480,31 @@ export default function RepoIntelPanel() {
 
         {repoInput.trim().length > 0 ? (
           <div
-            style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.45 }}
+            style={{
+              fontSize: "10px",
+              color: "var(--text3)",
+              lineHeight: 1.45,
+            }}
           >
             {normalized.ok
               ? `Normalized repo: ${normalized.normalizedRepoId}`
               : normalized.error}
+          </div>
+        ) : null}
+
+        {memoryPagesLoadIssue ? (
+          <div
+            style={{
+              fontSize: "11px",
+              color: "var(--text2)",
+              lineHeight: 1.45,
+              padding: "8px 10px",
+              borderRadius: "8px",
+              border: "1px solid rgba(245, 158, 11, 0.35)",
+              background: "rgba(245, 158, 11, 0.08)",
+            }}
+          >
+            {memoryPagesLoadIssue}
           </div>
         ) : null}
 
@@ -475,12 +526,17 @@ export default function RepoIntelPanel() {
               Open latest assimilation
             </ShellButton>
           ) : null}
-          {profile ? <ShellButton onClick={briefOrbit}>Brief ORBIT</ShellButton> : null}
+          {profile ? (
+            <ShellButton onClick={briefOrbit}>Brief ORBIT</ShellButton>
+          ) : null}
         </div>
       </div>
 
       {error ? (
-        <div style={{ fontSize: "11px", color: "var(--flo)", lineHeight: 1.5 }}>
+        <div
+          role="alert"
+          style={{ fontSize: "11px", color: "var(--flo)", lineHeight: 1.5 }}
+        >
           {error}
         </div>
       ) : null}
@@ -492,7 +548,10 @@ export default function RepoIntelPanel() {
       ) : null}
 
       {assimilationError ? (
-        <div style={{ fontSize: "10px", color: "var(--flo)", lineHeight: 1.45 }}>
+        <div
+          role="alert"
+          style={{ fontSize: "10px", color: "var(--flo)", lineHeight: 1.45 }}
+        >
           {assimilationError}
         </div>
       ) : null}
@@ -529,9 +588,15 @@ export default function RepoIntelPanel() {
             {repoBriefingCorrections.map((entry) => (
               <div
                 key={entry.id}
-                style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.45 }}
+                style={{
+                  fontSize: "11px",
+                  color: "var(--text3)",
+                  lineHeight: 1.45,
+                }}
               >
-                <strong style={{ color: "var(--text)" }}>{entry.content.rule}</strong>{" "}
+                <strong style={{ color: "var(--text)" }}>
+                  {entry.content.rule}
+                </strong>{" "}
                 {truncateInline(entry.content.preferredBehavior, 184)}
               </div>
             ))}
@@ -561,10 +626,14 @@ export default function RepoIntelPanel() {
           >
             Latest assimilation
           </div>
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}>
+          <div
+            style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}
+          >
             {latestAssimilation.title}
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}>
+          <div
+            style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}
+          >
             {latestAssimilation.summary}
           </div>
           {latestAssimilationSections ? (
@@ -649,16 +718,28 @@ export default function RepoIntelPanel() {
           }}
         >
           <div style={{ display: "grid", gap: "4px" }}>
-            <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}>
+            <div
+              style={{
+                fontSize: "12px",
+                fontWeight: 700,
+                color: "var(--text)",
+              }}
+            >
               {profile.displayName}
             </div>
-            <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.5 }}>
+            <div
+              style={{
+                fontSize: "11px",
+                color: "var(--text3)",
+                lineHeight: 1.5,
+              }}
+            >
               {profile.description || "No GitHub description was available."}
             </div>
             <div style={{ fontSize: "10px", color: "#93c5fd" }}>
-              {profile.stars} stars · {profile.forks} forks · {profile.watchers} watchers ·{" "}
-              {profile.license ?? "No license signal"} · default branch{" "}
-              {profile.defaultBranch ?? "unknown"}
+              {profile.stars} stars · {profile.forks} forks · {profile.watchers}{" "}
+              watchers · {profile.license ?? "No license signal"} · default
+              branch {profile.defaultBranch ?? "unknown"}
             </div>
           </div>
 
@@ -722,7 +803,13 @@ export default function RepoIntelPanel() {
             >
               README excerpt
             </div>
-            <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.55 }}>
+            <div
+              style={{
+                fontSize: "11px",
+                color: "var(--text3)",
+                lineHeight: 1.55,
+              }}
+            >
               {profile.readmeExcerpt || "README excerpt unavailable."}
             </div>
           </div>
@@ -739,7 +826,13 @@ export default function RepoIntelPanel() {
             >
               Implementation brief
             </div>
-            <div style={{ fontSize: "11px", color: "var(--text)", lineHeight: 1.6 }}>
+            <div
+              style={{
+                fontSize: "11px",
+                color: "var(--text)",
+                lineHeight: 1.6,
+              }}
+            >
               {profile.implementationBrief}
             </div>
           </div>
@@ -758,7 +851,9 @@ export default function RepoIntelPanel() {
               {(() => {
                 const parsed =
                   latestAssimilationSections ??
-                  parseRepoAssimilationMarkdown(latestAssimilation.content ?? "");
+                  parseRepoAssimilationMarkdown(
+                    latestAssimilation.content ?? "",
+                  );
                 return (
                   <>
                     <div
@@ -772,7 +867,9 @@ export default function RepoIntelPanel() {
                     >
                       Assimilation cue
                     </div>
-                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                    <div
+                      style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}
+                    >
                       <ShellBadge tone="accent">
                         {formatRepoAssimilationDecisionLabel(
                           getRepoAssimilationDecision(parsed),
@@ -780,25 +877,50 @@ export default function RepoIntelPanel() {
                       </ShellBadge>
                       <ShellBadge tone="muted">ORBIT-ready</ShellBadge>
                     </div>
-                    <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.45 }}>
-                      <strong style={{ color: "var(--text)" }}>Local fit:</strong>{" "}
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: "var(--text3)",
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      <strong style={{ color: "var(--text)" }}>
+                        Local fit:
+                      </strong>{" "}
                       {truncateInline(
                         parsed.localFitAndWhyNow || "No fit map recorded yet.",
                         180,
                       )}
                     </div>
-                    <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.45 }}>
-                      <strong style={{ color: "var(--text)" }}>Smallest slice:</strong>{" "}
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: "var(--text3)",
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      <strong style={{ color: "var(--text)" }}>
+                        Smallest slice:
+                      </strong>{" "}
                       {truncateInline(
                         parsed.extensionPointsAndSmallestSlice ||
                           "No extension cues recorded yet.",
                         180,
                       )}
                     </div>
-                    <div style={{ fontSize: "11px", color: "var(--text3)", lineHeight: 1.45 }}>
-                      <strong style={{ color: "var(--text)" }}>Boundary:</strong>{" "}
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: "var(--text3)",
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      <strong style={{ color: "var(--text)" }}>
+                        Boundary:
+                      </strong>{" "}
                       {truncateInline(
-                        parsed.boundariesAndRisks || "No boundary cues recorded yet.",
+                        parsed.boundariesAndRisks ||
+                          "No boundary cues recorded yet.",
                         180,
                       )}
                     </div>

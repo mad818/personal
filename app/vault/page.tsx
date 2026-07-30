@@ -60,12 +60,24 @@ const LazyMemoryAskPanel = dynamic(
   () => import("@/components/vault/MemoryAskPanel"),
   { ssr: false },
 );
+const LazyFeynmanPaperLibraryPanel = dynamic(
+  () => import("@/components/vault/FeynmanPaperLibraryPanel"),
+  { ssr: false },
+);
 const LazyVaultStewardshipPanel = dynamic(
   () => import("@/components/vault/VaultStewardshipPanel"),
   { ssr: false },
 );
 const LazyDocumentIntakePanel = dynamic(
   () => import("@/components/vault/DocumentIntakePanel"),
+  { ssr: false },
+);
+const LazySealedVaultPanel = dynamic(
+  () => import("@/components/vault/SealedVaultPanel"),
+  { ssr: false },
+);
+const LazyLocalCredentialGeneratorPanel = dynamic(
+  () => import("@/components/vault/LocalCredentialGeneratorPanel"),
   { ssr: false },
 );
 const LazySavedArticles = dynamic(
@@ -94,7 +106,13 @@ type MemoryBriefView =
   | "study"
   | "stewardship";
 
-type ArchiveLaneView = "intake" | "clips" | "ask";
+type ArchiveLaneView =
+  | "intake"
+  | "sealed"
+  | "generator"
+  | "clips"
+  | "papers"
+  | "ask";
 
 const CHAMBERS: Array<{ id: VaultChamberId; label: string }> = [
   { id: "archive", label: "Archive" },
@@ -114,7 +132,10 @@ const MEMORY_VIEWS: Array<{ id: MemoryBriefView; label: string }> = [
 
 const ARCHIVE_LANE_VIEWS: Array<{ id: ArchiveLaneView; label: string }> = [
   { id: "intake", label: "Intake" },
+  { id: "sealed", label: "Sealed notes" },
+  { id: "generator", label: "Generator" },
   { id: "clips", label: "Saved clips" },
+  { id: "papers", label: "Papers" },
   { id: "ask", label: "Ask memory" },
 ];
 
@@ -202,11 +223,13 @@ export default function VaultPage() {
   const [chamber, setChamber] = useState<VaultChamberId>("archive");
   const [memoryView, setMemoryView] = useState<MemoryBriefView>("spine");
   const [archiveLane, setArchiveLane] = useState<ArchiveLaneView>("intake");
-  const [archiveMemoryExpanded, setArchiveMemoryExpanded] = useState(
-    () => Boolean(focusToMemoryView(focus)),
+  const [archiveMemoryExpanded, setArchiveMemoryExpanded] = useState(() =>
+    Boolean(focusToMemoryView(focus)),
   );
   const [publishStewardExpanded, setPublishStewardExpanded] = useState(false);
-  const [compiledPages, setCompiledPages] = useState<CompiledMemoryPageSummary[]>([]);
+  const [compiledPages, setCompiledPages] = useState<
+    CompiledMemoryPageSummary[]
+  >([]);
   const [compiledLoading, setCompiledLoading] = useState(false);
   const [graphSourceFilter, setGraphSourceFilter] =
     useState<GraphSourceFilter>("all");
@@ -225,6 +248,9 @@ export default function VaultPage() {
 
   const focusChamber = useMemo(() => {
     if (focus === "vault-graph-focus") return "relations";
+    if (focus === "vault-sealed" || focus === "vault-credential-generator") {
+      return "archive";
+    }
     if (
       focus === "vault-compiled-pages" ||
       focus === "vault-export-second-brain"
@@ -249,6 +275,14 @@ export default function VaultPage() {
     const nextMemoryView = focusToMemoryView(focus);
     if (nextMemoryView) {
       setMemoryView(nextMemoryView);
+    }
+  }, [focus]);
+
+  useEffect(() => {
+    if (focus === "vault-sealed") {
+      setArchiveLane("sealed");
+    } else if (focus === "vault-credential-generator") {
+      setArchiveLane("generator");
     }
   }, [focus]);
 
@@ -452,17 +486,28 @@ export default function VaultPage() {
   const focusTargetId =
     focus === "vault-graph-focus"
       ? "vault-relations"
-      : focus === "vault-compiled-pages" || focus === "vault-export-second-brain"
-        ? "vault-publish"
-        : focusToMemoryView(focus)
-          ? "vault-memory-brief"
-          : null;
+      : focus === "vault-sealed"
+        ? "vault-sealed"
+        : focus === "vault-credential-generator"
+          ? "vault-credential-generator"
+          : focus === "vault-compiled-pages" ||
+              focus === "vault-export-second-brain"
+            ? "vault-publish"
+            : focusToMemoryView(focus)
+              ? "vault-memory-brief"
+              : null;
 
   useSurfaceFocusScroll(focusTargetId);
 
   const memoryBriefSpec = getSurfaceModuleSpec("vault", "memory-brief");
-  const archiveWorkbenchSpec = getSurfaceModuleSpec("vault", "archive-workbench");
-  const durableArtifactsSpec = getSurfaceModuleSpec("vault", "durable-artifacts");
+  const archiveWorkbenchSpec = getSurfaceModuleSpec(
+    "vault",
+    "archive-workbench",
+  );
+  const durableArtifactsSpec = getSurfaceModuleSpec(
+    "vault",
+    "durable-artifacts",
+  );
   const relationsSpec = getSurfaceModuleSpec("vault", "relations");
 
   const archiveCount = compiledPages.length + savedArticles.length;
@@ -582,6 +627,20 @@ export default function VaultPage() {
           />
         ) : null}
 
+        {focus === "vault-sealed" ? (
+          <SurfaceFocusStrip
+            title="Focused session: sealed notes"
+            description="The browser-local encrypted envelope opens first and remains locked until its passphrase is entered."
+          />
+        ) : null}
+
+        {focus === "vault-credential-generator" ? (
+          <SurfaceFocusStrip
+            title="Focused session: local credential generator"
+            description="The in-memory password and passphrase generator opens first without storing or sending generated values."
+          />
+        ) : null}
+
         {focus === "vault-graph-focus" ? (
           <SurfaceFocusStrip
             title="Focused session: graph focus"
@@ -611,7 +670,10 @@ export default function VaultPage() {
           className="nexus-shell-segmented--compactLane"
         />
 
-        <div className="nexus-vault-mission-strip" aria-label="Vault chamber orientation">
+        <div
+          className="nexus-vault-mission-strip"
+          aria-label="Vault chamber orientation"
+        >
           <div className="nexus-vault-mission-strip__lead">
             <span className="nexus-vault-mission-strip__eyebrow">
               Active chamber
@@ -619,7 +681,10 @@ export default function VaultPage() {
             <strong>{activeChamberLabel}</strong>
             <p>{chamberPosture.summary}</p>
           </div>
-          <div className="nexus-vault-mission-strip__signals" aria-label="Vault quick status">
+          <div
+            className="nexus-vault-mission-strip__signals"
+            aria-label="Vault quick status"
+          >
             {vaultMissionSignals.map((signal) => (
               <span key={signal.label}>
                 <span>{signal.label}</span>
@@ -641,10 +706,23 @@ export default function VaultPage() {
           <div id="vault-archive" style={{ scrollMarginTop: "120px" }}>
             <div className="nexus-surface-chamber-shell">
               <div className="nexus-surface-chamber-shell__body">
-                <OpsRail className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${vaultLayout.railClass}`}>
-                  <div id="vault-memory-brief" style={{ scrollMarginTop: "120px" }}>
-                    <OpsField title={memoryBriefSpec.title} detail={memoryBriefSpec.detail} tone="muted" compact>
-                      <div className="nexus-vault-rail-preview" aria-label="Memory brief preview">
+                <OpsRail
+                  className={`nexus-surface-chamber-shell__support nexus-ops-rail--sticky ${vaultLayout.railClass}`}
+                >
+                  <div
+                    id="vault-memory-brief"
+                    style={{ scrollMarginTop: "120px" }}
+                  >
+                    <OpsField
+                      title={memoryBriefSpec.title}
+                      detail={memoryBriefSpec.detail}
+                      tone="muted"
+                      compact
+                    >
+                      <div
+                        className="nexus-vault-rail-preview"
+                        aria-label="Memory brief preview"
+                      >
                         <span>{chamberPosture.supportSignal}</span>
                         <span>{memoryView}</span>
                         <span>{compiledLoading ? "Refreshing" : "Ready"}</span>
@@ -665,7 +743,9 @@ export default function VaultPage() {
                               onChange={setMemoryView}
                               minButtonWidth={110}
                             />
-                            {memoryView === "spine" ? <LazyMemorySpineOverview /> : null}
+                            {memoryView === "spine" ? (
+                              <LazyMemorySpineOverview />
+                            ) : null}
                             {memoryView === "project" ? (
                               <LazyMemoryPalacePanel compartment="project" />
                             ) : null}
@@ -682,7 +762,9 @@ export default function VaultPage() {
                               <LazyMemoryPalacePanel compartment="study" />
                             ) : null}
                             {memoryView === "stewardship" ? (
-                              <LazyVaultStewardshipPanel compiledPages={compiledPages} />
+                              <LazyVaultStewardshipPanel
+                                compiledPages={compiledPages}
+                              />
                             ) : null}
                           </div>
                         </div>
@@ -691,8 +773,13 @@ export default function VaultPage() {
                   </div>
                 </OpsRail>
 
-                <OpsWorkplane className={`nexus-surface-chamber-shell__lead ${vaultLayout.workplaneClass}`}>
-                  <OpsField title={archiveWorkbenchSpec.title} detail={archiveWorkbenchSpec.detail}>
+                <OpsWorkplane
+                  className={`nexus-surface-chamber-shell__lead ${vaultLayout.workplaneClass}`}
+                >
+                  <OpsField
+                    title={archiveWorkbenchSpec.title}
+                    detail={archiveWorkbenchSpec.detail}
+                  >
                     <div className="nexus-surface-subtabs">
                       <ShellSegmentedTabs
                         items={ARCHIVE_LANE_VIEWS}
@@ -708,12 +795,40 @@ export default function VaultPage() {
                           <LazyDocumentIntakePanel />
                         </OpsField>
                       ) : null}
+                      {archiveLane === "sealed" ? (
+                        <OpsField
+                          title="Sealed notes"
+                          detail="Browser-local encrypted private notes with explicit lock and backup controls"
+                        >
+                          <div id="vault-sealed">
+                            <LazySealedVaultPanel />
+                          </div>
+                        </OpsField>
+                      ) : null}
+                      {archiveLane === "generator" ? (
+                        <OpsField
+                          title="Local credential generator"
+                          detail="Cryptographically random passwords and memorable passphrases without persistence"
+                        >
+                          <div id="vault-credential-generator">
+                            <LazyLocalCredentialGeneratorPanel />
+                          </div>
+                        </OpsField>
+                      ) : null}
                       {archiveLane === "clips" ? (
                         <OpsField
                           title="Saved clips"
                           detail="Curated article memory inside the archive"
                         >
                           <LazySavedArticles />
+                        </OpsField>
+                      ) : null}
+                      {archiveLane === "papers" ? (
+                        <OpsField
+                          title="Feynman paper library"
+                          detail="Local vector retrieval and private annotations without a chat call"
+                        >
+                          <LazyFeynmanPaperLibraryPanel />
                         </OpsField>
                       ) : null}
                       {archiveLane === "ask" ? (

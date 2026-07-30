@@ -43,12 +43,15 @@ export default function MissionContinuationActions({
   const setTab = useStore((state) => state.setTab);
 
   const continuationTargets = useMemo(() => {
-    const detectedRouteHint = routeHint ?? detectRouteFromPrompt(promptText ?? "");
+    const detectedRouteHint =
+      routeHint ?? detectRouteFromPrompt(promptText ?? "");
     const primary = resolveMissionContinuationTarget(detectedRouteHint);
     const seen = new Set<string>();
     const targets: MissionContinuationTarget[] = [];
 
-    const pushTarget = (target: MissionContinuationTarget | null | undefined) => {
+    const pushTarget = (
+      target: MissionContinuationTarget | null | undefined,
+    ) => {
       if (!target) return;
       const key = `${target.href}::${target.label}`;
       if (seen.has(key)) return;
@@ -66,7 +69,11 @@ export default function MissionContinuationActions({
 
   const trimmedMemoryQuery = memoryQuery?.trim() ?? "";
 
-  if (continuationTargets.length === 0 && !trimmedMemoryQuery && !showReturnToHQ) {
+  if (
+    continuationTargets.length === 0 &&
+    !trimmedMemoryQuery &&
+    !showReturnToHQ
+  ) {
     return null;
   }
 

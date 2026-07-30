@@ -61,18 +61,27 @@ export function SurfaceCallout({
   ...props
 }: SurfaceCalloutProps) {
   return (
-    <div className={cn(surfaceCalloutVariants({ tone, compact }), className)} {...props}>
+    <div
+      className={cn(surfaceCalloutVariants({ tone, compact }), className)}
+      {...props}
+    >
       {icon ? (
         <div className="nexus-surface-callout__icon" aria-hidden="true">
           {icon}
         </div>
       ) : null}
       <div className="nexus-surface-callout__body">
-        {title ? <div className="nexus-surface-callout__title">{title}</div> : null}
-        {description ? (
-          <div className="nexus-surface-callout__description">{description}</div>
+        {title ? (
+          <div className="nexus-surface-callout__title">{title}</div>
         ) : null}
-        {children ? <div className="nexus-surface-callout__content">{children}</div> : null}
+        {description ? (
+          <div className="nexus-surface-callout__description">
+            {description}
+          </div>
+        ) : null}
+        {children ? (
+          <div className="nexus-surface-callout__content">{children}</div>
+        ) : null}
       </div>
     </div>
   );
@@ -98,7 +107,10 @@ export function SurfaceEmpty({
   ...props
 }: SurfaceEmptyProps) {
   return (
-    <div className={cn(surfaceEmptyVariants({ tone, compact }), className)} {...props}>
+    <div
+      className={cn(surfaceEmptyVariants({ tone, compact }), className)}
+      {...props}
+    >
       {icon ? (
         <div className="nexus-surface-empty__icon" aria-hidden="true">
           {icon}
@@ -108,8 +120,12 @@ export function SurfaceEmpty({
       {description ? (
         <div className="nexus-surface-empty__description">{description}</div>
       ) : null}
-      {children ? <div className="nexus-surface-empty__content">{children}</div> : null}
-      {action ? <div className="nexus-surface-empty__actions">{action}</div> : null}
+      {children ? (
+        <div className="nexus-surface-empty__content">{children}</div>
+      ) : null}
+      {action ? (
+        <div className="nexus-surface-empty__actions">{action}</div>
+      ) : null}
     </div>
   );
 }
@@ -124,7 +140,10 @@ export function SurfaceSkeletonRows({
   className?: string;
 }) {
   return (
-    <div className={cn("nexus-surface-skeleton-rows", className)} aria-hidden="true">
+    <div
+      className={cn("nexus-surface-skeleton-rows", className)}
+      aria-hidden="true"
+    >
       {Array.from({ length: rows }).map((_, index) => (
         <div
           key={`surface-skeleton-${index}`}

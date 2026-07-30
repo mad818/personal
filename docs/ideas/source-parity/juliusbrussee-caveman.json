@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "juliusbrussee-caveman",
+  "name": "Caveman",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/JuliusBrussee/caveman",
+    "version": "main reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/JuliusBrussee/caveman",
+      "https://github.com/JuliusBrussee/caveman/blob/main/README.md",
+      "https://github.com/JuliusBrussee/caveman/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "optional-brevity-levels",
+      "title": "Explicit lite, full, and ultra response compression levels",
+      "sourceEvidence": "README level table and session-scoped switching",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/concise-technical-output/SKILL.md"
+      ],
+      "adaptationNotes": "Nexus defaults to full only when the skill triggers and does not impose a permanent persona."
+    },
+    {
+      "id": "exact-technical-preservation",
+      "title": "Preserve code, commands, paths, URLs, errors, and safety nuance while compressing",
+      "sourceEvidence": "README promise that technical strings remain exact",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/concise-technical-output/SKILL.md"
+      ]
+    },
+    {
+      "id": "token-savings-statistics",
+      "title": "Session token-savings, cost estimates, and public share output",
+      "sourceEvidence": "README stats and benchmark commands",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus does not estimate host usage or claim source benchmark savings for a different model and workload."
+    },
+    {
+      "id": "memory-file-compression",
+      "title": "Automatic rewrite of project memory and instruction files",
+      "sourceEvidence": "README caveman-compress command",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Human-owned context and root instructions cannot be rewritten as a side effect of a response-style mode."
+    },
+    {
+      "id": "installer-middleware-statusline-subagents",
+      "title": "Remote installers, MCP middleware, host status line, and compressed subagents",
+      "sourceEvidence": "README install, shrink middleware, status-line, and cavecrew sections",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The concise communication benefit is complete without host mutation, middleware, or automatic agent creation."
+    }
+  ]
+}

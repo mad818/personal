@@ -23,6 +23,7 @@ import {
 import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
 import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
 import { getOpsLayoutDescriptor } from "@/lib/opsLayoutRegistry";
+import { formatIntelRegionLabel } from "@/lib/intelRegionFilter";
 import { getSurfaceModuleSpec } from "@/lib/surfaceRedesignRegistry";
 import { useStore } from "@/store/useStore";
 
@@ -36,6 +37,18 @@ const LazyConflictFeed = dynamic(
 );
 const LazyIntelDeferredSegment = dynamic(
   () => import("@/components/intel/IntelDeferredSegment"),
+  { ssr: false },
+);
+const LazyLiveEventFusionStrip = dynamic(
+  () => import("@/components/intel/LiveEventFusionStrip"),
+  { ssr: false },
+);
+const LazyPapersResearchPanel = dynamic(
+  () => import("@/components/intel/PapersResearchPanel"),
+  { ssr: false },
+);
+const LazyForecastLabReadinessPanel = dynamic(
+  () => import("@/components/intel/ForecastLabReadinessPanel"),
   { ssr: false },
 );
 
@@ -57,7 +70,9 @@ export default function IntelPage() {
 
   const urlSeg = useMemo(() => {
     const v = (normalizedParams.get("view") ?? "").toLowerCase();
-    return (["news", "world", "markets", "sweeps"] as Segment[]).includes(v as Segment)
+    return (["news", "world", "markets", "sweeps"] as Segment[]).includes(
+      v as Segment,
+    )
       ? (v as Segment)
       : null;
   }, [normalizedParams]);
@@ -70,11 +85,22 @@ export default function IntelPage() {
     return null;
   }, [focus]);
 
+  const regionFilter = useMemo(() => {
+    const raw = normalizedParams.get("region")?.trim();
+    return raw ? raw : null;
+  }, [normalizedParams]);
+
   useEffect(() => {
-    const nextSeg = focusSeg ?? urlSeg;
+    const nextSeg = focusSeg ?? urlSeg ?? (regionFilter ? "world" : null);
     if (!nextSeg) return;
     setSeg(nextSeg);
-  }, [focusSeg, setSeg, urlSeg]);
+  }, [focusSeg, regionFilter, setSeg, urlSeg]);
+
+  const clearRegionFilter = () => {
+    const params = new URLSearchParams(normalizedParams.toString());
+    params.delete("region");
+    router.replace(`/intel?${params.toString()}`);
+  };
 
   const handleSegmentChange = (nextSeg: Segment) => {
     setSeg(nextSeg);
@@ -98,7 +124,10 @@ export default function IntelPage() {
 
   const newsBriefSpec = getSurfaceModuleSpec("intel", "news-brief");
   const theaterPostureSpec = getSurfaceModuleSpec("intel", "theater-posture");
-  const crossDomainImpactSpec = getSurfaceModuleSpec("intel", "cross-domain-impact");
+  const crossDomainImpactSpec = getSurfaceModuleSpec(
+    "intel",
+    "cross-domain-impact",
+  );
   const forecastPostureSpec = getSurfaceModuleSpec("intel", "forecast-posture");
   const sweepWorkbenchSpec = getSurfaceModuleSpec("intel", "sweep-workbench");
   const intelLayout = getOpsLayoutDescriptor("intel");
@@ -128,14 +157,15 @@ export default function IntelPage() {
 
   return (
     <ShellPage
+      width="wide"
       surface="intel"
       eyebrow="World picture"
       title="World picture"
-      description="Signals, geopolitics, and sweeps on one briefing plane."
+      description="Signals and sweeps."
       actions={
         <>
-          <ShellBadge tone="accent">Narrative aware</ShellBadge>
-          <ShellBadge tone="muted">Sweep-ready continuity</ShellBadge>
+          <ShellBadge tone="accent">Signals</ShellBadge>
+          <ShellBadge tone="muted">Sweeps</ShellBadge>
         </>
       }
     >
@@ -177,32 +207,114 @@ export default function IntelPage() {
           />
         ) : null}
 
-        <ShellSegmentedTabs items={SEGMENTS} active={seg} onChange={handleSegmentChange} />
+        {regionFilter ? (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              flexWrap: "wrap",
+              padding: "8px 12px",
+              borderRadius: "10px",
+              border: "1px solid rgba(96, 165, 250, 0.2)",
+              background: "rgba(8, 18, 31, 0.5)",
+              fontSize: "11px",
+              color: "var(--text2)",
+            }}
+          >
+            <span>
+              Theater filter:{" "}
+              <strong style={{ color: "var(--text)" }}>
+                {formatIntelRegionLabel(regionFilter)}
+              </strong>
+            </span>
+            <button
+              type="button"
+              onClick={clearRegionFilter}
+              style={{
+                marginLeft: "auto",
+                height: "24px",
+                padding: "0 10px",
+                borderRadius: "6px",
+                fontSize: "10.5px",
+                fontWeight: 700,
+                border: "1px solid var(--border2)",
+                background: "transparent",
+                color: "var(--text2)",
+                cursor: "pointer",
+              }}
+            >
+              Show all theaters
+            </button>
+          </div>
+        ) : null}
 
-        {intelGuidance.length ? <AssistantGuidanceStack items={intelGuidance} /> : null}
+        <ShellSegmentedTabs
+          items={SEGMENTS}
+          active={seg}
+          onChange={handleSegmentChange}
+        />
+
+        {intelGuidance.length ? (
+          <AssistantGuidanceStack items={intelGuidance} />
+        ) : null}
 
         {seg === "news" && (
           <div id="intel-news" style={{ scrollMarginTop: "120px" }}>
             <OpsWorkplane className={intelLayout.workplaneClass}>
-              <ShellGrid columns="minmax(0, 1.05fr) minmax(320px, 0.95fr)" align="start" gap="12px">
-                <OpsField title="Topic heatmap" detail="What changed across the narrative field">
+              <ShellGrid recipe="primary-secondary" align="start" gap="16px">
+                <OpsField
+                  title="Topic heatmap"
+                  detail="What changed across the narrative field"
+                >
                   <LazyTopicHeatmap />
                 </OpsField>
                 <OpsRail className={intelLayout.railClass}>
-                  <OpsField title="Conflict feed" detail="Why it matters in live reporting" tone="muted">
-                  <LazyConflictFeed />
+                  <OpsField
+                    title="Conflict feed"
+                    detail="Why it matters in live reporting"
+                    tone="muted"
+                  >
+                    <LazyConflictFeed regionFilter={regionFilter} />
                   </OpsField>
                 </OpsRail>
               </ShellGrid>
+              <details className="nexus-surface-disclosure">
+                <summary>Open research sources</summary>
+                <div className="nexus-surface-disclosure__body">
+                  <ShellGrid
+                    recipe="primary-secondary"
+                    align="start"
+                    gap="16px"
+                  >
+                    <OpsField
+                      title="Daily papers"
+                      detail="Bounded HuggingFace research discovery"
+                    >
+                      <LazyPapersResearchPanel />
+                    </OpsField>
+                    <OpsField
+                      title="Forecast lab readiness"
+                      detail="Optional research and forecasting lanes"
+                      tone="muted"
+                    >
+                      <LazyForecastLabReadinessPanel />
+                    </OpsField>
+                  </ShellGrid>
+                </div>
+              </details>
             </OpsWorkplane>
           </div>
         )}
+
+        {(seg === "news" || seg === "world") && <LazyLiveEventFusionStrip />}
 
         {seg !== "news" ? (
           <LazyIntelDeferredSegment
             segment={seg}
             workplaneClass={intelLayout.workplaneClass}
             railClass={intelLayout.railClass}
+            regionFilter={regionFilter}
           />
         ) : null}
       </ShellStack>

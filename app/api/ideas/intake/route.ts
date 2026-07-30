@@ -16,7 +16,12 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const QUEUE_PATH = path.join(process.cwd(), "docs", "ideas", "pending-links.json");
+const QUEUE_PATH = path.join(
+  process.cwd(),
+  "docs",
+  "ideas",
+  "pending-links.json",
+);
 const RATE_LIMIT = {
   bucket: "api-ideas-intake",
   windowMs: 60_000,
@@ -42,7 +47,11 @@ async function writeQueue(queue: IdeaLinkIntakeQueue) {
   await fs.writeFile(QUEUE_PATH, `${JSON.stringify(queue, null, 2)}\n`, "utf8");
 }
 
-async function writeStubMatrix(targetMatrix: string, source: string, id: string) {
+async function writeStubMatrix(
+  targetMatrix: string,
+  source: string,
+  id: string,
+) {
   const matrixPath = path.join(process.cwd(), targetMatrix);
   try {
     await fs.access(matrixPath);
@@ -126,7 +135,10 @@ export async function POST(req: NextRequest) {
 
     const queue = await readQueue();
     const incoming = urls.map((url) => buildIdeaLinkIntakeItem(url));
-    const { merged, added } = mergeIdeaLinkIntakeItems(queue.items ?? [], incoming);
+    const { merged, added } = mergeIdeaLinkIntakeItems(
+      queue.items ?? [],
+      incoming,
+    );
     queue.items = merged;
     await writeQueue(queue);
 

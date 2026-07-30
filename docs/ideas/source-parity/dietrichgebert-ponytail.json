@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "dietrichgebert-ponytail",
   "name": "Ponytail",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/DietrichGebert/ponytail",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main re-reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/DietrichGebert/ponytail",
@@ -51,15 +51,23 @@
       "id": "minimal-diff-agent-runtime",
       "title": "Dedicated minimal-diff agent runtime with enforced step budgets",
       "sourceEvidence": "Ponytail ships its own orchestration loop with hard step limits",
-      "disposition": "pending",
-      "reason": "Nexus ORBIT follows YAGNI via prompt directives; a dedicated step-budget runtime loop has not been implemented."
+      "disposition": "implemented",
+      "proof": [
+        "lib/agentYagniGuardrails.ts",
+        "lib/agentExecutionContract.ts",
+        "lib/agent.ts"
+      ]
     },
     {
       "id": "ponytail-plugin-registry",
       "title": "Pluggable tool registry with per-tool enable/disable flags",
       "sourceEvidence": "Ponytail plugin system for selective tool access",
-      "disposition": "pending",
-      "reason": "Nexus uses toolCapabilityPolicy.ts for tool governance; full per-tool enable/disable registry not yet implemented."
+      "disposition": "adapted",
+      "proof": [
+        "lib/security/toolCapabilityPolicy.ts",
+        "lib/security/connectorPolicy.ts",
+        "lib/agent.ts"
+      ]
     }
   ]
 }

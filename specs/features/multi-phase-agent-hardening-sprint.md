@@ -19,8 +19,8 @@ Execute beyond Phase A by implementing concrete slices of:
   - Return structured results.
 - `store/useStore.ts`
   - Add `agentRuntime` state shape for run diagnostics + verification status.
-- `components/ui/TelemetryHUD.tsx`
-  - Show `VERIFIED` / `DEGRADED` operator chip from runtime status.
+- `components/home/office/HQTerminalSection.tsx`
+  - Surface verified or degraded runtime outcomes in the HQ chronicle.
 - `lib/liveContext.ts`
   - Add context budget policy and composition report helper.
 

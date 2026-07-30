@@ -15,6 +15,8 @@ import CompiledMemoryPagesPanel from "@/components/vault/CompiledMemoryPagesPane
 import SavedArticles from "@/components/vault/SavedArticles";
 import VaultExport from "@/components/vault/VaultExport";
 import VaultStewardshipPanel from "@/components/vault/VaultStewardshipPanel";
+import SecondBrainFileStatus from "@/components/vault/SecondBrainFileStatus";
+import SecondBrainNightShiftWorkbench from "@/components/vault/SecondBrainNightShiftWorkbench";
 import type { CompiledMemoryPageSummary } from "@/components/vault/vaultGraphPageUtils";
 
 interface VaultPublishChamberProps {
@@ -65,7 +67,9 @@ export default function VaultPublishChamber({
                 compact
               >
                 <div className="nexus-shell-copy nexus-shell-copy--compact">
-                  Publish mode is where durable notes get promoted, repaired, bundled, and exported. Stewardship and trust posture stay visible here so export does not outrun archive health.
+                  Publish mode is where durable notes get promoted, repaired,
+                  bundled, and exported. Stewardship and trust posture stay
+                  visible here so export does not outrun archive health.
                 </div>
                 <div
                   className="nexus-vault-rail-preview"
@@ -76,8 +80,12 @@ export default function VaultPublishChamber({
                   <span>{savedArticles.length} clips</span>
                 </div>
                 <div className="nexus-shell-actions">
-                  <ShellBadge tone="accent">{compiledPages.length} pages</ShellBadge>
-                  <ShellBadge tone="muted">{savedArticles.length} clips</ShellBadge>
+                  <ShellBadge tone="accent">
+                    {compiledPages.length} pages
+                  </ShellBadge>
+                  <ShellBadge tone="muted">
+                    {savedArticles.length} clips
+                  </ShellBadge>
                   <ShellBadge tone="muted">
                     {compiledLoading ? "Refreshing" : "Archive ready"}
                   </ShellBadge>
@@ -118,7 +126,14 @@ export default function VaultPublishChamber({
               detail={durableArtifactsDetail}
             >
               <div className="nexus-shell-copy nexus-shell-copy--compact">
-                Promote, repair, and reuse durable archive outputs without leaving the active publishing lane.
+                Promote, repair, and reuse durable archive outputs without
+                leaving the active publishing lane.
+              </div>
+              <div style={{ marginTop: "14px" }}>
+                <SecondBrainNightShiftWorkbench />
+              </div>
+              <div style={{ marginTop: "14px" }}>
+                <SecondBrainFileStatus />
               </div>
               <div style={{ marginTop: "14px" }}>
                 <CompiledMemoryPagesPanel />

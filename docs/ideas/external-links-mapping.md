@@ -582,6 +582,57 @@ This batch feeds the Homefront source-intelligence pass. The useful product move
 
 ---
 
+---
+
+## GitHub batch intake — 2026-06-22 (5 repos)
+
+### 1) `DietrichGebert/ponytail` — minimal agent framework (YAGNI discipline)
+
+- **Link**: `https://github.com/DietrichGebert/ponytail`
+- **What it is**: Lightweight agentic framework whose core principle is that agents degrade when given tools, context, or reasoning chains they don't need.
+- **Likely Nexus mapping**: `lib/agentYagniGuardrails.ts` (YAGNI directives, step-budget cap), `lib/agent.ts` (tool pruning), agent system prompts.
+- **Disposition**: **Adapted — already implemented**
+- **Safest implementation shape**: `YAGNI_AGENT_DIRECTIVE`, `YAGNI_SELF_CHECK`, `YAGNI_VIOLATION_PATTERNS`, and `YAGNI_MAX_TOOL_CALLS_PER_RUN` all adapted from ponytail's minimal-tools insight.
+- **Source parity**: `docs/ideas/source-parity/` — no standalone JSON yet; captured via `agentYagniGuardrails.ts` comments.
+
+### 2) `fainir/most-capable-agent-system-prompt` — reader-contract and build-order discipline
+
+- **Link**: `https://github.com/fainir/most-capable-agent-system-prompt`
+- **What it is**: Meta-prompt that scaffolds a self-improving agent OS with non-negotiable rules: reader contract, build order, first-milestone definition, and reliability math.
+- **Likely Nexus mapping**: `lib/ai.ts` (`buildSystemPrompt`), `lib/agentYagniGuardrails.ts`.
+- **Disposition**: **Adapted (reader-contract row)**
+- **Safest implementation shape**: Extract reader-contract and build-order discipline into `FAINIR_READER_CONTRACT_BLOCK` in `lib/agentYagniGuardrails.ts`; inject into `buildSystemPrompt`. Meta-agent OS scaffold excluded — Nexus is a shipped dashboard, not a generator.
+- **Source parity**: `docs/ideas/source-parity/fainir-most-capable-agent-system-prompt.json`
+
+### 3) `simplifaisoul/osiris` — real-time global OSINT / unified map-and-event layers
+
+- **Link**: `https://github.com/simplifaisoul/osiris`
+- **What it is**: Open-source global intelligence platform / real-time OSINT dashboard. Positioned as a Palantir alternative with geospatial event layers.
+- **Likely Nexus mapping**: INTEL/RECON/OPS tabs, `components/ops/OpsMap.tsx`, `components/ops/ConflictFeed.tsx`, `components/intel/`.
+- **Disposition**: **Adapted (unified-map-and-event-layers row)**
+- **Safest implementation shape**: Minimal `LiveEventFusionStrip` in `components/intel/` bridges conflict feed critical/high events with OPS map deep-link. No Osiris code vendored.
+- **Source parity**: `docs/ideas/source-parity/simplifaisoul-osiris.json`
+
+### 4) `pear-desktop/pear` — peer-to-peer desktop runtime / local-first architecture
+
+- **Link**: `https://github.com/pear-desktop/pear` (or Holepunch Pear)
+- **What it is**: P2P desktop runtime for local-first apps, built on Hypercore/Holepunch. Enables offline-first peer distribution and local-only data lanes.
+- **Likely Nexus mapping**: Desktop Tauri lane (`desktop/`), offline-first posture docs, local-AI architecture notes, future mesh networking ideas.
+- **Disposition**: **Reference only — defer**
+- **Safest implementation shape**: Nexus already ships a Tauri desktop build for local-only use. Pear-style P2P distribution would require a fundamentally different build lane. Monitor for future decentralized agent-sharing patterns only.
+- **Source parity**: no standalone JSON yet; local-first posture covered in `docs/plans/ga-runtime-proof-wave-8.md`.
+
+### 5) `dmore/agency-ai-agents-crafted-personali-danger-hidden-content-via-CSS` — CSS-hidden prompt injection
+
+- **Link**: `https://github.com/dmore/agency-ai-agents-crafted-personali-danger-hidden-content-via-CSS`
+- **What it is**: Repository that demonstrates hiding agent instructions in CSS (display:none, opacity:0, etc.) as a "personalization" technique — an adversarial prompt injection pattern.
+- **Likely Nexus mapping**: `lib/skillSpectrumPolicy.ts` (adversarial detection), CIPHER/SkillSpector review tooling.
+- **Disposition**: **Excluded (security conflict) + adversarial test reference added**
+- **Safest implementation shape**: Nexus does not implement CSS-hidden channels. `detectCssHiddenPromptPatterns()` in `lib/skillSpectrumPolicy.ts` scans any third-party skill/agent markdown for these patterns before it can be loaded into the runtime.
+- **Source parity**: `docs/ideas/source-parity/dmore-agency-ai-agents-crafted-personali-danger-hidden-content-via-css.json`
+
+---
+
 ## Implemented (safe wiring fixes)
 
 ### Source-assimilated sensor and emergency transport integrations
@@ -599,3 +650,20 @@ These were already flagged as “not wired / mismatched,” and are safe to fix:
 
 3. **SecurityAlerts** now prefers `store.securityAlerts` when present (falls back to demo otherwise)
    - `components/security/SecurityAlerts.tsx`
+
+---
+
+## AI company skill-stack intake — 2026-07-13
+
+- **Primary correction:** `Graphify-Labs/graphify` is a local-first knowledge-graph tool with Codex support, not the company/org-chart engine. It remains optional external tooling with scoped analysis and an `in_progress` source-parity matrix.
+- **Nexus shape:** seven departments route through MAX and the existing EL/DUSTIN/HOPPER/LUCAS specialist bench in `lib/nexusCompanyMap.ts` and `components/skills/NexusCompanyMap.tsx`; no new durable agents were created.
+- **Codex-ready sources:** `obra/superpowers` is already used as process discipline; Graphify can be reviewed as a project-local Codex skill; `upstash/context7` belongs in an optional MCP lane.
+- **Recent-signal research:** `mvanhorn/last30days-skill` is now a review-first NOVA source for Research & Knowledge and Marketing & Social. Its Codex path requires a pinned review and preflight; Nexus does not adopt its browser-session, credential, installer-write, or direct-provider behavior.
+- **Design engineering:** `emilkowalski/skills` is now a review-first Design source for animation decisions, strict review, audit planning, motion vocabulary, and fluid web interaction. The Nexus taste contract remains authoritative.
+- **Presentation production:** `zarazhangrui/frontend-slides` is a review-first Design/Marketing source for local HTML decks and PPT conversion. Dependency installs, PDF export, and publishing remain explicit operator actions.
+- **Engineering workflow:** `mattpocock/skills` is now a review-first Engineering/Operations source. Its parity matrix was refreshed against the actual current catalog, replacing an older unsupported TypeScript-training characterization.
+- **Deep-module experiment:** merged `mattpocock/skills#505` is listed separately because upstream still keeps `setup-ts-deep-modules` in its in-progress folder and out of the plugin/router. Nexus does not install dependency-cruiser or migrate package boundaries during intake.
+- **Broad agent catalog:** `davidondrej/skills` is a review-first Operations/Engineering/Research source. Shell hooks, self-scheduling, publishing, credentials, and machine/server mutation are not inherited automatically.
+- **Translate before use:** `anthropics/skills`, `coreyhaines31/marketingskills`, `charlie947/social-media-skills`, and the Claude finance/small-business/legal plugin pages are capability sources, not direct ChatGPT/Codex installs.
+- **Already adapted references:** `thedotmack/claude-mem`, `nextlevelbuilder/ui-ux-pro-max-skill`, and `Leonxlnx/taste-skill` map to existing Nexus memory, design-audit, and taste-contract lanes.
+- **ChatGPT path:** copy a bounded department brief for normal chat, or build a focused app/MCP tool when live data or actions are required. No catalog is silently injected into every conversation.

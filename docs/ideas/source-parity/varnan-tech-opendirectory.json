@@ -1,41 +1,657 @@
 {
   "schemaVersion": 1,
   "id": "varnan-tech-opendirectory",
-  "name": "OpenDirectory",
-  "status": "in_progress",
+  "name": "Varnan-Tech/OpenDirectory",
+  "status": "complete",
   "source": {
     "url": "https://github.com/Varnan-Tech/OpenDirectory",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-1.0.1-2026-07-26",
+    "reviewedAt": "2026-07-26",
     "license": "MIT",
     "primaryEvidence": [
-      "https://github.com/Varnan-Tech/OpenDirectory",
-      "https://github.com/Varnan-Tech/OpenDirectory/blob/main/README.md"
+      "https://github.com/Varnan-Tech/OpenDirectory/blob/main/README.md",
+      "https://github.com/Varnan-Tech/OpenDirectory/blob/main/package.json",
+      "https://github.com/Varnan-Tech/OpenDirectory/blob/main/LICENSE"
     ]
   },
   "capabilities": [
     {
-      "id": "open-directory-listing",
-      "title": "Open directory listing: curated catalog of resources organized by category",
-      "sourceEvidence": "OpenDirectory: structured directory of tools, services, and resources",
-      "disposition": "excluded",
-      "conflict": "product_purpose",
-      "reason": "Nexus is an intelligence dashboard, not a resource directory. Maintaining a public directory is outside product scope."
+      "id": "skill-blog-cover-image-cli",
+      "title": "blog-cover-image-cli",
+      "sourceEvidence": "README Visual & Media inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
     },
     {
-      "id": "category-taxonomy-pattern",
-      "title": "Category taxonomy pattern: hierarchical category structure for resource classification",
-      "sourceEvidence": "OpenDirectory category schema: multi-level taxonomy for resource classification",
-      "disposition": "pending",
-      "reason": "Nexus assimilation ecosystem (assimilated-ecosystem.md) uses a flat structure; a hierarchical taxonomy pattern for organizing ideas is worth adapting."
+      "id": "skill-graphic-case-study",
+      "title": "graphic-case-study",
+      "sourceEvidence": "README Visual & Media inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
     },
     {
-      "id": "community-contribution-workflow",
-      "title": "Community contribution workflow: PR-based additions with category validation",
-      "sourceEvidence": "OpenDirectory contribution guide: PR template with required fields",
+      "id": "skill-graphic-chart",
+      "title": "graphic-chart",
+      "sourceEvidence": "README Visual & Media inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-graphic-ebook",
+      "title": "graphic-ebook",
+      "sourceEvidence": "README Visual & Media inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-graphic-gif",
+      "title": "graphic-gif",
+      "sourceEvidence": "README Visual & Media inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-graphic-slide-deck",
+      "title": "graphic-slide-deck",
+      "sourceEvidence": "README Visual & Media inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-hyperframes-product-launch-video",
+      "title": "hyperframes-product-launch-video",
+      "sourceEvidence": "README Visual & Media inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-vid-motion-graphics",
+      "title": "vid-motion-graphics",
+      "sourceEvidence": "README Visual & Media inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-vid-product-launch",
+      "title": "vid-product-launch",
+      "sourceEvidence": "README Visual & Media inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-vid-sizzle-reel",
+      "title": "vid-sizzle-reel",
+      "sourceEvidence": "README Visual & Media inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-cook-the-blog",
+      "title": "cook-the-blog",
+      "sourceEvidence": "README Content inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-email-newsletter",
+      "title": "email-newsletter",
+      "sourceEvidence": "README Content inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-github-discussion-to-devrel-content",
+      "title": "github-discussion-to-devrel-content",
+      "sourceEvidence": "README Content inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-human-tone",
+      "title": "human-tone",
+      "sourceEvidence": "README Content inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-linkedin-post-generator",
+      "title": "linkedin-post-generator",
+      "sourceEvidence": "README Content inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-newsletter-digest",
+      "title": "newsletter-digest",
+      "sourceEvidence": "README Content inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-noise-to-linkedin-carousel",
+      "title": "noise-to-linkedin-carousel",
+      "sourceEvidence": "README Content inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-noise2blog",
+      "title": "noise2blog",
+      "sourceEvidence": "README Content inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-store-listing-optimizer",
+      "title": "store-listing-optimizer",
+      "sourceEvidence": "README Content inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-tweet-thread-from-blog",
+      "title": "tweet-thread-from-blog",
+      "sourceEvidence": "README Content inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-brand-alchemy",
+      "title": "brand-alchemy",
+      "sourceEvidence": "README Launch inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-oss-launch-kit",
+      "title": "oss-launch-kit",
+      "sourceEvidence": "README Launch inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-product-update-logger",
+      "title": "product-update-logger",
+      "sourceEvidence": "README Launch inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-producthunt-launch-kit",
+      "title": "producthunt-launch-kit",
+      "sourceEvidence": "README Launch inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-show-hn-writer",
+      "title": "show-hn-writer",
+      "sourceEvidence": "README Launch inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-app-store-review-arbitrage",
+      "title": "app-store-review-arbitrage",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-company-radar",
+      "title": "company-radar",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-competitor-pr-finder",
+      "title": "competitor-pr-finder",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-geo-gap-fixer",
+      "title": "geo-gap-fixer",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-gh-issue-to-demand-signal",
+      "title": "gh-issue-to-demand-signal",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-google-trends-api-skills",
+      "title": "google-trends-api-skills",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-hackernews-intel",
+      "title": "hackernews-intel",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-map-your-market",
+      "title": "map-your-market",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-meta-ads-skill",
+      "title": "meta-ads-skill",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-meta-tribeV2-skill",
+      "title": "meta-tribeV2-skill",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-npm-downloads-to-leads",
+      "title": "npm-downloads-to-leads",
+      "sourceEvidence": "README GTM Intelligence inventory",
       "disposition": "excluded",
       "conflict": "product_purpose",
-      "reason": "Nexus is a personal intelligence tool, not a community-maintained directory."
+      "reason": "Nexus does not turn public maintainers into contactable leads or automate personalized outreach from personal-contact enrichment."
+    },
+    {
+      "id": "skill-reddit-icp-monitor",
+      "title": "reddit-icp-monitor",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-reddit-post-engine",
+      "title": "reddit-post-engine",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-sdk-adoption-tracker",
+      "title": "sdk-adoption-tracker",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-twitter-GTM-find-skill",
+      "title": "twitter-GTM-find-skill",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-yc-intent-radar-skill",
+      "title": "yc-intent-radar-skill",
+      "sourceEvidence": "README GTM Intelligence inventory",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "The defining authenticated-session login-bypass scraper conflicts with Nexus security and platform-access boundaries."
+    },
+    {
+      "id": "skill-cold-email-verifier",
+      "title": "cold-email-verifier",
+      "sourceEvidence": "README Outreach inventory",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Autonomous email-address guessing, enrichment, and verification would create a personal-data harvesting and unsolicited-outreach surface."
+    },
+    {
+      "id": "skill-outreach-sequence-builder",
+      "title": "outreach-sequence-builder",
+      "sourceEvidence": "README Outreach inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-linkedin-job-post-to-buyer-pain-map",
+      "title": "linkedin-job-post-to-buyer-pain-map",
+      "sourceEvidence": "README Research inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-meeting-brief-generator",
+      "title": "meeting-brief-generator",
+      "sourceEvidence": "README Research inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-podcast-transcript-fetcher",
+      "title": "podcast-transcript-fetcher",
+      "sourceEvidence": "README Research inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-position-me",
+      "title": "position-me",
+      "sourceEvidence": "README Research inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-pricing-finder",
+      "title": "pricing-finder",
+      "sourceEvidence": "README Research inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-pricing-page-psychology-audit",
+      "title": "pricing-page-psychology-audit",
+      "sourceEvidence": "README Research inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-vc-curated-match",
+      "title": "vc-curated-match",
+      "sourceEvidence": "README Research inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-vc-finder",
+      "title": "vc-finder",
+      "sourceEvidence": "README Research inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-where-your-customer-lives",
+      "title": "where-your-customer-lives",
+      "sourceEvidence": "README Research inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-claude-md-generator",
+      "title": "claude-md-generator",
+      "sourceEvidence": "README Developer Tools inventory",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus uses AGENTS.md and the file-first context spine as current authority and will not generate a competing legacy CLAUDE.md authority file."
+    },
+    {
+      "id": "skill-dependency-update-bot",
+      "title": "dependency-update-bot",
+      "sourceEvidence": "README Developer Tools inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-docs-from-code",
+      "title": "docs-from-code",
+      "sourceEvidence": "README Developer Tools inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-dx-roaster",
+      "title": "dx-roaster",
+      "sourceEvidence": "README Developer Tools inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-explain-this-pr",
+      "title": "explain-this-pr",
+      "sourceEvidence": "README Developer Tools inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-kill-the-standup",
+      "title": "kill-the-standup",
+      "sourceEvidence": "README Developer Tools inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-llms-txt-generator",
+      "title": "llms-txt-generator",
+      "sourceEvidence": "README Developer Tools inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-pr-description-writer",
+      "title": "pr-description-writer",
+      "sourceEvidence": "README Developer Tools inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-schema-markup-generator",
+      "title": "schema-markup-generator",
+      "sourceEvidence": "README Developer Tools inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "skill-domain-expired-opportunity-finder",
+      "title": "domain-expired-opportunity-finder",
+      "sourceEvidence": "README Other inventory",
+      "disposition": "adapted",
+      "proof": [
+        "lib/goToMarketSkillAtlas.ts",
+        "components/skills/GoToMarketSkillAtlas.tsx"
+      ]
+    },
+    {
+      "id": "category-browser-and-search",
+      "title": "Interactive category browsing and search",
+      "sourceEvidence": "README Browse and All Skills sections",
+      "disposition": "adapted",
+      "proof": [
+        "components/skills/GoToMarketSkillAtlas.tsx",
+        "lib/goToMarketSkillAtlas.ts"
+      ]
+    },
+    {
+      "id": "multi-host-installer",
+      "title": "CLI and skills.sh installation into multiple agent hosts",
+      "sourceEvidence": "README Quick Start and Installation",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus keeps reviewed project capabilities tracked in-repository and does not fetch or mutate agent-host skill directories from product verification."
+    },
+    {
+      "id": "plugin-and-desktop-distribution",
+      "title": "Claude plugin, desktop ZIP, and marketplace distribution",
+      "sourceEvidence": "README Installation options",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is adapting operating contracts for its existing Skill Library, not redistributing the upstream plugin, marketplace, or host-specific package."
     }
   ]
 }

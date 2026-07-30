@@ -1,0 +1,6 @@
+interface:
+  display_name: "Setup Engineering Flows"
+  short_description: "Configure local tracker and domain-doc conventions safely."
+  default_prompt: "Use $setup-matt-pocock-skills to configure local engineering-flow conventions."
+policy:
+  allow_implicit_invocation: false

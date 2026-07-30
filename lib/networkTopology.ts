@@ -69,7 +69,13 @@ export function buildNetworkTopologyLayout(
 
   targets.forEach((target, index) => {
     const result = results[target.id];
-    const { x, y } = polarToCartesian(centerX, centerY, radius, index, targets.length);
+    const { x, y } = polarToCartesian(
+      centerX,
+      centerY,
+      radius,
+      index,
+      targets.length,
+    );
     nodes.push({
       id: target.id,
       label: target.label,
@@ -84,6 +90,8 @@ export function buildNetworkTopologyLayout(
   return { nodes, edges, hubId: HUB_ID };
 }
 
-export function topologyStatusColor(status: NetworkHealthResult["status"]): string {
+export function topologyStatusColor(
+  status: NetworkHealthResult["status"],
+): string {
   return networkHealthStatusColor(status);
 }

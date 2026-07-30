@@ -1,0 +1,4 @@
+name: Nexus active source
+
+paths-ignore:
+  - archive/**

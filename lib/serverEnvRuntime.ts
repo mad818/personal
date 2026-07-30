@@ -18,6 +18,20 @@ export function getRuntimeEnvFilePath(cwd = process.cwd()) {
   return join(resolveRuntimeProjectRoot(cwd), ".env.local");
 }
 
+export function assertAnchoredRuntimeEnvFilePath(
+  filePath: string,
+  cwd = process.cwd(),
+) {
+  const resolved = resolve(filePath);
+  const expected = resolve(getRuntimeEnvFilePath(cwd));
+  if (resolved !== expected) {
+    throw new Error(
+      "Runtime env file path is outside the anchored project root",
+    );
+  }
+  return resolved;
+}
+
 export async function patchProcessEnvFromFile(): Promise<void> {
   const now = Date.now();
   if (now - envCacheTs < ENV_CACHE_TTL) return;

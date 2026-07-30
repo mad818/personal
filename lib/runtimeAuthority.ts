@@ -86,33 +86,34 @@ export const NEXUS_RUNTIME_AUTHORITY: readonly RuntimeAuthorityEntry[] = [
   },
 ] as const;
 
-export const NEXUS_PROTECTED_INVARIANTS: readonly RuntimeProtectedInvariant[] = [
-  {
-    id: "free-local",
-    label: "Free and local first",
-    rule: "Do not add Nexus-side charges, required subscriptions, or paid-provider defaults.",
-  },
-  {
-    id: "approval-gated-mutation",
-    label: "Approval-gated mutation",
-    rule: "Treat high-risk writes and execution as review-required operations.",
-  },
-  {
-    id: "provider-boundary",
-    label: "Provider boundary",
-    rule: "Route AI calls through the shared Nexus AI layer and never expose provider credentials.",
-  },
-  {
-    id: "evidence-first-completion",
-    label: "Evidence-first completion",
-    rule: "Report summary, changes, evidence, risks, and blockers for completed work.",
-  },
-  {
-    id: "verification-before-done",
-    label: "Verification before done",
-    rule: "Never claim completion without fresh verification evidence.",
-  },
-] as const;
+export const NEXUS_PROTECTED_INVARIANTS: readonly RuntimeProtectedInvariant[] =
+  [
+    {
+      id: "free-local",
+      label: "Free and local first",
+      rule: "Do not add Nexus-side charges, required subscriptions, or paid-provider defaults.",
+    },
+    {
+      id: "approval-gated-mutation",
+      label: "Approval-gated mutation",
+      rule: "Treat high-risk writes and execution as review-required operations.",
+    },
+    {
+      id: "provider-boundary",
+      label: "Provider boundary",
+      rule: "Route AI calls through the shared Nexus AI layer and never expose provider credentials.",
+    },
+    {
+      id: "evidence-first-completion",
+      label: "Evidence-first completion",
+      rule: "Report summary, changes, evidence, risks, and blockers for completed work.",
+    },
+    {
+      id: "verification-before-done",
+      label: "Verification before done",
+      rule: "Never claim completion without fresh verification evidence.",
+    },
+  ] as const;
 
 export const RUNTIME_COMPLETION_SECTIONS = [
   "SUMMARY",
@@ -238,7 +239,10 @@ export function buildRuntimeContinuityReceipt(input: {
     harnessProfile: resolveRuntimeHarnessProfile(input.provider).id,
     summary: input.summary.trim() || "Runtime run completed without a summary.",
     changes: normalizeList(input.changes, "No project files changed."),
-    evidence: normalizeList(input.evidence, "No verification evidence recorded."),
+    evidence: normalizeList(
+      input.evidence,
+      "No verification evidence recorded.",
+    ),
     risks: normalizeList(input.risks, "No elevated runtime risks recorded."),
     blockers: normalizeList(input.blockers, "No active blockers."),
     verificationPassed: input.verificationPassed,

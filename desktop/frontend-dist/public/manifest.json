@@ -1,0 +1,25 @@
+{
+  "name": "Homefront",
+  "short_name": "Homefront",
+  "description": "Homefront — local-first command intelligence for markets, cyber, recon, and operator AI. Free-first, self-hosted, interactive.",
+  "start_url": "/hq",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0708",
+  "theme_color": "#0a0708",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

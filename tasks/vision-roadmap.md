@@ -1,6 +1,8 @@
 # NEXUS PRIME — Vision Gap Analysis & Roadmap
 _Updated: 2026-03-22_
 
+> **Status: historical snapshot.** This captures the repository as assessed on 2026-03-22 and is not the current queue or architecture reference. Use `tasks/todo.md`, `docs/SYSTEM_STATE.md`, and `docs/architecture.md` for current state; keep the snapshot body below intact for historical context.
+
 ---
 
 ## What Already Exists (solid foundation)

@@ -6,7 +6,13 @@
 // Entity detection is heuristic (no AI). Graph construction is purely additive —
 // never modifies vault items.
 
-import type { VaultItemMetadata, VaultEdge, VaultGraphData, VaultIndex, VaultLintResult } from "@/components/home/office/types";
+import type {
+  VaultItemMetadata,
+  VaultEdge,
+  VaultGraphData,
+  VaultIndex,
+  VaultLintResult,
+} from "@/components/home/office/types";
 
 // ── Entity detection ──────────────────────────────────────────────────────────
 // Extracts named entities from text using keyword patterns.
@@ -35,7 +41,10 @@ export function detectEntities(text: string): string[] {
 
 // ── buildAdjacency ────────────────────────────────────────────────────────────
 // Builds edges between vault items based on shared tags and entity co-occurrence.
-export function buildAdjacency(nodes: VaultItemMetadata[], texts: Record<string, string>): VaultEdge[] {
+export function buildAdjacency(
+  nodes: VaultItemMetadata[],
+  texts: Record<string, string>,
+): VaultEdge[] {
   const edges: VaultEdge[] = [];
   const entityMap: Record<string, string[]> = {};
 
@@ -45,7 +54,7 @@ export function buildAdjacency(nodes: VaultItemMetadata[], texts: Record<string,
     entityMap[node.id] = detectEntities(text + " " + node.tags.join(" "));
   }
 
-    // Rule 1: never connect user vault items to agent vault items
+  // Rule 1: never connect user vault items to agent vault items
   // Compare all pairs — O(n²) but vault items are typically < 500
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i + 1; j < nodes.length; j++) {
@@ -57,7 +66,7 @@ export function buildAdjacency(nodes: VaultItemMetadata[], texts: Record<string,
       let weight = 0;
 
       // Shared tags
-      const sharedTags = a.tags.filter(t => b.tags.includes(t));
+      const sharedTags = a.tags.filter((t) => b.tags.includes(t));
       if (sharedTags.length > 0) {
         weight += Math.min(0.5, sharedTags.length * 0.15);
         reasons.push(`shared tag: ${sharedTags.slice(0, 2).join(", ")}`);
@@ -72,7 +81,7 @@ export function buildAdjacency(nodes: VaultItemMetadata[], texts: Record<string,
       // Entity overlap
       const entA = new Set(entityMap[a.id] ?? []);
       const entB = new Set(entityMap[b.id] ?? []);
-      const overlap = Array.from(entA).filter(e => entB.has(e));
+      const overlap = Array.from(entA).filter((e) => entB.has(e));
       if (overlap.length > 0) {
         weight += Math.min(0.4, overlap.length * 0.1);
         reasons.push(`entity overlap: ${overlap.slice(0, 2).join(", ")}`);
@@ -85,7 +94,9 @@ export function buildAdjacency(nodes: VaultItemMetadata[], texts: Record<string,
           source: a.id,
           target: b.id,
           weight: Math.min(1, weight),
-          reason: protectedEdge ? "protected graph linkage" : reasons.join(" · "),
+          reason: protectedEdge
+            ? "protected graph linkage"
+            : reasons.join(" · "),
           kind: "heuristic",
           directed: false,
         });
@@ -97,18 +108,24 @@ export function buildAdjacency(nodes: VaultItemMetadata[], texts: Record<string,
 }
 
 // ── findOrphans ───────────────────────────────────────────────────────────────
-export function findOrphans(nodes: VaultItemMetadata[], edges: VaultEdge[]): string[] {
+export function findOrphans(
+  nodes: VaultItemMetadata[],
+  edges: VaultEdge[],
+): string[] {
   const connected = new Set<string>();
   for (const e of edges) {
     connected.add(e.source);
     connected.add(e.target);
   }
-  return nodes.filter(n => !connected.has(n.id)).map(n => n.id);
+  return nodes.filter((n) => !connected.has(n.id)).map((n) => n.id);
 }
 
 // ── detectClusters ────────────────────────────────────────────────────────────
 // Simple greedy clustering: nodes with weight > 0.3 edges form a cluster.
-export function detectClusters(nodes: VaultItemMetadata[], edges: VaultEdge[]): string[][] {
+export function detectClusters(
+  nodes: VaultItemMetadata[],
+  edges: VaultEdge[],
+): string[][] {
   const adjacency: Record<string, Set<string>> = {};
   for (const n of nodes) adjacency[n.id] = new Set();
   for (const e of edges) {
@@ -152,12 +169,13 @@ export function computeRelevanceDecay(
   for (const n of nodes) {
     nodeAge[n.id] = Math.min(1, (now - n.timestamp) / (30 * 24 * 3600 * 1000));
   }
-  return edges.map(e => ({
+  return edges.map((e) => ({
     ...e,
     weight:
       e.kind === "archive_link"
         ? e.weight
-        : e.weight * (1 - 0.3 * Math.max(nodeAge[e.source] ?? 0, nodeAge[e.target] ?? 0)),
+        : e.weight *
+          (1 - 0.3 * Math.max(nodeAge[e.source] ?? 0, nodeAge[e.target] ?? 0)),
   }));
 }
 
@@ -181,12 +199,21 @@ export function buildVaultGraph(
   archiveEdges: VaultEdge[] = [],
 ): VaultGraphData {
   if (items.length === 0) {
-    return { nodes: [], edges: [], clusters: [], orphans: [], builtAt: Date.now() };
+    return {
+      nodes: [],
+      edges: [],
+      clusters: [],
+      orphans: [],
+      builtAt: Date.now(),
+    };
   }
-  const rawEdges  = mergeGraphEdges([...buildAdjacency(items, texts), ...archiveEdges]);
-  const edges     = computeRelevanceDecay(rawEdges, items);
-  const clusters  = detectClusters(items, edges);
-  const orphans   = findOrphans(items, edges);
+  const rawEdges = mergeGraphEdges([
+    ...buildAdjacency(items, texts),
+    ...archiveEdges,
+  ]);
+  const edges = computeRelevanceDecay(rawEdges, items);
+  const clusters = detectClusters(items, edges);
+  const orphans = findOrphans(items, edges);
   return { nodes: items, edges, clusters, orphans, builtAt: Date.now() };
 }
 
@@ -196,11 +223,11 @@ export function buildVaultGraph(
 export function buildVaultIndex(items: VaultItemMetadata[]): VaultIndex {
   return {
     builtAt: Date.now(),
-    entries: items.map(n => ({
-      id:        n.id,
-      title:     n.title,
-      tldr:      n.tldr ?? n.title,
-      tags:      n.tags,
+    entries: items.map((n) => ({
+      id: n.id,
+      title: n.title,
+      tldr: n.tldr ?? n.title,
+      tags: n.tags,
       namespace: n.namespace ?? "user",
     })),
   };
@@ -217,14 +244,17 @@ export function runVaultLint(
 
   // Stale claims: items older than 60 days
   const staleClaims = items
-    .filter(n => (now - n.timestamp) > STALE_MS)
-    .map(n => ({ id: n.id, title: n.title, ageMs: now - n.timestamp }));
+    .filter((n) => now - n.timestamp > STALE_MS)
+    .map((n) => ({ id: n.id, title: n.title, ageMs: now - n.timestamp }));
 
   // Orphan pages: nodes with zero edges
   const connected = new Set<string>();
   const degreeCount: Record<string, number> = {};
   const inboundArchiveLinks: Record<string, number> = {};
-  for (const e of edges) { connected.add(e.source); connected.add(e.target); }
+  for (const e of edges) {
+    connected.add(e.source);
+    connected.add(e.target);
+  }
   for (const item of items) {
     degreeCount[item.id] = 0;
     inboundArchiveLinks[item.id] = 0;
@@ -233,15 +263,25 @@ export function runVaultLint(
     degreeCount[edge.source] = (degreeCount[edge.source] ?? 0) + 1;
     degreeCount[edge.target] = (degreeCount[edge.target] ?? 0) + 1;
     if (edge.kind === "archive_link" && edge.directed) {
-      inboundArchiveLinks[edge.target] = (inboundArchiveLinks[edge.target] ?? 0) + 1;
+      inboundArchiveLinks[edge.target] =
+        (inboundArchiveLinks[edge.target] ?? 0) + 1;
     }
   }
-  const orphanPages = items.filter(n => !connected.has(n.id)).map(n => n.id);
+  const orphanPages = items
+    .filter((n) => !connected.has(n.id))
+    .map((n) => n.id);
   const underlinkedPages = items
-    .filter((item) => !orphanPages.includes(item.id) && (degreeCount[item.id] ?? 0) === 1)
+    .filter(
+      (item) =>
+        !orphanPages.includes(item.id) && (degreeCount[item.id] ?? 0) === 1,
+    )
     .map((item) => item.id);
   const noBacklinkPages = items
-    .filter((item) => !orphanPages.includes(item.id) && (inboundArchiveLinks[item.id] ?? 0) === 0)
+    .filter(
+      (item) =>
+        !orphanPages.includes(item.id) &&
+        (inboundArchiveLinks[item.id] ?? 0) === 0,
+    )
     .map((item) => item.id);
 
   // Gap topics: tags that appear on only 1 item (thin coverage)
@@ -260,10 +300,13 @@ export function runVaultLint(
       const a = items[i];
       const b = items[j];
       if ((a.namespace ?? "user") !== (b.namespace ?? "user")) continue;
-      const sharedTags = a.tags.filter(t => b.tags.includes(t));
+      const sharedTags = a.tags.filter((t) => b.tags.includes(t));
       if (sharedTags.length === 0) continue;
       // Simple heuristic: if both have biasCheck entries, flag for human review
-      if (a.biasCheck?.counterArguments?.length && b.biasCheck?.counterArguments?.length) {
+      if (
+        a.biasCheck?.counterArguments?.length &&
+        b.biasCheck?.counterArguments?.length
+      ) {
         contradictions.push({
           ids: [a.id, b.id],
           reason: `Both items tagged [${sharedTags[0]}] have recorded counter-arguments — manual review recommended`,

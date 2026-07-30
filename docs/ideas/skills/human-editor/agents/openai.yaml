@@ -1,0 +1,4 @@
+interface:
+  display_name: "Human Editor"
+  short_description: "Rewrite prose in a natural experienced voice"
+  default_prompt: "Use $human-editor to rewrite this text in a natural experienced voice."

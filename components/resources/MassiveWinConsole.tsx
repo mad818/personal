@@ -28,7 +28,10 @@ export default function MassiveWinConsole() {
             the local-first operating posture.
           </p>
         </div>
-        <div className="nexus-massive-win-console__stats" aria-label="Massive win summary">
+        <div
+          className="nexus-massive-win-console__stats"
+          aria-label="Massive win summary"
+        >
           <span>
             <strong>{MASSIVE_WIN_SUMMARY.activePlans}</strong>
             <span>active</span>
@@ -50,14 +53,12 @@ export default function MassiveWinConsole() {
 
       <div className="nexus-massive-win-console__grid">
         {MASSIVE_WIN_PLANS.map((plan) => (
-          <ShellPanel
-            key={plan.id}
-            dense
-            className="nexus-massive-win-card"
-          >
+          <ShellPanel key={plan.id} dense className="nexus-massive-win-card">
             <div className="nexus-massive-win-card__header">
               <div>
-                <ShellBadge tone={plan.status === "active" ? "accent" : "muted"}>
+                <ShellBadge
+                  tone={plan.status === "active" ? "accent" : "muted"}
+                >
                   {STATUS_LABELS[plan.status]}
                 </ShellBadge>
                 <h3>{plan.title}</h3>
@@ -69,7 +70,10 @@ export default function MassiveWinConsole() {
 
             <p className="nexus-massive-win-card__summary">{plan.summary}</p>
 
-            <div className="nexus-massive-win-card__routes" aria-label={`${plan.title} route targets`}>
+            <div
+              className="nexus-massive-win-card__routes"
+              aria-label={`${plan.title} route targets`}
+            >
               {plan.routeTargets.map((route) => (
                 <span key={route}>{route}</span>
               ))}
@@ -80,7 +84,10 @@ export default function MassiveWinConsole() {
               <p>{plan.designPosture}</p>
             </div>
 
-            <div className="nexus-massive-win-card__phases" aria-label={`${plan.title} phases`}>
+            <div
+              className="nexus-massive-win-card__phases"
+              aria-label={`${plan.title} phases`}
+            >
               {plan.phases.map((phase) => (
                 <div
                   key={`${plan.id}-${phase.label}`}
@@ -102,7 +109,9 @@ export default function MassiveWinConsole() {
               </div>
             </details>
 
-            <p className="nexus-massive-win-card__note">{plan.nextAction.note}</p>
+            <p className="nexus-massive-win-card__note">
+              {plan.nextAction.note}
+            </p>
           </ShellPanel>
         ))}
       </div>

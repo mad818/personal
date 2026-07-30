@@ -11,10 +11,9 @@ import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import OperationalLightGrid from "@/components/ui/OperationalLightGrid";
-import TrustPostureStrip from "@/components/ui/TrustPostureStrip";
+import FeedSignalHorizon from "@/components/ui/FeedSignalHorizon";
 import { useOperationalLights } from "@/hooks/useOperationalLights";
 import { BRAND_NAME, BRAND_TAGLINE, getSurfaceBranding } from "@/lib/brand";
-import { formatNexusTasteProfile, getNexusTasteContract } from "@/lib/nexusTasteContract";
 import { buildSnapshot, resolveActiveUIRules } from "@/lib/uiRules";
 import {
   NEXUS_FREE_USE_DESCRIPTION,
@@ -31,21 +30,31 @@ import {
   normalizeSurfaceHref,
 } from "@/lib/releaseMatrix";
 
-const SettingsDrawer = dynamic(() => import("@/components/settings/SettingsDrawer"), {
-  ssr: false,
-});
-const NotificationCenter = dynamic(() => import("@/components/ui/NotificationCenter"), {
-  ssr: false,
-});
+const SettingsDrawer = dynamic(
+  () => import("@/components/settings/SettingsDrawer"),
+  {
+    ssr: false,
+  },
+);
+const NotificationCenter = dynamic(
+  () => import("@/components/ui/NotificationCenter"),
+  {
+    ssr: false,
+  },
+);
 
 export default function Nav() {
   const pathname = usePathname();
   const router = useRouter();
   const toprailRef = useRef<HTMLElement | null>(null);
-  const [activeOverlay, setActiveOverlay] = useState<"settings" | "notifications" | null>(null);
+  const [activeOverlay, setActiveOverlay] = useState<
+    "settings" | "notifications" | null
+  >(null);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [notificationsLoaded, setNotificationsLoaded] = useState(false);
-  const [hoverSurface, setHoverSurface] = useState<SurfaceMotionSurface | null>(null);
+  const [hoverSurface, setHoverSurface] = useState<SurfaceMotionSurface | null>(
+    null,
+  );
   const unreadCount = useStore((s) => s.unreadCount);
   const activeUIRuleIds = useStore((s) => s.activeUIRuleIds);
   const signals = useStore((s) => s.signals);
@@ -74,9 +83,9 @@ export default function Nav() {
   const activePath = normalizeSurfaceHref(pathname);
   const activeTab = tabs.find((tab) => tab.href === activePath) ?? tabs[0];
   const activeBranding = getSurfaceBranding(activeTab?.id);
-  const previewSurface = hoverSurface ?? ((activeTab?.id as SurfaceMotionSurface | undefined) ?? "hq");
+  const previewSurface =
+    hoverSurface ?? (activeTab?.id as SurfaceMotionSurface | undefined) ?? "hq";
   const previewBranding = getSurfaceBranding(previewSurface);
-  const previewTaste = getNexusTasteContract(previewSurface);
   const signalSpec = resolveSurfaceSignalMotionSpec(
     (activeTab?.id as SurfaceMotionSurface | undefined) ?? "hq",
   );
@@ -90,9 +99,10 @@ export default function Nav() {
     agentRuntime,
     councilMode,
   });
-  const topHeaderIndicator = resolveActiveUIRules(uiSnapshot, activeUIRuleIds).find(
-    (entry) => entry.rule.action === "header-indicator",
-  );
+  const topHeaderIndicator = resolveActiveUIRules(
+    uiSnapshot,
+    activeUIRuleIds,
+  ).find((entry) => entry.rule.action === "header-indicator");
 
   useEffect(() => {
     const toprail = toprailRef.current;
@@ -133,8 +143,9 @@ export default function Nav() {
   return (
     <>
       <nav
+        aria-label="Primary navigation"
         ref={toprailRef}
-        className="nexus-toprail nexus-command-header"
+        className="nexus-toprail nexus-command-header nexus-command-header--slim"
         data-overlay-state={activeOverlay ?? "closed"}
       >
         <div
@@ -153,30 +164,24 @@ export default function Nav() {
               href={getDefaultEntrypoint()}
               className="nexus-command-header__brand"
               data-testid="toprail-brand"
+              title={`${BRAND_NAME} · ${BRAND_TAGLINE}`}
             >
-              <span className="nexus-command-header__brandLabel">{BRAND_NAME}</span>
-              <span className="nexus-command-header__brandTag">{BRAND_TAGLINE}</span>
+              <span className="nexus-command-header__brandLabel">
+                {BRAND_NAME}
+              </span>
             </Link>
             <div className="nexus-command-header__context">
-              <span className="nexus-command-header__contextLabel">Sector</span>
               <span className="nexus-command-header__contextValue">
                 {previewBranding.visibleLabel}
-              </span>
-              <span className="nexus-command-header__contextMeta">
-                {previewBranding.functionalLabel}
               </span>
             </div>
           </div>
 
-          <div className="nexus-command-header__rail" data-surface={activeTab?.id ?? "hq"}>
-            <div className="nexus-command-header__railMeta">
-              <span className="nexus-command-header__railLabel">Directive</span>
-              <span className="nexus-command-header__railNote">{previewTaste.routeDirective}</span>
-              <span className="nexus-command-header__railMetaHint">
-                {formatNexusTasteProfile()} · Alt+1-8
-              </span>
-            </div>
-            <div className="nexus-command-header__tabs" role="tablist" aria-label="Primary navigation">
+          <div
+            className="nexus-command-header__rail"
+            data-surface={activeTab?.id ?? "hq"}
+          >
+            <div className="nexus-command-header__tabs">
               {tabs.map((tab, i) => {
                 const active = activePath === tab.href;
                 const branding = getSurfaceBranding(tab.id);
@@ -185,15 +190,22 @@ export default function Nav() {
                   <Link
                     key={tab.href}
                     href={tab.href}
-                    className={clsx("nexus-command-header__link", active && "is-active")}
+                    className={clsx(
+                      "nexus-command-header__link",
+                      active && "is-active",
+                    )}
                     aria-current={active ? "page" : undefined}
                     aria-label={branding.ariaLabel}
                     data-testid={`nav-tab-${tab.href.replace(/\//g, "") || "root"}`}
                     data-nexus-tab={tab.id}
                     title={`${branding.visibleLabel} · ${branding.functionalLabel}${shortcut}`}
-                    onMouseEnter={() => setHoverSurface(tab.id as SurfaceMotionSurface)}
+                    onMouseEnter={() =>
+                      setHoverSurface(tab.id as SurfaceMotionSurface)
+                    }
                     onMouseLeave={() => setHoverSurface(null)}
-                    onFocus={() => setHoverSurface(tab.id as SurfaceMotionSurface)}
+                    onFocus={() =>
+                      setHoverSurface(tab.id as SurfaceMotionSurface)
+                    }
                     onBlur={() => setHoverSurface(null)}
                     style={
                       {
@@ -203,11 +215,9 @@ export default function Nav() {
                       } as CSSProperties
                     }
                   >
-                      <span className="nexus-command-header__linkIndex" aria-hidden="true">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <span className="nexus-command-header__linkLabel">{branding.visibleLabel}</span>
-                      <span className="nexus-command-header__linkRule" aria-hidden="true" />
+                    <span className="nexus-command-header__linkLabel">
+                      {branding.visibleLabel}
+                    </span>
                   </Link>
                 );
               })}
@@ -217,7 +227,6 @@ export default function Nav() {
           <div className="nexus-command-header__utility">
             <div className="nexus-command-header__utilityCore">
               <div className="nexus-command-header__status">
-                <span className="nexus-command-header__statusLabel">Posture</span>
                 <span
                   className="nexus-command-header__statusValue"
                   title={NEXUS_FREE_USE_DESCRIPTION}
@@ -230,7 +239,8 @@ export default function Nav() {
                     data-testid="toprail-dynamic-indicator"
                     title={topHeaderIndicator.rule.label}
                     style={{
-                      color: topHeaderIndicator.rule.indicator?.color ?? "inherit",
+                      color:
+                        topHeaderIndicator.rule.indicator?.color ?? "inherit",
                     }}
                   >
                     {topHeaderIndicator.indicatorText}
@@ -240,14 +250,26 @@ export default function Nav() {
               <OperationalLightGrid
                 grid={operationalLights}
                 variant="toprail"
-                maxLights={10}
+                maxLights={6}
                 title="Operational lights"
               />
-              <TrustPostureStrip />
             </div>
-            <span className="nexus-command-header__utilityNote">
-              Exact continuity armed.
-            </span>
+
+            <Link
+              href="/security"
+              className="nexus-toprail__icon-button"
+              data-testid="toprail-trust"
+              aria-label="Open trust operations"
+              aria-current={pathname === "/security" ? "page" : undefined}
+              title="Trust operations"
+            >
+              <span
+                className="nexus-command-header__buttonLabel"
+                aria-hidden="true"
+              >
+                TRST
+              </span>
+            </Link>
 
             <button
               type="button"
@@ -269,7 +291,12 @@ export default function Nav() {
               aria-expanded={notificationsOpen}
               aria-controls="nexus-notifications-dialog"
             >
-              <span className="nexus-command-header__buttonLabel" aria-hidden="true">ALRT</span>
+              <span
+                className="nexus-command-header__buttonLabel"
+                aria-hidden="true"
+              >
+                ALRT
+              </span>
               {unreadCount > 0 && (
                 <span className="nexus-toprail__badge">
                   {unreadCount > 9 ? "9+" : unreadCount}
@@ -291,15 +318,22 @@ export default function Nav() {
               onFocus={() => setSettingsLoaded(true)}
               className="nexus-toprail__icon-button"
               data-testid="toprail-settings"
+              aria-label="Open settings"
               title="Settings"
               aria-haspopup="dialog"
               aria-expanded={settingsOpen}
               aria-controls="nexus-settings-dialog"
             >
-              <span className="nexus-command-header__buttonLabel" aria-hidden="true">CTRL</span>
+              <span
+                className="nexus-command-header__buttonLabel"
+                aria-hidden="true"
+              >
+                CTRL
+              </span>
             </button>
           </div>
         </div>
+        <FeedSignalHorizon />
       </nav>
 
       {settingsLoaded ? (

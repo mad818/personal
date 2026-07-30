@@ -18,17 +18,57 @@ import type {
 
 const ARTIFACTS: Record<
   FeynmanContinuityArtifactKind,
-  { fileName: string; contentType: string; disposition: "inline" | "attachment" }
+  {
+    fileName: string;
+    contentType: string;
+    disposition: "inline" | "attachment";
+  }
 > = {
-  plan: { fileName: "plan.md", contentType: "text/markdown; charset=utf-8", disposition: "inline" },
-  notebook: { fileName: "notebook.md", contentType: "text/markdown; charset=utf-8", disposition: "inline" },
-  report: { fileName: "report.md", contentType: "text/markdown; charset=utf-8", disposition: "inline" },
-  evidence: { fileName: "evidence-ledger.json", contentType: "application/json; charset=utf-8", disposition: "attachment" },
-  claims: { fileName: "claim-audit.json", contentType: "application/json; charset=utf-8", disposition: "attachment" },
-  review: { fileName: "reviewer-findings.json", contentType: "application/json; charset=utf-8", disposition: "attachment" },
-  provenance: { fileName: "provenance.json", contentType: "application/json; charset=utf-8", disposition: "attachment" },
-  preview: { fileName: "preview.html", contentType: "text/html; charset=utf-8", disposition: "inline" },
-  pdf: { fileName: "report.pdf", contentType: "application/pdf", disposition: "attachment" },
+  plan: {
+    fileName: "plan.md",
+    contentType: "text/markdown; charset=utf-8",
+    disposition: "inline",
+  },
+  notebook: {
+    fileName: "notebook.md",
+    contentType: "text/markdown; charset=utf-8",
+    disposition: "inline",
+  },
+  report: {
+    fileName: "report.md",
+    contentType: "text/markdown; charset=utf-8",
+    disposition: "inline",
+  },
+  evidence: {
+    fileName: "evidence-ledger.json",
+    contentType: "application/json; charset=utf-8",
+    disposition: "attachment",
+  },
+  claims: {
+    fileName: "claim-audit.json",
+    contentType: "application/json; charset=utf-8",
+    disposition: "attachment",
+  },
+  review: {
+    fileName: "reviewer-findings.json",
+    contentType: "application/json; charset=utf-8",
+    disposition: "attachment",
+  },
+  provenance: {
+    fileName: "provenance.json",
+    contentType: "application/json; charset=utf-8",
+    disposition: "attachment",
+  },
+  preview: {
+    fileName: "preview.html",
+    contentType: "text/html; charset=utf-8",
+    disposition: "inline",
+  },
+  pdf: {
+    fileName: "report.pdf",
+    contentType: "application/pdf",
+    disposition: "attachment",
+  },
 };
 
 function dataRoot() {
@@ -44,13 +84,45 @@ function assertSafeSessionId(sessionId: string) {
   }
 }
 
+function resolveContainedPath(rootPath: string, ...segments: string[]) {
+  const root = path.resolve(rootPath);
+  const candidate = path.resolve(root, ...segments);
+  const relative = path.relative(root, candidate);
+  if (
+    relative === ".." ||
+    relative.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relative)
+  ) {
+    throw new Error("Feynman session path escaped the configured data root.");
+  }
+  return candidate;
+}
+
 function sessionDirectory(sessionId: string) {
   assertSafeSessionId(sessionId);
-  return path.join(dataRoot(), sessionId);
+  return resolveContainedPath(dataRoot(), sessionId);
 }
 
 function sessionManifestPath(sessionId: string) {
-  return path.join(sessionDirectory(sessionId), "session.json");
+  return resolveContainedPath(sessionDirectory(sessionId), "session.json");
+}
+
+function sessionArtifactPath(
+  sessionId: string,
+  kind: FeynmanContinuityArtifactKind,
+) {
+  const artifact = ARTIFACTS[kind];
+  if (!artifact) throw new Error("Unknown Feynman artifact kind.");
+  return resolveContainedPath(sessionDirectory(sessionId), artifact.fileName);
+}
+
+function firstMarkdownHeading(report: string) {
+  for (const line of report.split(/\r?\n/)) {
+    if (!line.startsWith("# ")) continue;
+    const heading = line.slice(2).trim();
+    if (heading) return heading;
+  }
+  return "";
 }
 
 function json(value: unknown) {
@@ -110,7 +182,7 @@ export async function startFeynmanContinuitySession(input: {
   const directory = sessionDirectory(session.id);
   await mkdir(directory, { recursive: false });
   await writeFile(
-    path.join(directory, ARTIFACTS.plan.fileName),
+    sessionArtifactPath(session.id, "plan"),
     [
       `# Research Plan · ${session.topic}`,
       "",
@@ -125,7 +197,7 @@ export async function startFeynmanContinuitySession(input: {
     "utf8",
   );
   await writeFile(
-    path.join(directory, ARTIFACTS.notebook.fileName),
+    sessionArtifactPath(session.id, "notebook"),
     [
       `# Lab Notebook · ${session.topic}`,
       "",
@@ -143,7 +215,7 @@ export async function appendFeynmanNotebookEntry(
   entry: FeynmanNotebookEntry,
 ) {
   const session = await getFeynmanContinuitySession(sessionId);
-  const notebookPath = path.join(sessionDirectory(sessionId), ARTIFACTS.notebook.fileName);
+  const notebookPath = sessionArtifactPath(sessionId, "notebook");
   let notebook = "";
   try {
     notebook = await readFile(notebookPath, "utf8");
@@ -164,9 +236,8 @@ export async function completeFeynmanContinuitySession(
   result: FeynmanResearchResult,
 ) {
   const session = await getFeynmanContinuitySession(sessionId);
-  const directory = sessionDirectory(sessionId);
   const updatedAt = new Date().toISOString();
-  const firstHeading = result.report.match(/^#\s+(.+)$/m)?.[1]?.trim();
+  const firstHeading = firstMarkdownHeading(result.report);
   const next: FeynmanContinuitySession = {
     ...session,
     title: firstHeading || session.title,
@@ -195,6 +266,7 @@ export async function completeFeynmanContinuitySession(
     stageStatus: result.stageStatus,
     coverage: result.coverage,
     approvalRequired: result.approvalRequired,
+    integrityPassport: result.integrityPassport,
     failures: result.failures,
     sources: result.sources,
     claimVerdicts: result.claims.map((claim) => ({
@@ -204,17 +276,40 @@ export async function completeFeynmanContinuitySession(
     })),
   };
   await Promise.all([
-    writeFile(path.join(directory, ARTIFACTS.report.fileName), `${result.report.trim()}\n`, "utf8"),
-    writeFile(path.join(directory, ARTIFACTS.evidence.fileName), json(result.sources), "utf8"),
-    writeFile(path.join(directory, ARTIFACTS.claims.fileName), json(result.claims), "utf8"),
-    writeFile(path.join(directory, ARTIFACTS.review.fileName), json(result.reviewFindings), "utf8"),
-    writeFile(path.join(directory, ARTIFACTS.provenance.fileName), json(provenance), "utf8"),
     writeFile(
-      path.join(directory, ARTIFACTS.preview.fileName),
+      sessionArtifactPath(sessionId, "report"),
+      `${result.report.trim()}\n`,
+      "utf8",
+    ),
+    writeFile(
+      sessionArtifactPath(sessionId, "evidence"),
+      json(result.sources),
+      "utf8",
+    ),
+    writeFile(
+      sessionArtifactPath(sessionId, "claims"),
+      json(result.claims),
+      "utf8",
+    ),
+    writeFile(
+      sessionArtifactPath(sessionId, "review"),
+      json(result.reviewFindings),
+      "utf8",
+    ),
+    writeFile(
+      sessionArtifactPath(sessionId, "provenance"),
+      json(provenance),
+      "utf8",
+    ),
+    writeFile(
+      sessionArtifactPath(sessionId, "preview"),
       buildFeynmanPreviewHtml({ session: next, report: result.report }),
       "utf8",
     ),
-    writeFile(path.join(directory, ARTIFACTS.pdf.fileName), buildFeynmanPdf(next.title, result.report)),
+    writeFile(
+      sessionArtifactPath(sessionId, "pdf"),
+      buildFeynmanPdf(next.title, result.report),
+    ),
   ]);
   await appendFeynmanNotebookEntry(sessionId, {
     at: updatedAt,
@@ -236,7 +331,9 @@ export async function degradeFeynmanContinuitySession(
     ...session,
     status: "degraded",
     updatedAt,
-    failures: Array.from(new Set([...session.failures, reason.trim()])).filter(Boolean),
+    failures: Array.from(new Set([...session.failures, reason.trim()])).filter(
+      Boolean,
+    ),
   };
   await appendFeynmanNotebookEntry(sessionId, {
     at: updatedAt,
@@ -248,7 +345,9 @@ export async function degradeFeynmanContinuitySession(
   return next;
 }
 
-export async function listFeynmanContinuitySessions(options?: { limit?: number }) {
+export async function listFeynmanContinuitySessions(options?: {
+  limit?: number;
+}) {
   await mkdir(dataRoot(), { recursive: true });
   const entries = await readdir(dataRoot(), { withFileTypes: true });
   const sessions: FeynmanContinuitySession[] = [];
@@ -278,7 +377,7 @@ export async function readFeynmanContinuityArtifact(
   assertSafeSessionId(sessionId);
   const artifact = ARTIFACTS[kind];
   if (!artifact) throw new Error("Unknown Feynman artifact kind.");
-  const buffer = await readFile(path.join(sessionDirectory(sessionId), artifact.fileName));
+  const buffer = await readFile(sessionArtifactPath(sessionId, kind));
   return {
     buffer,
     contentType: artifact.contentType,

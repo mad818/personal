@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Workflow And Versioning"
+  short_description: "Create intentional reversible Nexus history."
+  default_prompt: "Use $git-workflow-and-versioning to package this Nexus change into safe intentional history."

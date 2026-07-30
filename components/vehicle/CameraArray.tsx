@@ -136,18 +136,26 @@ export default function CameraArray() {
         {CAMERAS.map((cam) => {
           const isActive = cam.id === active;
           return (
-            <div
+            <button
+              type="button"
               key={cam.id}
               onClick={() => {
                 setActive(cam.id);
                 setExpanded(cam.id);
               }}
+              aria-pressed={isActive}
+              aria-label={`Open ${cam.label} camera feed`}
               style={{
+                width: "100%",
+                padding: 0,
                 position: "relative",
                 background: "#060405",
                 border: `1px solid ${isActive ? "var(--accent)" : "var(--border)"}`,
                 borderRadius: "var(--rs)",
                 overflow: "hidden",
+                color: "inherit",
+                font: "inherit",
+                textAlign: "left",
                 cursor: "pointer",
                 boxShadow: isActive
                   ? "0 0 10px 2px rgba(196,72,90,0.3)"
@@ -226,7 +234,7 @@ export default function CameraArray() {
                   {cam.label}
                 </div>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -331,6 +339,7 @@ export default function CameraArray() {
                 </span>
                 <button
                   onClick={() => setExpanded(null)}
+                  aria-label="Close expanded camera"
                   style={{
                     marginLeft: "auto",
                     background: "transparent",

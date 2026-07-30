@@ -1,10 +1,24 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import ActionSessionCluster from "@/components/ui/ActionSessionCluster";
-import { SectionLabel, ShellBadge, ShellSegmentedTabs } from "@/components/ui/shell";
-import { SurfaceCallout, SurfaceEmpty } from "@/components/ui/surfacePrimitives";
+import {
+  SectionLabel,
+  ShellBadge,
+  ShellSegmentedTabs,
+} from "@/components/ui/shell";
+import {
+  SurfaceCallout,
+  SurfaceEmpty,
+} from "@/components/ui/surfacePrimitives";
 import { apiFetch } from "@/lib/apiFetch";
 import {
   formatArtifactParserHintLabel,
@@ -55,7 +69,9 @@ function compactButtonStyle(active = false) {
   return {
     padding: "8px 10px",
     borderRadius: "999px",
-    border: active ? "1px solid rgba(120, 196, 255, 0.55)" : "1px solid var(--border)",
+    border: active
+      ? "1px solid rgba(120, 196, 255, 0.55)"
+      : "1px solid var(--border)",
     background: active ? "rgba(56, 122, 255, 0.18)" : "rgba(10, 15, 30, 0.58)",
     color: "var(--text)",
     fontSize: "11px",
@@ -92,7 +108,14 @@ function formatIsoTime(value: string | null | undefined) {
 
 function renderArtifactBadges(classification: ArtifactClassification) {
   return (
-    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
+    <div
+      style={{
+        display: "flex",
+        gap: "6px",
+        flexWrap: "wrap",
+        marginTop: "4px",
+      }}
+    >
       <ShellBadge
         tone={
           classification.sensitivity === "restricted"
@@ -124,7 +147,9 @@ export default function ProjectImpactConsole({
   const [mode, setMode] = useState<ImpactConsoleMode>(initialMode);
   const [impact, setImpact] = useState<ProjectImpactResult | null>(null);
   const [graph, setGraph] = useState<ProjectGraphResult | null>(null);
-  const [ownership, setOwnership] = useState<ProjectOwnershipResult | null>(null);
+  const [ownership, setOwnership] = useState<ProjectOwnershipResult | null>(
+    null,
+  );
   const [hotspots, setHotspots] = useState<ProjectHotspotResult | null>(null);
   const [security, setSecurity] = useState<ProjectSecurityResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -166,7 +191,9 @@ export default function ProjectImpactConsole({
   const runAnalysis = useCallback(
     async (target = deferredQuery.trim(), nextMode = mode) => {
       if (!target) {
-        setLoadError("Choose a repo-relative file path before running analysis.");
+        setLoadError(
+          "Choose a repo-relative file path before running analysis.",
+        );
         return;
       }
 
@@ -234,7 +261,12 @@ export default function ProjectImpactConsole({
       hotspots?.hotspots[0]?.path ??
       null;
     const seen = new Set<string>();
-    const sessions: Array<{ href: string; label: string; detail: string; context: string }> = [];
+    const sessions: Array<{
+      href: string;
+      label: string;
+      detail: string;
+      context: string;
+    }> = [];
     const reviewPack =
       impact?.reviewPack ??
       graph?.reviewPack ??
@@ -408,6 +440,7 @@ export default function ProjectImpactConsole({
 
       {loadError ? (
         <SurfaceCallout
+          role="alert"
           tone="warning"
           compact
           icon="↺"
@@ -419,8 +452,16 @@ export default function ProjectImpactConsole({
       {activeSummary ? (
         <div style={{ ...cardStyle(), display: "grid", gap: "10px" }}>
           <div style={{ display: "grid", gap: "6px" }}>
-            <SectionLabel detail={`${mode} mode`}>Current analysis</SectionLabel>
-            <div style={{ fontSize: "12px", color: "var(--text2)", wordBreak: "break-word" }}>
+            <SectionLabel detail={`${mode} mode`}>
+              Current analysis
+            </SectionLabel>
+            <div
+              style={{
+                fontSize: "12px",
+                color: "var(--text2)",
+                wordBreak: "break-word",
+              }}
+            >
               {activeSummary.title}
             </div>
           </div>
@@ -453,33 +494,54 @@ export default function ProjectImpactConsole({
             }}
           >
             <div style={{ ...cardStyle(), display: "grid", gap: "8px" }}>
-              <SectionLabel detail={`${impact.directImports.length} files`}>Direct imports</SectionLabel>
+              <SectionLabel detail={`${impact.directImports.length} files`}>
+                Direct imports
+              </SectionLabel>
               {impact.directImports.length ? (
                 impact.directImports.map((path) => (
-                  <div key={path} style={{ fontSize: "12px", color: "var(--text2)" }}>
+                  <div
+                    key={path}
+                    style={{ fontSize: "12px", color: "var(--text2)" }}
+                  >
                     {path}
                   </div>
                 ))
               ) : (
-                <SurfaceEmpty title="No direct imports" description="Leaf modules or entry files can legitimately have no local imports." />
+                <SurfaceEmpty
+                  title="No direct imports"
+                  description="Leaf modules or entry files can legitimately have no local imports."
+                />
               )}
             </div>
             <div style={{ ...cardStyle(), display: "grid", gap: "8px" }}>
-              <SectionLabel detail={`${impact.importers.length} files`}>Importers</SectionLabel>
+              <SectionLabel detail={`${impact.importers.length} files`}>
+                Importers
+              </SectionLabel>
               {impact.importers.length ? (
                 impact.importers.map((path) => (
-                  <div key={path} style={{ fontSize: "12px", color: "var(--text2)" }}>
+                  <div
+                    key={path}
+                    style={{ fontSize: "12px", color: "var(--text2)" }}
+                  >
                     {path}
                   </div>
                 ))
               ) : (
-                <SurfaceEmpty title="No importers" description="Entry points, dynamic loads, and isolated helpers can be importer-free." />
+                <SurfaceEmpty
+                  title="No importers"
+                  description="Entry points, dynamic loads, and isolated helpers can be importer-free."
+                />
               )}
             </div>
             <div style={{ ...cardStyle(), display: "grid", gap: "8px" }}>
-              <SectionLabel detail={`${impact.reviewPack.length} likely reads`}>Review pack</SectionLabel>
+              <SectionLabel detail={`${impact.reviewPack.length} likely reads`}>
+                Review pack
+              </SectionLabel>
               {impact.reviewPack.map((path) => (
-                <div key={path} style={{ fontSize: "12px", color: "var(--text2)" }}>
+                <div
+                  key={path}
+                  style={{ fontSize: "12px", color: "var(--text2)" }}
+                >
                   {path}
                 </div>
               ))}
@@ -503,44 +565,73 @@ export default function ProjectImpactConsole({
             }}
           >
             <div style={{ ...cardStyle(), display: "grid", gap: "8px" }}>
-              <SectionLabel detail={`${graph.nodes.length} ranked nodes`}>High-coupling files</SectionLabel>
+              <SectionLabel detail={`${graph.nodes.length} ranked nodes`}>
+                High-coupling files
+              </SectionLabel>
               {graph.nodes.slice(0, 10).map((node) => (
-                <div key={node.path} style={{ fontSize: "12px", color: "var(--text2)" }}>
+                <div
+                  key={node.path}
+                  style={{ fontSize: "12px", color: "var(--text2)" }}
+                >
                   <div>
                     {node.path}
-                    <span style={{ color: "var(--text3)" }}> · coupling {node.coupling}</span>
+                    <span style={{ color: "var(--text3)" }}>
+                      {" "}
+                      · coupling {node.coupling}
+                    </span>
                   </div>
                   {renderArtifactBadges(node.artifactClassification)}
                 </div>
               ))}
             </div>
             <div style={{ ...cardStyle(), display: "grid", gap: "8px" }}>
-              <SectionLabel detail={`${graph.circularDependencies.length} cycles`}>Circular dependencies</SectionLabel>
+              <SectionLabel
+                detail={`${graph.circularDependencies.length} cycles`}
+              >
+                Circular dependencies
+              </SectionLabel>
               {graph.circularDependencies.length ? (
                 graph.circularDependencies.slice(0, 6).map((cycle, index) => (
-                  <div key={`${cycle.join("->")}-${index}`} style={{ fontSize: "12px", color: "var(--text2)" }}>
+                  <div
+                    key={`${cycle.join("->")}-${index}`}
+                    style={{ fontSize: "12px", color: "var(--text2)" }}
+                  >
                     {cycle.join(" -> ")}
                   </div>
                 ))
               ) : (
-                <SurfaceEmpty title="No local cycles detected" description="The current import graph did not surface any circular dependency loops." />
+                <SurfaceEmpty
+                  title="No local cycles detected"
+                  description="The current import graph did not surface any circular dependency loops."
+                />
               )}
             </div>
             <div style={{ ...cardStyle(), display: "grid", gap: "8px" }}>
-              <SectionLabel detail={`${graph.isolatedFiles.length} isolated`}>Isolated files</SectionLabel>
+              <SectionLabel detail={`${graph.isolatedFiles.length} isolated`}>
+                Isolated files
+              </SectionLabel>
               {graph.isolatedFiles.length ? (
                 graph.isolatedFiles.slice(0, 10).map((path) => (
-                  <div key={path} style={{ fontSize: "12px", color: "var(--text2)" }}>
+                  <div
+                    key={path}
+                    style={{ fontSize: "12px", color: "var(--text2)" }}
+                  >
                     {path}
                   </div>
                 ))
               ) : (
-                <SurfaceEmpty title="No isolated files" description="Every scanned source file participates in at least one local import edge." />
+                <SurfaceEmpty
+                  title="No isolated files"
+                  description="Every scanned source file participates in at least one local import edge."
+                />
               )}
             </div>
           </div>
         ) : (
-          <SurfaceEmpty title="Run the graph scan" description="Graph mode ranks local coupling, circular dependencies, and isolation before a refactor spreads." />
+          <SurfaceEmpty
+            title="Run the graph scan"
+            description="Graph mode ranks local coupling, circular dependencies, and isolation before a refactor spreads."
+          />
         )
       ) : null}
 
@@ -554,50 +645,75 @@ export default function ProjectImpactConsole({
             }}
           >
             <div style={{ ...cardStyle(), display: "grid", gap: "8px" }}>
-              <SectionLabel detail={ownership.detail}>Likely owners</SectionLabel>
+              <SectionLabel detail={ownership.detail}>
+                Likely owners
+              </SectionLabel>
               {ownership.owners.slice(0, 10).map((entry) => (
                 <div key={entry.path} style={{ display: "grid", gap: "2px" }}>
-                  <div style={{ fontSize: "12px", color: "var(--text)" }}>{entry.path}</div>
+                  <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                    {entry.path}
+                  </div>
                   <div style={{ fontSize: "10px", color: "var(--text3)" }}>
-                    {entry.lastAuthor} · {formatIsoTime(entry.lastTouchedAt)} · {entry.changeCount} changes
+                    {entry.lastAuthor} · {formatIsoTime(entry.lastTouchedAt)} ·{" "}
+                    {entry.changeCount} changes
                   </div>
                   {renderArtifactBadges(entry.artifactClassification)}
                 </div>
               ))}
             </div>
             <div style={{ ...cardStyle(), display: "grid", gap: "8px" }}>
-              <SectionLabel detail={`${ownership.recentAuthors.length} authors`}>Recent activity</SectionLabel>
+              <SectionLabel
+                detail={`${ownership.recentAuthors.length} authors`}
+              >
+                Recent activity
+              </SectionLabel>
               {ownership.recentAuthors.map((entry) => (
-                <div key={entry.author} style={{ fontSize: "12px", color: "var(--text2)" }}>
+                <div
+                  key={entry.author}
+                  style={{ fontSize: "12px", color: "var(--text2)" }}
+                >
                   {entry.author}
-                  <span style={{ color: "var(--text3)" }}> · {entry.count} commits</span>
+                  <span style={{ color: "var(--text3)" }}>
+                    {" "}
+                    · {entry.count} commits
+                  </span>
                 </div>
               ))}
             </div>
           </div>
         ) : (
-          <SurfaceEmpty title="Run the ownership pass" description="Ownership mode keeps recent editors and change history close to the current review pack." />
+          <SurfaceEmpty
+            title="Run the ownership pass"
+            description="Ownership mode keeps recent editors and change history close to the current review pack."
+          />
         )
       ) : null}
 
       {mode === "hotspots" ? (
         hotspots ? (
           <div style={{ ...cardStyle(), display: "grid", gap: "8px" }}>
-            <SectionLabel detail={hotspots.detail}>Hotspot ranking</SectionLabel>
+            <SectionLabel detail={hotspots.detail}>
+              Hotspot ranking
+            </SectionLabel>
             {hotspots.hotspots.map((entry) => (
               <div key={entry.path} style={{ display: "grid", gap: "2px" }}>
                 <div style={{ fontSize: "12px", color: "var(--text)" }}>
                   {entry.path}
                 </div>
                 <div style={{ fontSize: "10px", color: "var(--text3)" }}>
-                  score {entry.hotspotScore} · coupling {entry.coupling} · {entry.changeCount} changes · {formatIsoTime(entry.lastTouchedAt)}
+                  score {entry.hotspotScore} · coupling {entry.coupling} ·{" "}
+                  {entry.changeCount} changes ·{" "}
+                  {formatIsoTime(entry.lastTouchedAt)}
                 </div>
                 {renderArtifactBadges(entry.artifactClassification)}
               </div>
             ))}
           </div>
         ) : (
-          <SurfaceEmpty title="Run the hotspot pass" description="Hotspots combine coupling with recent activity so the riskiest files surface early." />
+          <SurfaceEmpty
+            title="Run the hotspot pass"
+            description="Hotspots combine coupling with recent activity so the riskiest files surface early."
+          />
         )
       ) : null}
 
@@ -612,37 +728,67 @@ export default function ProjectImpactConsole({
               }}
             >
               <div style={{ ...cardStyle(), display: "grid", gap: "8px" }}>
-                <SectionLabel detail={`${security.findings.length} findings`}>Security heuristics</SectionLabel>
+                <SectionLabel detail={`${security.findings.length} findings`}>
+                  Security heuristics
+                </SectionLabel>
                 {security.findings.length ? (
                   security.findings.map((finding) => (
-                    <div key={finding.id} style={{ display: "grid", gap: "2px" }}>
+                    <div
+                      key={finding.id}
+                      style={{ display: "grid", gap: "2px" }}
+                    >
                       <div style={{ fontSize: "12px", color: "var(--text)" }}>
                         {finding.label}
-                        <span style={{ color: "var(--text3)" }}> · {finding.severity}</span>
+                        <span style={{ color: "var(--text3)" }}>
+                          {" "}
+                          · {finding.severity}
+                        </span>
                       </div>
-                      <div style={{ fontSize: "10px", color: "var(--text3)" }}>{finding.path}</div>
+                      <div style={{ fontSize: "10px", color: "var(--text3)" }}>
+                        {finding.path}
+                      </div>
                       {renderArtifactBadges(finding.artifactClassification)}
-                      <div style={{ fontSize: "11px", color: "var(--text2)" }}>{finding.detail}</div>
+                      <div style={{ fontSize: "11px", color: "var(--text2)" }}>
+                        {finding.detail}
+                      </div>
                     </div>
                   ))
                 ) : (
-                  <SurfaceEmpty title="No heuristic findings" description="The current local scan did not hit any of the bounded secret or sink patterns." />
+                  <SurfaceEmpty
+                    title="No heuristic findings"
+                    description="The current local scan did not hit any of the bounded secret or sink patterns."
+                  />
                 )}
               </div>
               <div style={{ ...cardStyle(), display: "grid", gap: "8px" }}>
-                <SectionLabel detail={`${security.circularDependencies.length} cycles`}>Structural risks</SectionLabel>
-                {security.circularDependencies.slice(0, 4).map((cycle, index) => (
-                  <div key={`${cycle.join("->")}-${index}`} style={{ fontSize: "12px", color: "var(--text2)" }}>
-                    {cycle.join(" -> ")}
-                  </div>
-                ))}
+                <SectionLabel
+                  detail={`${security.circularDependencies.length} cycles`}
+                >
+                  Structural risks
+                </SectionLabel>
+                {security.circularDependencies
+                  .slice(0, 4)
+                  .map((cycle, index) => (
+                    <div
+                      key={`${cycle.join("->")}-${index}`}
+                      style={{ fontSize: "12px", color: "var(--text2)" }}
+                    >
+                      {cycle.join(" -> ")}
+                    </div>
+                  ))}
                 {security.highCouplingFiles.slice(0, 6).map((path) => (
-                  <div key={path} style={{ fontSize: "12px", color: "var(--text2)" }}>
+                  <div
+                    key={path}
+                    style={{ fontSize: "12px", color: "var(--text2)" }}
+                  >
                     High coupling: {path}
                   </div>
                 ))}
                 {security.isolatedFiles.slice(0, 6).map((path) => (
-                  <div key={path} style={{ fontSize: "12px", color: "var(--text2)" }}>
+                  <div
+                    key={path}
+                    style={{ fontSize: "12px", color: "var(--text2)" }}
+                  >
                     Isolated: {path}
                   </div>
                 ))}
@@ -650,7 +796,10 @@ export default function ProjectImpactConsole({
             </div>
           </div>
         ) : (
-          <SurfaceEmpty title="Run the security pass" description="Security mode scans for hardcoded secrets, dynamic execution sinks, HTML injection, and shell-composition risks." />
+          <SurfaceEmpty
+            title="Run the security pass"
+            description="Security mode scans for hardcoded secrets, dynamic execution sinks, HTML injection, and shell-composition risks."
+          />
         )
       ) : null}
     </div>

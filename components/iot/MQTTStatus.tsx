@@ -12,6 +12,7 @@ export default function MQTTStatus() {
   const [connected, setConnected] = useState(false);
   const [topicsCount, setTopicsCount] = useState(0);
   const [devicesCount, setDevicesCount] = useState(0);
+  const [streamError, setStreamError] = useState<string | null>(null);
 
   // Live MQTT SSE feed (currently simulated server-side, but real-time).
   useEffect(() => {
@@ -27,10 +28,12 @@ export default function MQTTStatus() {
         es = new EventSource("/api/mqtt?topics=home/#");
       } catch {
         setConnected(false);
+        setStreamError("MQTT stream could not start.");
         return;
       }
 
       setConnected(true);
+      setStreamError(null);
 
       es.onmessage = (evt) => {
         countThisSecond++;
@@ -51,6 +54,7 @@ export default function MQTTStatus() {
 
       es.onerror = () => {
         setConnected(false);
+        setStreamError("MQTT stream disconnected.");
       };
 
       // Compute msg/s
@@ -257,6 +261,11 @@ export default function MQTTStatus() {
       >
         {connected ? "LIVE" : "OFFLINE"}
       </span>
+      {streamError ? (
+        <span role="alert" style={{ fontSize: "9px", color: "var(--text3)" }}>
+          {streamError}
+        </span>
+      ) : null}
     </div>
   );
 }

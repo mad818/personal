@@ -55,7 +55,10 @@ export type ExternalToolResultEnvelope = {
     capability: ToolCapabilityClass;
     execution: ExternalToolDescriptor["execution"];
     adapterId: string;
-    auth: Pick<ExternalToolAuthMetadata, "mode" | "required" | "configured" | "status">;
+    auth: Pick<
+      ExternalToolAuthMetadata,
+      "mode" | "required" | "configured" | "status"
+    >;
     sanitized: true;
   };
 };
@@ -217,8 +220,9 @@ export function buildExternalToolResultEnvelope(input: {
   result: string;
 }): ExternalToolResultEnvelope {
   const descriptor =
-    listExternalToolDescriptors().find((candidate) => candidate.id === input.toolId) ??
-    buildN8nDescriptor();
+    listExternalToolDescriptors().find(
+      (candidate) => candidate.id === input.toolId,
+    ) ?? buildN8nDescriptor();
   return {
     version: EXTERNAL_TOOL_BRIDGE_VERSION,
     toolId: input.toolId,

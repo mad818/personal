@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "ruvnet-ruflo",
   "name": "Ruflo",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/ruvnet/ruflo",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-7253-commits-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/ruvnet/ruflo",
@@ -16,31 +16,37 @@
   "capabilities": [
     {
       "id": "agent-workflow-dsl",
-      "title": "Agent workflow DSL: define multi-step agent flows in a compact declarative syntax",
-      "sourceEvidence": "Ruflo: ruvnet's agentic workflow framework with DSL for composing agent steps",
-      "disposition": "pending",
-      "reason": "Nexus agents are prompt-driven; a declarative workflow DSL for multi-step agent composition is not yet implemented."
+      "title": "Define multi-step agent swarms, plugins, hooks, and automation through a broad orchestration runtime",
+      "sourceEvidence": "README.md CLI, swarm, plugin, MCP, hooks, daemon, and agent orchestration surfaces",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Nexus intentionally exposes a small governed five-agent runtime. An arbitrary executable agent DSL, plugin host, hooks, and daemon would widen authority beyond the current typed tool and approval policies."
     },
     {
       "id": "flow-visualization",
       "title": "Visual flow diagram for agent workflows: runtime graph showing step progress",
-      "sourceEvidence": "Ruflo flow visualization: live step-progress graph",
-      "disposition": "pending",
-      "reason": "Nexus COMMAND has network topology panel; an agent workflow flow diagram is not yet implemented."
+      "sourceEvidence": "README.md orchestration status and swarm monitoring surfaces",
+      "disposition": "adapted",
+      "proof": [
+        "components/home/office/TeamOrchestrationStrip.tsx",
+        "lib/teamOrchestration.ts"
+      ]
     },
     {
       "id": "conditional-branching",
       "title": "Conditional branching in agent flows: if/else logic based on agent outputs",
-      "sourceEvidence": "Ruflo: conditional step execution based on prior step outputs",
-      "disposition": "pending",
-      "reason": "Nexus orchestration is sequential; conditional branching based on agent outputs not yet implemented."
+      "sourceEvidence": "README.md adaptive coordination and workflow automation features",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Model-output-driven branching could silently widen an advisory request into new actions. Nexus keeps routing deterministic and requires MAX or the operator to review handoffs before choosing another lane."
     },
     {
       "id": "retry-backoff-policy",
       "title": "Built-in retry and exponential backoff policy for agent steps",
-      "sourceEvidence": "Ruflo retry policy: configurable per-step retry with backoff",
-      "disposition": "pending",
-      "reason": "Nexus API calls have try/catch but no structured per-step retry policy with configurable backoff."
+      "sourceEvidence": "README.md fault-tolerant orchestration, recovery, and daemon lifecycle features",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Generic retries are unsafe for mutating or externally visible agent tools because replay may duplicate effects. Nexus limits automatic backoff to provider-health circuit breaking and leaves failed specialist handoffs visible for explicit review."
     }
   ]
 }

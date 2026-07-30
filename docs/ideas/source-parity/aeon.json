@@ -21,8 +21,7 @@
       "disposition": "adapted",
       "proof": [
         "lib/schedulerGovernance.ts",
-        "store/useStore.ts",
-        "scripts/validate-aeon-assimilation.mjs"
+        "store/useStore.ts"
       ],
       "adaptationNotes": "Mission review contracts, expiry, and approval policy via schedulerGovernance instead of unbounded daemons."
     },

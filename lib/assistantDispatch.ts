@@ -22,10 +22,7 @@ import {
   normalizePreparedWorkspaceTarget,
   resolveAssistantWorkspaceForRoute,
 } from "@/lib/assistantSessionRegistry";
-import {
-  getAgentToolCatalog,
-  type AgentToolCatalog,
-} from "@/lib/agent";
+import { getAgentToolCatalog, type AgentToolCatalog } from "@/lib/agent";
 import {
   buildAssistantChatActionModel,
   createLocalFastPathRuntimeReceipt,
@@ -38,6 +35,11 @@ import {
   buildAssistantOperatorWorkflowState,
   type AssistantOperatorWorkflowState,
 } from "@/lib/assistantOperatorWorkflow";
+import {
+  buildTeamOrchestrationPlan,
+  formatTeamOrchestrationBlock,
+  type TeamOrchestrationPlan,
+} from "@/lib/teamOrchestration";
 
 export interface AssistantDispatchPlan {
   input: string;
@@ -52,6 +54,7 @@ export interface AssistantDispatchPlan {
   contextBlock: string;
   actionModel: AssistantChatActionModel;
   operatorWorkflow: AssistantOperatorWorkflowState;
+  orchestrationPlan: TeamOrchestrationPlan | null;
   localReply: string | null;
   operatorChoiceNeeded: boolean;
   routeReason: string | null;
@@ -60,6 +63,7 @@ export interface AssistantDispatchPlan {
 export interface AssistantDispatchOptions {
   forceAnswerHere?: boolean;
   forceRouteAction?: boolean;
+  localInferenceDegraded?: boolean;
 }
 
 const WORKSPACE_ACTION_RE =
@@ -72,13 +76,19 @@ const LOCAL_REPLY_RE =
   /^(?:hi|hello|hey|yo|sup|what'?s up|good (?:morning|afternoon|evening)|ping|test|testing|ok|okay|k|thanks|thank you|thx)[!. ]*$/i;
 const LOCAL_SIGNAL_RE = /^(?:ping|test|testing)[!. ]*$/i;
 const LOCAL_ACK_RE = /^(?:ok|okay|k|thanks|thank you|thx)[!. ]*$/i;
+const PROMPT_OPTIMIZATION_RE =
+  /\b(?:lyra|prompt optimizer|prompt optimization|prompt forge|optimi[sz]e (?:this |my )?prompt|improve (?:this |my )?prompt|rewrite (?:this |my )?prompt|human editor(?: mode)?|natural thought flow|ai pattern breaker|ban the fluff(?: words)?|reader-first rewrite|mega prompt|humanize (?:this |my )?(?:text|post|copy|writing)|rewrite (?:this |my )?(?:text|post|tweet|thread|caption|email|message|article|paragraph|bio|description|draft))\b/i;
 
-function resolveIntent(style: HQAnswerStyle, routeHint: NexusRoute | null): HQAssistantIntent {
+function resolveIntent(
+  style: HQAnswerStyle,
+  routeHint: NexusRoute | null,
+): HQAssistantIntent {
   if (style === "learning") return "learning";
   if (style === "live_current") return "live_current";
   if (style === "repo_work") return "repo_work";
   if (style === "workflow") return "workflow";
-  if (style === "product_help") return routeHint ? "workspace_action" : "product_help";
+  if (style === "product_help")
+    return routeHint ? "workspace_action" : "product_help";
   return "conversation";
 }
 
@@ -89,6 +99,7 @@ function resolveAnswerMode(
   options: AssistantDispatchOptions = {},
 ) {
   if (!routeHint) return "direct" as const;
+  if (PROMPT_OPTIMIZATION_RE.test(input)) return "route_action" as const;
   if (options.forceRouteAction) return "route_action" as const;
   if (options.forceAnswerHere) return "direct_with_route" as const;
   if (WORKSPACE_ACTION_RE.test(input)) return "route_action" as const;
@@ -106,7 +117,8 @@ function buildRouteReason(
   target: PreparedWorkspaceTarget | null,
 ) {
   if (!target) return null;
-  if (mode === "route_action") return `${target.label} is the requested workspace.`;
+  if (mode === "route_action")
+    return `${target.label} is the requested workspace.`;
   if (mode === "ask_route_choice") {
     return `${target.label} may be more useful than answering only in chat.`;
   }
@@ -151,6 +163,9 @@ function resolvePreparedWorkspace(
   if (routeHint === "/intel" && /deep research|sweep|research/.test(lower)) {
     return getAssistantWorkspace("intel-sweeps");
   }
+  if (routeHint === "/internal/skills" && PROMPT_OPTIMIZATION_RE.test(input)) {
+    return getAssistantWorkspace("skills-prompt-forge");
+  }
   return resolveAssistantWorkspaceForRoute(routeHint, intent);
 }
 
@@ -161,12 +176,16 @@ function buildContextBlock(plan: {
   capabilityTitle: string;
   capabilitySummary: string;
   operatorWorkflow: AssistantOperatorWorkflowState;
+  orchestrationPlan: TeamOrchestrationPlan | null;
 }) {
   const workspace = plan.preparedWorkspace;
   const workflow = plan.operatorWorkflow;
   const proposedEditPosture = workflow.proposedEdits.length
     ? workflow.proposedEdits
-        .map((edit) => `${edit.label}: ${edit.diffState}, approval via ${edit.approvalSurface}`)
+        .map(
+          (edit) =>
+            `${edit.label}: ${edit.diffState}, approval via ${edit.approvalSurface}`,
+        )
         .join("; ")
     : "none";
   const visibleTools = workflow.skillInvocations.length
@@ -174,6 +193,9 @@ function buildContextBlock(plan: {
         .map((item) => `${item.label} (${item.status})`)
         .join("; ")
     : "none";
+  const orchestrationBlock = plan.orchestrationPlan
+    ? formatTeamOrchestrationBlock(plan.orchestrationPlan)
+    : "";
   return `
 
 [ASSISTANT DISPATCH PLAN]
@@ -191,6 +213,7 @@ Proposed edit posture: ${proposedEditPosture}
 Visible skills/tools: ${visibleTools}
 Do not claim code was changed unless a tool result proves it. For project edits, propose or stage the diff first and wait for the operator-approved ProposedEditPanel flow before any apply.
 [END OPERATOR WORKFLOW]
+${orchestrationBlock}
 `;
 }
 
@@ -202,7 +225,7 @@ export function resolveAssistantDispatch(
   const routeHint = detectRouteFromPrompt(cleanInput);
   const answerStylePlan = resolveHQAnswerStylePlan(cleanInput);
   const detectedAgent = detectAgent(cleanInput);
-  const agent = resolveHQTargetAgent(answerStylePlan, detectedAgent);
+  const candidateAgent = resolveHQTargetAgent(answerStylePlan, detectedAgent);
   const intent = resolveIntent(answerStylePlan.style, routeHint);
   const capabilityMatch = detectAssistantCapability({
     input: cleanInput,
@@ -210,6 +233,14 @@ export function resolveAssistantDispatch(
     answerStyle: answerStylePlan.style,
     routeHint,
   });
+  const orchestrationPlan =
+    capabilityMatch.capability.id === "prompt-optimization"
+      ? null
+      : buildTeamOrchestrationPlan(cleanInput, candidateAgent);
+  const agent: AgentId =
+    capabilityMatch.capability.id === "prompt-optimization" || orchestrationPlan
+      ? "jansky"
+      : candidateAgent;
   const answerMode = resolveAnswerMode(
     cleanInput,
     routeHint,
@@ -230,6 +261,7 @@ export function resolveAssistantDispatch(
     capabilityId: capabilityMatch.capability.id,
     preparedWorkspace,
     toolCatalog,
+    localInferenceDegraded: options.localInferenceDegraded,
   });
   const actionModel = buildAssistantChatActionModel({
     answerMode,
@@ -252,6 +284,7 @@ export function resolveAssistantDispatch(
     toolCatalog,
     actionModel,
     operatorWorkflow,
+    orchestrationPlan,
     localReply,
     contextBlock: buildContextBlock({
       answerMode,
@@ -260,6 +293,7 @@ export function resolveAssistantDispatch(
       capabilityTitle: capabilityMatch.capability.title,
       capabilitySummary: capabilityMatch.capability.summary,
       operatorWorkflow,
+      orchestrationPlan,
     }),
     operatorChoiceNeeded: answerMode === "ask_route_choice",
     routeReason,
@@ -317,5 +351,18 @@ export const ASSISTANT_DISPATCH_CHECKS = [
     prompt: "Fix this component",
     expectedIntent: "repo_work",
     expectedWorkflowPhase: "review",
+  },
+  {
+    prompt:
+      "Research this dependency, implement the adapter, and audit the security boundary",
+    expectedAgent: "jansky",
+    expectedOrchestrator: true,
+  },
+  {
+    prompt: "Use Lyra to optimize this prompt",
+    expectedRoute: "/skills?view=prompts&focus=skills-prompt-forge",
+    expectedMode: "route_action",
+    expectedAgent: "jansky",
+    expectedCapability: "prompt-optimization",
   },
 ] as const;

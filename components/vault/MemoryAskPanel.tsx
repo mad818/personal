@@ -3,8 +3,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { timeAgo } from "@/lib/helpers";
 import { apiFetch } from "@/lib/apiFetch";
-import { ShellBadge, ShellButton, ShellSegmentedTabs } from "@/components/ui/shell";
-import { SurfaceCallout, SurfaceEmpty, SurfaceSkeletonRows } from "@/components/ui/surfacePrimitives";
+import {
+  ShellBadge,
+  ShellButton,
+  ShellSegmentedTabs,
+} from "@/components/ui/shell";
+import {
+  SurfaceCallout,
+  SurfaceEmpty,
+  SurfaceSkeletonRows,
+} from "@/components/ui/surfacePrimitives";
 
 type MemoryFilter = "all" | "raw" | "knowledge" | "output";
 type MemoryAskSurface = "vault" | "command";
@@ -133,37 +141,42 @@ export default function MemoryAskPanel({
       const nextCompare = overrides?.compare ?? compare;
       const nextLayer = overrides?.layer ?? layer;
       const trimmed = nextQuery.trim();
-    if (!trimmed) {
-      setError("Enter a memory question first.");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams({
-        q: trimmed,
-        layer: nextLayer,
-        limit: "5",
-      });
-      if (nextCompare) params.set("compare", "1");
-
-      const response = await apiFetch(`/api/memory/ask?${params.toString()}`);
-      const data = (await response.json().catch(() => null)) as MemoryAskResponse | { error?: string } | null;
-
-      if (!response.ok) {
-        setResult(null);
-        setError((data as { error?: string } | null)?.error ?? "Memory ask failed.");
+      if (!trimmed) {
+        setError("Enter a memory question first.");
         return;
       }
 
-      setResult(data as MemoryAskResponse);
-    } catch {
-      setResult(null);
-      setError("Memory ask is unavailable right now.");
-    } finally {
-      setLoading(false);
-    }
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams({
+          q: trimmed,
+          layer: nextLayer,
+          limit: "5",
+        });
+        if (nextCompare) params.set("compare", "1");
+
+        const response = await apiFetch(`/api/memory/ask?${params.toString()}`);
+        const data = (await response.json().catch(() => null)) as
+          | MemoryAskResponse
+          | { error?: string }
+          | null;
+
+        if (!response.ok) {
+          setResult(null);
+          setError(
+            (data as { error?: string } | null)?.error ?? "Memory ask failed.",
+          );
+          return;
+        }
+
+        setResult(data as MemoryAskResponse);
+      } catch {
+        setResult(null);
+        setError("Memory ask is unavailable right now.");
+      } finally {
+        setLoading(false);
+      }
     },
     [compare, layer, query],
   );
@@ -260,7 +273,14 @@ export default function MemoryAskPanel({
       {loading ? <SurfaceSkeletonRows rows={4} height={36} /> : null}
 
       {error ? (
-        <SurfaceCallout tone="warning" compact icon="AlertTriangle" title="Memory ask blocked" description={error} />
+        <SurfaceCallout
+          role="alert"
+          tone="warning"
+          compact
+          icon="AlertTriangle"
+          title="Memory ask blocked"
+          description={error}
+        />
       ) : null}
 
       {!loading && !error && !result ? (
@@ -275,17 +295,29 @@ export default function MemoryAskPanel({
       {result ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           <SurfaceCallout
-            tone={result.confidence >= 0.7 ? "success" : result.confidence >= 0.4 ? "info" : "warning"}
+            tone={
+              result.confidence >= 0.7
+                ? "success"
+                : result.confidence >= 0.4
+                  ? "info"
+                  : "warning"
+            }
             compact
             icon="Sparkles"
             title="Local memory answer"
             description={result.answer}
           >
             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-              <ShellBadge tone="accent">{formatConfidence(result.confidence)} confidence</ShellBadge>
+              <ShellBadge tone="accent">
+                {formatConfidence(result.confidence)} confidence
+              </ShellBadge>
               <ShellBadge tone="muted">{result.matchCount} matches</ShellBadge>
-              <ShellBadge tone="muted">Restricted withheld {result.withheldRestrictedCount}</ShellBadge>
-              {comparisonLabel ? <ShellBadge tone="muted">{comparisonLabel}</ShellBadge> : null}
+              <ShellBadge tone="muted">
+                Restricted withheld {result.withheldRestrictedCount}
+              </ShellBadge>
+              {comparisonLabel ? (
+                <ShellBadge tone="muted">{comparisonLabel}</ShellBadge>
+              ) : null}
             </div>
           </SurfaceCallout>
 
@@ -308,7 +340,13 @@ export default function MemoryAskPanel({
                 gap: "10px",
               }}
             >
-              <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text)" }}>
+              <div
+                style={{
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  color: "var(--text)",
+                }}
+              >
                 Citations
               </div>
               {result.sources.length === 0 ? (
@@ -317,9 +355,20 @@ export default function MemoryAskPanel({
                 </div>
               ) : (
                 result.sources.map((source) => (
-                  <div key={source.id} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                    <div style={{ fontSize: "12px", color: "var(--text)" }}>{source.title}</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                  <div
+                    key={source.id}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "6px",
+                    }}
+                  >
+                    <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                      {source.title}
+                    </div>
+                    <div
+                      style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}
+                    >
                       <ShellBadge tone="accent">{source.layer}</ShellBadge>
                       <ShellBadge tone="muted">{source.domain}</ShellBadge>
                       <ShellBadge tone="muted">{source.sourceLabel}</ShellBadge>
@@ -344,7 +393,13 @@ export default function MemoryAskPanel({
                 gap: "10px",
               }}
             >
-              <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text)" }}>
+              <div
+                style={{
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  color: "var(--text)",
+                }}
+              >
                 Related artifacts
               </div>
               {result.relatedItems.length === 0 ? (
@@ -353,12 +408,29 @@ export default function MemoryAskPanel({
                 </div>
               ) : (
                 result.relatedItems.slice(0, 4).map((item) => (
-                  <div key={item.id} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                    <div style={{ fontSize: "12px", color: "var(--text)" }}>{item.title}</div>
-                    <div style={{ fontSize: "12px", lineHeight: 1.5, color: "var(--text2)" }}>
+                  <div
+                    key={item.id}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "6px",
+                    }}
+                  >
+                    <div style={{ fontSize: "12px", color: "var(--text)" }}>
+                      {item.title}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        lineHeight: 1.5,
+                        color: "var(--text2)",
+                      }}
+                    >
                       {item.summary}
                     </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                    <div
+                      style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}
+                    >
                       <ShellBadge tone="accent">{item.layer}</ShellBadge>
                       <ShellBadge tone="muted">{item.domain}</ShellBadge>
                     </div>
@@ -378,7 +450,9 @@ export default function MemoryAskPanel({
             />
           ) : null}
 
-          <div style={{ fontSize: "11px", color: "var(--text3)" }}>{result.note}</div>
+          <div style={{ fontSize: "11px", color: "var(--text3)" }}>
+            {result.note}
+          </div>
         </div>
       ) : null}
     </div>

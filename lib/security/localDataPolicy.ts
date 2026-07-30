@@ -41,7 +41,10 @@ export type LocalDataPolicySummary = {
 };
 
 export function normalizeLocalDataPath(input: string) {
-  return input.replace(/^[/\\]+/, "").replace(/\\/g, "/").replace(/\/+/g, "/");
+  return input
+    .replace(/^[/\\]+/, "")
+    .replace(/\\/g, "/")
+    .replace(/\/+/g, "/");
 }
 
 export function isSensitiveLocalDataPath(input: string) {
@@ -63,7 +66,9 @@ export function filterLocalDataTreeEntries(entries: string[]) {
   return entries.filter((entry) => !isSensitiveLocalDataPath(entry));
 }
 
-export function readLocalDataPolicySummary(root = process.cwd()): LocalDataPolicySummary {
+export function readLocalDataPolicySummary(
+  root = process.cwd(),
+): LocalDataPolicySummary {
   return {
     canonicalContext: {
       agents: existsSync(join(root, "AGENTS.md")),
@@ -80,7 +85,12 @@ export function readLocalDataPolicySummary(root = process.cwd()): LocalDataPolic
   };
 }
 
-export function listSafeLocalTree(dir: string, root: string, maxDepth = 3, depth = 0): string[] {
+export function listSafeLocalTree(
+  dir: string,
+  root: string,
+  maxDepth = 3,
+  depth = 0,
+): string[] {
   if (depth > maxDepth) return [];
 
   const entries: string[] = [];
@@ -100,7 +110,9 @@ export function listSafeLocalTree(dir: string, root: string, maxDepth = 3, depth
       const st = statSync(absolutePath);
       if (st.isDirectory()) {
         entries.push(`${rel}/`);
-        entries.push(...listSafeLocalTree(absolutePath, root, maxDepth, depth + 1));
+        entries.push(
+          ...listSafeLocalTree(absolutePath, root, maxDepth, depth + 1),
+        );
       } else {
         entries.push(rel);
       }

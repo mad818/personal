@@ -33,8 +33,7 @@
       "disposition": "adapted",
       "proof": [
         "components/recon/GeocodingPlaygroundCard.tsx",
-        "app/recon/page.tsx",
-        "scripts/validate-geocoding-playground-assimilation.mjs"
+        "app/recon/page.tsx"
       ]
     },
     {

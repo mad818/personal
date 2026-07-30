@@ -53,7 +53,8 @@ function scoreDocument(
 ) {
   const normalizedInput = input.toLowerCase();
   const keywordScore = haystack.reduce(
-    (score, token) => (token && normalizedInput.includes(token) ? score + 5 : score),
+    (score, token) =>
+      token && normalizedInput.includes(token) ? score + 5 : score,
     0,
   );
   return clampConfidence(baseConfidence * 0.58 + keywordScore + kindBonus);
@@ -140,7 +141,8 @@ function buildPlaybookDocument(
     route: "/resources",
     artifactType: "workflow scaffold",
     risk: "high",
-    followUpWorkspaceHref: playbook.followOnActions[0]?.href ?? "/resources?view=playbooks",
+    followUpWorkspaceHref:
+      playbook.followOnActions[0]?.href ?? "/resources?view=playbooks",
     capabilityId,
     confidence: scoreDocument(
       input,
@@ -172,7 +174,8 @@ function buildSpecDocument(
     route: "/resources",
     artifactType: "spec starter",
     risk: "high",
-    followUpWorkspaceHref: spec.followOnActions[0]?.href ?? "/resources?view=specs",
+    followUpWorkspaceHref:
+      spec.followOnActions[0]?.href ?? "/resources?view=specs",
     capabilityId,
     confidence: scoreDocument(
       input,
@@ -210,7 +213,11 @@ function buildImpactDocument(
     confidence: scoreDocument(
       input,
       baseConfidence,
-      [filePath.toLowerCase(), repair.label.toLowerCase(), repair.detail.toLowerCase()],
+      [
+        filePath.toLowerCase(),
+        repair.label.toLowerCase(),
+        repair.detail.toLowerCase(),
+      ],
       22,
     ),
   };
@@ -222,7 +229,7 @@ export function resolveAssistantIndexedRetrieval(opts: {
   answerStyle: HQAnswerStyle;
   routeHint?: string | null;
   filePath?: string | null;
-}) : AssistantIndexedRetrievalResult {
+}): AssistantIndexedRetrievalResult {
   const capabilityMatch = detectAssistantCapability({
     input: opts.input,
     intent: opts.intent,

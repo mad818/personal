@@ -7,6 +7,7 @@ import type {
   SecurityScenario,
   WorkflowDefinition,
 } from "@/lib/assimilation/types";
+import { CAMPAIGN_DRAFT_WORKFLOW } from "@/lib/campaignDraftWorkflow";
 import { buildPassiveModelSafetyRun } from "@/lib/modelSafetyEvaluation";
 
 const ISO_NOW = "2026-04-02T12:00:00.000Z";
@@ -59,16 +60,32 @@ export const DEFAULT_WORKFLOWS: WorkflowDefinition[] = [
         id: "sink-vault",
         type: "sink",
         title: "Vault export",
-        detail: "Produce a saved brief with provenance, freshness, and severity.",
+        detail:
+          "Produce a saved brief with provenance, freshness, and severity.",
         x: 4,
         y: 0,
       },
     ],
     edges: [
       { id: "e1", from: "src-world", to: "agent-orbit", label: "raw feeds" },
-      { id: "e2", from: "agent-orbit", to: "transform-brief", label: "analysis" },
-      { id: "e3", from: "transform-brief", to: "approval-sanction", label: "draft brief" },
-      { id: "e4", from: "approval-sanction", to: "sink-vault", label: "approved memo" },
+      {
+        id: "e2",
+        from: "agent-orbit",
+        to: "transform-brief",
+        label: "analysis",
+      },
+      {
+        id: "e3",
+        from: "transform-brief",
+        to: "approval-sanction",
+        label: "draft brief",
+      },
+      {
+        id: "e4",
+        from: "approval-sanction",
+        to: "sink-vault",
+        label: "approved memo",
+      },
     ],
   },
   {
@@ -118,7 +135,12 @@ export const DEFAULT_WORKFLOWS: WorkflowDefinition[] = [
     edges: [
       { id: "e1", from: "src-cve", to: "agent-cipher", label: "telemetry" },
       { id: "e2", from: "agent-cipher", to: "agent-nova", label: "claims" },
-      { id: "e3", from: "agent-nova", to: "sink-review", label: "evidence pack" },
+      {
+        id: "e3",
+        from: "agent-nova",
+        to: "sink-review",
+        label: "evidence pack",
+      },
     ],
   },
   {
@@ -167,10 +189,21 @@ export const DEFAULT_WORKFLOWS: WorkflowDefinition[] = [
     ],
     edges: [
       { id: "e1", from: "scheduler", to: "source-passive", label: "dispatch" },
-      { id: "e2", from: "source-passive", to: "transform-dossier", label: "normalized results" },
-      { id: "e3", from: "transform-dossier", to: "sink-download", label: "artifact bundle" },
+      {
+        id: "e2",
+        from: "source-passive",
+        to: "transform-dossier",
+        label: "normalized results",
+      },
+      {
+        id: "e3",
+        from: "transform-dossier",
+        to: "sink-download",
+        label: "artifact bundle",
+      },
     ],
   },
+  CAMPAIGN_DRAFT_WORKFLOW,
 ];
 
 export const DEFAULT_REGISTRY_ITEMS: RegistryItem[] = [
@@ -178,7 +211,8 @@ export const DEFAULT_REGISTRY_ITEMS: RegistryItem[] = [
     id: "reg-flowise",
     title: "Flowise",
     type: "workflow",
-    summary: "Visual workflow-builder reference for node graphs, replay, and human checkpoints.",
+    summary:
+      "Visual workflow-builder reference for node graphs, replay, and human checkpoints.",
     owner: "Nexus Core",
     custody: "Workflow Forge",
     costTier: "open_source",
@@ -194,7 +228,8 @@ export const DEFAULT_REGISTRY_ITEMS: RegistryItem[] = [
     id: "reg-moneyprinter",
     title: "MoneyPrinterV2",
     type: "playbook",
-    summary: "Automation-pipeline reference for recipe-based output systems and mission bundling.",
+    summary:
+      "Automation-pipeline reference for recipe-based output systems and mission bundling.",
     owner: "Ops Lab",
     custody: "Mission Foundry",
     costTier: "open_source",
@@ -210,7 +245,8 @@ export const DEFAULT_REGISTRY_ITEMS: RegistryItem[] = [
     id: "reg-g0d",
     title: "G0DM0D3",
     type: "prompt",
-    summary: "Red-team prompt mutation patterns for Blacksite Lab and injection stress-testing.",
+    summary:
+      "Red-team prompt mutation patterns for Blacksite Lab and injection stress-testing.",
     owner: "Blacksite",
     custody: "Prompt Lab",
     costTier: "open_source",
@@ -226,7 +262,8 @@ export const DEFAULT_REGISTRY_ITEMS: RegistryItem[] = [
     id: "reg-crucix",
     title: "Crucix",
     type: "tool",
-    summary: "One-command multi-source sweep reference for live bundle runs and delta tracking.",
+    summary:
+      "One-command multi-source sweep reference for live bundle runs and delta tracking.",
     owner: "Intel",
     custody: "Sweep Engine",
     costTier: "open_source",
@@ -242,7 +279,8 @@ export const DEFAULT_REGISTRY_ITEMS: RegistryItem[] = [
     id: "reg-dark-light",
     title: "Dark-Light Viewer",
     type: "dataset",
-    summary: "Geospatial change-detection reference for before/after map splits and anomaly timelines.",
+    summary:
+      "Geospatial change-detection reference for before/after map splits and anomaly timelines.",
     owner: "Intel",
     custody: "Geo Delta",
     costTier: "license_check",
@@ -258,7 +296,8 @@ export const DEFAULT_REGISTRY_ITEMS: RegistryItem[] = [
     id: "reg-shelf",
     title: "Shelf.nu",
     type: "workflow",
-    summary: "Registry reference for kits, custody, reminders, saved filters, and auditable asset state.",
+    summary:
+      "Registry reference for kits, custody, reminders, saved filters, and auditable asset state.",
     owner: "Registry",
     custody: "Archive + Resources",
     costTier: "open_source",
@@ -271,26 +310,11 @@ export const DEFAULT_REGISTRY_ITEMS: RegistryItem[] = [
     lastReviewedAt: ISO_NOW,
   },
   {
-    id: "reg-gamedev",
-    title: "GameDev Resources",
-    type: "external_link",
-    summary: "Curated free/open registry reference for tools, assets, tutorials, and license posture.",
-    owner: "Field Manual",
-    custody: "Resources",
-    costTier: "free",
-    status: "ready",
-    sourceUrl: "https://github.com/Kavex/GameDev-Resources",
-    license: "Reference list - always inspect individual item licenses",
-    tags: ["resources", "free", "catalog"],
-    reminder: "Every promoted link needs explicit license posture in Nexus.",
-    savedFilter: "manual",
-    lastReviewedAt: ISO_NOW,
-  },
-  {
     id: "reg-wstg",
     title: "OWASP WSTG",
     type: "playbook",
-    summary: "Versioned scenario doctrine for route, auth, SSRF, input validation, and client-side testing.",
+    summary:
+      "Versioned scenario doctrine for route, auth, SSRF, input validation, and client-side testing.",
     owner: "Security",
     custody: "Doctrine",
     costTier: "open_source",
@@ -306,7 +330,8 @@ export const DEFAULT_REGISTRY_ITEMS: RegistryItem[] = [
     id: "reg-aegis-brief-kit",
     title: "Homefront Brief Artifact Schema",
     type: "evidence_pack",
-    summary: "Internal evidence pack format for vault-bound sweeps, briefs, and sanction-ready reports.",
+    summary:
+      "Internal evidence pack format for vault-bound sweeps, briefs, and sanction-ready reports.",
     owner: "Nexus Core",
     custody: "Vault",
     costTier: "free_local",
@@ -314,7 +339,8 @@ export const DEFAULT_REGISTRY_ITEMS: RegistryItem[] = [
     license: "Internal",
     tags: ["artifact", "vault", "schema"],
     lastReviewedAt: ISO_NOW,
-    notes: "First wave ships as JSON-backed local artifacts through the persistence adapter.",
+    notes:
+      "First wave ships as JSON-backed local artifacts through the persistence adapter.",
   },
 ];
 
@@ -322,8 +348,9 @@ export const DEFAULT_ASSET_KITS: AssetKit[] = [
   {
     id: "kit-operator-onboarding",
     title: "Operator Onboarding Kit",
-    summary: "Manual, doctrine, workflow, and blacksite references for first-session setup.",
-    itemIds: ["reg-flowise", "reg-g0d", "reg-wstg", "reg-gamedev"],
+    summary:
+      "Manual, doctrine, workflow, and blacksite references for first-session setup.",
+    itemIds: ["reg-flowise", "reg-g0d", "reg-wstg"],
     owner: "HQ",
     status: "ready",
     reminder: "Review after any new surface ships.",
@@ -332,7 +359,8 @@ export const DEFAULT_ASSET_KITS: AssetKit[] = [
   {
     id: "kit-threat-sweep",
     title: "Threat Sweep Kit",
-    summary: "Sweep engine, doctrine, and evidence-pack references for cyber monitoring.",
+    summary:
+      "Sweep engine, doctrine, and evidence-pack references for cyber monitoring.",
     itemIds: ["reg-crucix", "reg-wstg", "reg-aegis-brief-kit"],
     owner: "CIPHER",
     status: "ready",
@@ -350,7 +378,8 @@ export const DEFAULT_SECURITY_SCENARIOS: SecurityScenario[] = [
     status: "monitoring",
     owner: "CIPHER",
     evidence: "/api/project + route registry + release matrix",
-    remediation: "Keep route visibility explicit and verify route policy coverage.",
+    remediation:
+      "Keep route visibility explicit and verify route policy coverage.",
     links: ["https://owasp.org/www-project-web-security-testing-guide/v42/"],
     updatedAt: ISO_NOW,
   },
@@ -362,7 +391,8 @@ export const DEFAULT_SECURITY_SCENARIOS: SecurityScenario[] = [
     status: "covered",
     owner: "CIPHER",
     evidence: "Auth gate + auth diagnostics + bearer-token validation flows",
-    remediation: "Keep connect/logout host and cookie behavior regression-tested.",
+    remediation:
+      "Keep connect/logout host and cookie behavior regression-tested.",
     links: ["https://owasp.org/www-project-web-security-testing-guide/v42/"],
     updatedAt: ISO_NOW,
   },
@@ -386,7 +416,8 @@ export const DEFAULT_SECURITY_SCENARIOS: SecurityScenario[] = [
     status: "monitoring",
     owner: "ORBIT",
     evidence: "Guarded tools API + network guard + auth parser",
-    remediation: "Add doctrine evidence whenever a new external input path ships.",
+    remediation:
+      "Add doctrine evidence whenever a new external input path ships.",
     links: ["https://owasp.org/www-project-web-security-testing-guide/v42/"],
     updatedAt: ISO_NOW,
   },
@@ -422,7 +453,8 @@ export const DEFAULT_SECURITY_SCENARIOS: SecurityScenario[] = [
     status: "covered",
     owner: "JANSKY",
     evidence: "Injection hardening block derived from Blacksite patterns",
-    remediation: "Escalate new mutation families into Blacksite regression packs.",
+    remediation:
+      "Escalate new mutation families into Blacksite regression packs.",
     links: ["https://github.com/elder-plinius/G0DM0D3"],
     updatedAt: ISO_NOW,
   },
@@ -434,7 +466,8 @@ export const DEFAULT_SECURITY_SCENARIOS: SecurityScenario[] = [
     status: "covered",
     owner: "CIPHER",
     evidence: "Rate limits + host allowlists + response caps + SSRF guards",
-    remediation: "Add doctrine run whenever a new tool or adapter is introduced.",
+    remediation:
+      "Add doctrine run whenever a new tool or adapter is introduced.",
     links: ["https://github.com/OWASP/wstg"],
     updatedAt: ISO_NOW,
   },
@@ -469,8 +502,10 @@ export const DEFAULT_SECURITY_SCENARIOS: SecurityScenario[] = [
     source: "ai-surface",
     status: "attention",
     owner: "JANSKY",
-    evidence: "Blacksite isolation and doctrine queue are now explicit but still early",
-    remediation: "Keep lab sessions isolated from HQ memory until explicitly promoted.",
+    evidence:
+      "Blacksite isolation and doctrine queue are now explicit but still early",
+    remediation:
+      "Keep lab sessions isolated from HQ memory until explicitly promoted.",
     links: ["https://github.com/elder-plinius/G0DM0D3"],
     updatedAt: ISO_NOW,
   },
@@ -481,14 +516,16 @@ export const DEFAULT_SECURITY_RUNS: SecurityRun[] = [
     id: "run-auth-cookie",
     scenarioId: "WSTG-v42-SESS-01",
     result: "pass",
-    summary: "127.0.0.1 connect flow retained the session cookie after host-normalization fixes.",
+    summary:
+      "127.0.0.1 connect flow retained the session cookie after host-normalization fixes.",
     createdAt: ISO_NOW,
   },
   {
     id: "run-ai-approval",
     scenarioId: "AI-APPROVAL-04",
     result: "warn",
-    summary: "Approval posture is strong, but new assimilation APIs still need route-level audits.",
+    summary:
+      "Approval posture is strong, but new assimilation APIs still need route-level audits.",
     createdAt: ISO_NOW,
   },
 ];
@@ -510,7 +547,8 @@ export const DEFAULT_GEO_DELTA_SNAPSHOTS: GeoDeltaSnapshot[] = [
     id: "geo-theater-eastmed",
     theater: "geopolitics",
     title: "East Med posture drift",
-    summary: "Conflict, maritime, and narrative heat indicators moved together across the same theater.",
+    summary:
+      "Conflict, maritime, and narrative heat indicators moved together across the same theater.",
     severity: "medium",
     capturedAt: ISO_NOW,
     observations: [
@@ -542,7 +580,8 @@ export const DEFAULT_GEO_DELTA_SNAPSHOTS: GeoDeltaSnapshot[] = [
     id: "geo-cyber-infra",
     theater: "infra",
     title: "Infra disruption watch",
-    summary: "Cross-layer anomalies suggest increased cyber and operational attention on infrastructure-linked theaters.",
+    summary:
+      "Cross-layer anomalies suggest increased cyber and operational attention on infrastructure-linked theaters.",
     severity: "high",
     capturedAt: ISO_NOW,
     observations: [

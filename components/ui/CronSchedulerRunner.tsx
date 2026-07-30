@@ -11,6 +11,18 @@ import {
 } from "@/lib/autoOpsJobs";
 import { apiFetch } from "@/lib/apiFetch";
 import { registerScheduledMissionReviewRun } from "@/lib/schedulerGovernance";
+import {
+  NIGHT_SHIFT_AUDIT_TEMPLATE_ID,
+  NIGHT_SHIFT_REFINERY_TEMPLATE_ID,
+  runNightShiftAuditClient,
+  stagePreparedNightShift,
+} from "@/lib/secondBrainNightShiftClient";
+import {
+  extractFeynmanResearchWatchTopic,
+  FEYNMAN_RESEARCH_WATCH_CLIENT_TEMPLATE_ID,
+  runFeynmanResearchWatchClient,
+  summarizeFeynmanResearchWatchRun,
+} from "@/lib/feynmanResearchWatchClient";
 
 function fieldMatches(expr: string, value: number): boolean {
   const part = expr.trim();
@@ -145,7 +157,7 @@ export default function CronSchedulerRunner() {
           ``,
         ].join("\n");
         try {
-          await apiFetch("/api/tools", {
+          const handoffResponse = await apiFetch("/api/tools", {
             method: "POST",
             body: JSON.stringify({
               tool: "write_file",
@@ -155,6 +167,11 @@ export default function CronSchedulerRunner() {
               },
             }),
           });
+          if (!handoffResponse.ok) {
+            throw new Error(
+              `Night Ops handoff failed (${handoffResponse.status}).`,
+            );
+          }
         } catch {
           // Silent fail by design; runtime briefings still captured in-app.
         }
@@ -213,15 +230,37 @@ export default function CronSchedulerRunner() {
           let status: ScheduledJob["lastStatus"] = "ok";
           let summary = "Completed.";
           try {
-            const systemPrompt = buildCachedSystemPrompt(settings);
-            const result = await callNonInteractiveAI({
-              systemPrompt,
-              userPrompt: `${profile.promptPrefix}\n\n[Scheduled Task]\n${job.prompt}`,
-              maxTokens: 300,
-              task: "fast",
-              singleFlightKey: `scheduled:${job.id}:${Math.floor(Date.now() / 60000)}`,
-            });
-            summary = (result || "Completed with no output.").slice(0, 200);
+            if (job.templateId === FEYNMAN_RESEARCH_WATCH_CLIENT_TEMPLATE_ID) {
+              const result = await runFeynmanResearchWatchClient({
+                id: job.id,
+                topic: extractFeynmanResearchWatchTopic(job.prompt),
+              });
+              summary = summarizeFeynmanResearchWatchRun(result).slice(0, 200);
+            } else if (job.templateId === NIGHT_SHIFT_REFINERY_TEMPLATE_ID) {
+              const systemPrompt = buildCachedSystemPrompt(settings);
+              const result = await stagePreparedNightShift({
+                baseSystemPrompt: systemPrompt,
+                singleFlightKey: `scheduled:${job.id}:${Math.floor(Date.now() / 60000)}`,
+              });
+              summary = result.summary.slice(0, 200);
+            } else if (job.templateId === NIGHT_SHIFT_AUDIT_TEMPLATE_ID) {
+              const result = await runNightShiftAuditClient();
+              summary =
+                `Report-only audit wrote ${result.audit.filename} with ${result.audit.findings} finding(s).`.slice(
+                  0,
+                  200,
+                );
+            } else {
+              const systemPrompt = buildCachedSystemPrompt(settings);
+              const result = await callNonInteractiveAI({
+                systemPrompt,
+                userPrompt: `${profile.promptPrefix}\n\n[Scheduled Task]\n${job.prompt}`,
+                maxTokens: 300,
+                task: "fast",
+                singleFlightKey: `scheduled:${job.id}:${Math.floor(Date.now() / 60000)}`,
+              });
+              summary = (result || "Completed with no output.").slice(0, 200);
+            }
           } catch (e) {
             status = "error";
             summary =
@@ -259,13 +298,17 @@ export default function CronSchedulerRunner() {
             color: status === "ok" ? "#10b981" : "#ef4444",
           });
 
-          if (status === "ok" && job.outputTarget && job.outputTarget !== "none") {
+          if (
+            status === "ok" &&
+            job.outputTarget &&
+            job.outputTarget !== "none"
+          ) {
             const registryKind =
               job.outputTarget === "vault" || job.outputTarget === "review"
                 ? "evidence_pack"
                 : "media_kit";
             try {
-              await apiFetch("/api/registry", {
+              const registryResponse = await apiFetch("/api/registry", {
                 method: "POST",
                 body: JSON.stringify({
                   item: {
@@ -283,12 +326,21 @@ export default function CronSchedulerRunner() {
                           ? "ready"
                           : "watch",
                     license: "Internal",
-                    tags: ["scheduled-job", profile.label.toLowerCase(), job.outputTarget],
+                    tags: [
+                      "scheduled-job",
+                      profile.label.toLowerCase(),
+                      job.outputTarget,
+                    ],
                     lastReviewedAt: new Date(runAt).toISOString(),
                     notes: `Generated by ${job.missionAgent ?? "orbit"} with ${job.approvalPolicy ?? "human_gate"}.`,
                   },
                 }),
               });
+              if (!registryResponse.ok) {
+                throw new Error(
+                  `Scheduled artifact filing failed (${registryResponse.status}).`,
+                );
+              }
             } catch {
               // Artifact persistence is additive; don't fail the scheduler if it misses.
             }

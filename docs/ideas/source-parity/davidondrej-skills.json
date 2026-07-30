@@ -1,0 +1,326 @@
+{
+  "schemaVersion": 1,
+  "id": "davidondrej-skills",
+  "name": "davidondrej/skills",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/davidondrej/skills",
+    "version": "main re-reviewed 2026-07-27; no tagged release",
+    "reviewedAt": "2026-07-27",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/davidondrej/skills/blob/main/README.md",
+      "https://github.com/davidondrej/skills/tree/main/skills",
+      "https://github.com/davidondrej/skills/tree/main/hooks",
+      "https://github.com/davidondrej/skills/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "agent-self-scheduling",
+      "title": "Let agents schedule and continue their own work",
+      "sourceEvidence": "skills/agent-orchestration/agent-self-scheduling",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus schedules remain operator-created, reviewable, and bounded; a source skill cannot silently create autonomous work."
+    },
+    {
+      "id": "cmux-agent-control",
+      "title": "Coordinate agent work through cmux terminal workflows",
+      "sourceEvidence": "skills/agent-orchestration/cmux",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus owns a typed in-app orchestrator and does not require a second terminal multiplexer runtime."
+    },
+    {
+      "id": "codex-subagent",
+      "title": "Invoke Codex subagents for bounded work",
+      "sourceEvidence": "skills/agent-orchestration/codex-subagent",
+      "disposition": "adapted",
+      "proof": [
+        "lib/centralOrchestrator.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-central-orchestrator-runtime.mjs"
+      ]
+    },
+    {
+      "id": "delegating-to-agents",
+      "title": "Structure delegation and agent-to-agent handoffs",
+      "sourceEvidence": "skills/agent-orchestration/delegating-to-agents",
+      "disposition": "implemented",
+      "proof": [
+        "lib/centralOrchestrator.ts",
+        "lib/assistantOperatorWorkflow.ts",
+        "scripts/check-central-orchestrator-runtime.mjs"
+      ]
+    },
+    {
+      "id": "fable-safe-prompt",
+      "title": "Apply a safety-oriented prompt workflow",
+      "sourceEvidence": "skills/agent-orchestration/fable-safe-prompt",
+      "disposition": "adapted",
+      "proof": [
+        "lib/privacyShieldServer.ts",
+        "scripts/agentshield-check.mjs",
+        "scripts/validate-glossopetrae-hidden-channel-defense.mjs"
+      ]
+    },
+    {
+      "id": "goal-loop",
+      "title": "Run iterative agent work against a goal loop",
+      "sourceEvidence": "skills/agent-orchestration/goal-loop",
+      "disposition": "implemented",
+      "proof": [
+        "lib/agentExecutionContract.ts",
+        "lib/agent.ts",
+        "scripts/validate-agent-12-factor-runtime.mjs"
+      ]
+    },
+    {
+      "id": "handoff",
+      "title": "Create reusable agent handoffs",
+      "sourceEvidence": "skills/agent-orchestration/handoff",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/generate-handoff.js",
+        "docs/AGENT_HANDOFF.md",
+        "lib/centralOrchestrator.ts"
+      ]
+    },
+    {
+      "id": "run-deep-swe",
+      "title": "Run a deeper software-engineering agent workflow",
+      "sourceEvidence": "skills/agent-orchestration/run-deep-swe",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/using-agent-skills/SKILL.md",
+        "docs/ideas/skills/production-engineering/incremental-implementation/SKILL.md",
+        "scripts/isolated-verify.mjs"
+      ]
+    },
+    {
+      "id": "skill-distribution",
+      "title": "Distribute a skill to multiple agent hosts",
+      "sourceEvidence": "skills/skill-authoring/distribute-skill-to-all-agents",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Bulk writes to global or third-party agent-host configuration would cross repository and operator authority boundaries."
+    },
+    {
+      "id": "effective-agent-skills",
+      "title": "Guide effective Agent Skill design",
+      "sourceEvidence": "skills/skill-authoring/effective-agent-skills",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/using-agent-skills/SKILL.md",
+        "scripts/validate-production-skill-lifecycle.mjs",
+        "lib/skillDependencyGraph.ts"
+      ]
+    },
+    {
+      "id": "folder-context-files",
+      "title": "Create folder-specific CLAUDE.md and AGENTS.md context",
+      "sourceEvidence": "skills/skill-authoring/folder-specific-claude-and-agents-md",
+      "disposition": "adapted",
+      "proof": [
+        "AGENTS.md",
+        "scripts/validate-project-file-context.mjs",
+        "docs/ideas/skills/production-engineering/context-engineering/SKILL.md"
+      ]
+    },
+    {
+      "id": "push-skill-to-github",
+      "title": "Publish a skill repository to GitHub",
+      "sourceEvidence": "skills/skill-authoring/push-skill-to-github",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/git-workflow-and-versioning/SKILL.md",
+        "scripts/git-with-acl-repair.ps1",
+        "scripts/validate-publication-safety.mjs"
+      ]
+    },
+    {
+      "id": "browser-harness",
+      "title": "Use a browser automation harness for web tasks",
+      "sourceEvidence": "skills/research-and-web/browser-harness",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/browser-testing-with-devtools/SKILL.md",
+        "playwright.auth.config.ts",
+        "scripts/validate-shell-accessibility.mjs"
+      ]
+    },
+    {
+      "id": "deep-research",
+      "title": "Run a multi-step deep research workflow",
+      "sourceEvidence": "skills/research-and-web/deep-research",
+      "disposition": "implemented",
+      "proof": [
+        "lib/deepResearch.ts",
+        "app/api/tools/route.ts",
+        "scripts/check-feynman-runtime.mjs"
+      ]
+    },
+    {
+      "id": "deepapi",
+      "title": "Research and use APIs through a dedicated workflow",
+      "sourceEvidence": "skills/research-and-web/deepapi",
+      "disposition": "adapted",
+      "proof": [
+        ".agents/skills/add-api/SKILL.md",
+        "lib/security/networkGuards.ts",
+        "lib/security/routePolicy.ts"
+      ]
+    },
+    {
+      "id": "online-shopping",
+      "title": "Research products and online purchases",
+      "sourceEvidence": "skills/research-and-web/online-shopping",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is an intelligence workspace, not a commerce, affiliate, checkout, or purchasing product."
+    },
+    {
+      "id": "pi-web-search",
+      "title": "Search the web through a Pi-oriented workflow",
+      "sourceEvidence": "skills/research-and-web/pi-web-search",
+      "disposition": "adapted",
+      "proof": [
+        "lib/agent.ts",
+        "app/api/tools/route.ts",
+        "lib/security/networkGuards.ts"
+      ]
+    },
+    {
+      "id": "research-prompt",
+      "title": "Create a structured research prompt",
+      "sourceEvidence": "skills/research-and-web/research-prompt",
+      "disposition": "adapted",
+      "proof": [
+        "lib/promptRecipes.ts",
+        "components/skills/LyraPromptForge.tsx",
+        "lib/feynmanWorkflowContracts.ts"
+      ]
+    },
+    {
+      "id": "youtube-transcript",
+      "title": "Retrieve and work with YouTube transcripts",
+      "sourceEvidence": "skills/research-and-web/youtube-transcript",
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "The source workflow depends on external DeepAPI access; Nexus can process operator-supplied authorized transcripts but will not present a paid remote fetcher as free or connected."
+    },
+    {
+      "id": "brain-to-docs",
+      "title": "Interview the operator and turn ideas into structured documents",
+      "sourceEvidence": "skills/thinking-and-docs/brain-to-docs",
+      "disposition": "adapted",
+      "proof": [
+        "components/skills/HumanEditorWorkbench.tsx",
+        "lib/secondBrain.ts",
+        "docs/ideas/skills/night-shift-second-brain/SKILL.md"
+      ]
+    },
+    {
+      "id": "learning-and-teaching",
+      "title": "Support level-up and multi-step teaching workflows",
+      "sourceEvidence": "skills/thinking-and-docs/level-up and teach",
+      "disposition": "implemented",
+      "proof": [
+        "lib/learningMissions.ts",
+        "components/skills/LearningLog.tsx",
+        "components/skills/LearningProgressRing.tsx"
+      ]
+    },
+    {
+      "id": "prompt-remind-and-short",
+      "title": "Prompt the user, create reminders, and produce intentionally concise output",
+      "sourceEvidence": "skills/thinking-and-docs/prompt-me, remind, and short",
+      "disposition": "adapted",
+      "proof": [
+        "lib/promptRecipes.ts",
+        "lib/schedulerGovernance.ts",
+        "lib/humanEditor.ts"
+      ]
+    },
+    {
+      "id": "read-all-adrs",
+      "title": "Read architectural decision records before project work",
+      "sourceEvidence": "skills/thinking-and-docs/read-all-adrs",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/documentation-and-adrs/SKILL.md",
+        "scripts/validate-project-file-context.mjs",
+        "SECOND_BRAIN.md"
+      ]
+    },
+    {
+      "id": "anti-sleep",
+      "title": "Prevent a machine from sleeping during agent work",
+      "sourceEvidence": "skills/ops-and-setup/anti-sleep",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus source workflows do not mutate host power behavior or keep operator machines awake."
+    },
+    {
+      "id": "readonly-database-role",
+      "title": "Create a restricted read-only database role",
+      "sourceEvidence": "skills/ops-and-setup/create-readonly-db-role",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus has no managed database target or database-credential authority for which a role could truthfully be created."
+    },
+    {
+      "id": "cyber-audit-and-safe-browsing",
+      "title": "Run cyber-audit and Google Safe Browsing workflows",
+      "sourceEvidence": "skills/ops-and-setup/cyber-audit and google-safe-browsing",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/security-scan.js",
+        "lib/secureLink.ts",
+        "lib/security/networkGuards.ts"
+      ]
+    },
+    {
+      "id": "global-agent-guardrails",
+      "title": "Install global agent safety guardrails",
+      "sourceEvidence": "skills/ops-and-setup/global-agent-guardrails",
+      "disposition": "adapted",
+      "proof": [
+        "AGENTS.md",
+        "scripts/validate-agent-instruction-paths.mjs",
+        "scripts/agentshield-check.mjs"
+      ]
+    },
+    {
+      "id": "custom-model-and-setup",
+      "title": "Configure Pi custom models and setup assistance",
+      "sourceEvidence": "skills/ops-and-setup/pi-custom-model and setup-help",
+      "disposition": "adapted",
+      "proof": [
+        "lib/aiProviderPreference.ts",
+        "components/settings/SettingsDrawer.tsx",
+        "lib/settingsServerStatus.ts"
+      ]
+    },
+    {
+      "id": "vps-server-management",
+      "title": "Manage a VPS through agent instructions",
+      "sourceEvidence": "skills/ops-and-setup/vps-server-management",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Unbounded remote host mutation, credentials, and infrastructure control remain outside Nexus agent authority; operator-owned deployment runbooks stay review-only."
+    },
+    {
+      "id": "dangerous-command-hooks",
+      "title": "Deny dangerous shell patterns through repository hooks and test fixtures",
+      "sourceEvidence": "hooks/dangerous-patterns.txt, deny-dangerous.sh, and test-guard.sh",
+      "disposition": "adapted",
+      "proof": [
+        "lib/security/toolCapabilityPolicy.ts",
+        "lib/security/toolIsolationRunner.ts",
+        "scripts/security-scan.js"
+      ]
+    }
+  ]
+}

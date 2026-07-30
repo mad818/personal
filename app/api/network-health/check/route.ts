@@ -5,7 +5,10 @@ import {
   checkRateLimit,
 } from "@/lib/security/rateLimit";
 import { fetchTrustedInternal } from "@/lib/internalFetch";
-import { assertSafePublicUrl } from "@/lib/security/networkGuards";
+import {
+  assertSafeExternalUrl,
+  fetchSafePublicUrl,
+} from "@/lib/security/networkGuards";
 import { getRoutePolicy, readNetworkMode } from "@/lib/security/routePolicy";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +25,9 @@ type NetworkCheckKind = "local" | "external";
 function normalizeLocalApiPath(rawUrl: string) {
   const trimmed = rawUrl.trim();
   if (!trimmed.startsWith("/api/")) {
-    throw new Error("Only local /api/* paths are allowed for Nexus route checks.");
+    throw new Error(
+      "Only local /api/* paths are allowed for Nexus route checks.",
+    );
   }
   const parsed = new URL(trimmed, "http://localhost");
   if (parsed.hash) {
@@ -72,16 +77,15 @@ async function runExternalCheck(rawUrl: string) {
     };
   }
 
-  const parsed = assertSafePublicUrl(rawUrl, { allowHttp: true });
+  const parsed = assertSafeExternalUrl(rawUrl);
   const start = Date.now();
-  const response = await fetch(parsed.toString(), {
+  const response = await fetchSafePublicUrl(parsed.toString(), {
     method: "GET",
     headers: {
       Accept: "text/plain,application/json,*/*",
       "User-Agent": "Homefront NetworkHealth/1.0",
     },
     cache: "no-store",
-    redirect: "follow",
     signal: AbortSignal.timeout(6_000),
   });
   const ms = Date.now() - start;
@@ -131,9 +135,9 @@ export async function POST(req: NextRequest) {
           ms: null,
           note: "Target URL is required.",
           target: "",
-      },
-      { status: 400 },
-    );
+        },
+        { status: 400 },
+      );
       return applyRateLimitHeaders(response, RATE_LIMIT);
     }
 

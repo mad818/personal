@@ -119,7 +119,10 @@ export default function CyberDeferredChamber({
               </OpsField>
             ) : null}
             {evidenceView === "cisa" ? (
-              <OpsField title="CISA KEV" detail="Known exploited vulnerabilities">
+              <OpsField
+                title="CISA KEV"
+                detail="Known exploited vulnerabilities"
+              >
                 <LazyCISAFeed />
               </OpsField>
             ) : null}

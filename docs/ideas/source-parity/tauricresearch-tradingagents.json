@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "tauricresearch-tradingagents",
   "name": "TradingAgents",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/TauricResearch/TradingAgents",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "v0.2.5-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "Apache-2.0",
     "primaryEvidence": [
       "https://github.com/TauricResearch/TradingAgents",
@@ -18,50 +18,80 @@
       "id": "multi-agent-trading-framework",
       "title": "Multi-agent framework: separate analyst, risk, and execution agents with defined handoff contracts",
       "sourceEvidence": "TradingAgents: specialized agents for technical analysis, fundamentals, sentiment, and risk management",
-      "disposition": "pending",
-      "reason": "Nexus ALPHA has TradeThesisPanel with single-agent analysis; multi-agent decomposition (analyst/risk/execution roles) not yet implemented."
+      "disposition": "adapted",
+      "proof": [
+        "lib/alphaTradeThesis.ts",
+        "components/alpha/TradeThesisPanel.tsx",
+        "components/alpha/PositionSizer.tsx"
+      ],
+      "adaptationNotes": "Nexus adapts the role-separation pattern as typed fundamentals, technical, sentiment, and risk research handoffs followed by one balanced synthesis. It deliberately omits a trader/execution agent and does not claim a standalone LangGraph topology."
     },
     {
       "id": "fundamental-analysis-agent",
       "title": "Fundamental analysis agent: earnings, revenue growth, P/E, sector context",
       "sourceEvidence": "TradingAgents fundamentals agent persona and tool set",
-      "disposition": "pending",
-      "reason": "Nexus ALPHA computes basic metrics; a dedicated fundamentals agent with structured financial statement analysis is pending."
+      "disposition": "adapted",
+      "proof": [
+        "lib/secCompanyFacts.ts",
+        "app/api/sec-filings/route.ts",
+        "lib/alphaTradeThesis.ts"
+      ],
+      "adaptationNotes": "The protected SEC route resolves a ticker to SEC Companyfacts, extracts recent XBRL revenue, income, asset, liability, and diluted-EPS facts with period-over-period context, and hands them to the fundamentals lens. Unsupported valuation or sector conclusions stay unavailable."
     },
     {
       "id": "technical-analysis-agent",
       "title": "Technical analysis agent: trend detection, support/resistance, indicator synthesis",
       "sourceEvidence": "TradingAgents technical analysis agent",
-      "disposition": "pending",
-      "reason": "Nexus ALPHA surfaces price data; structured technical analysis agent producing a trade signal with evidence is pending."
+      "disposition": "adapted",
+      "proof": [
+        "components/alpha/MomentumScanner.tsx",
+        "lib/alphaTradeThesis.ts",
+        "components/alpha/TradeThesisPanel.tsx"
+      ],
+      "adaptationNotes": "The technical lens receives verified price, 24-hour change, seven-day trend, and momentum score inputs. It must identify its limited evidence and cannot invent support, resistance, or indicators."
     },
     {
       "id": "sentiment-analysis-agent",
       "title": "Sentiment analysis agent: news, social media, and options flow sentiment scoring",
       "sourceEvidence": "TradingAgents sentiment agent",
-      "disposition": "pending",
-      "reason": "Nexus INTEL has Fear & Greed index; dedicated sentiment agent ingesting news and social signals is pending."
+      "disposition": "adapted",
+      "proof": [
+        "components/alpha/MomentumScanner.tsx",
+        "lib/alphaTradeThesis.ts",
+        "app/api/news/route.ts"
+      ],
+      "adaptationNotes": "The sentiment lens combines the verified Fear & Greed value with bounded symbol-matched public market or crypto headlines. Social and options-flow sentiment remain explicitly unavailable rather than fabricated."
     },
     {
       "id": "risk-management-agent",
       "title": "Risk management agent: position sizing, drawdown limits, stop-loss recommendations",
       "sourceEvidence": "TradingAgents risk agent with portfolio-level checks",
-      "disposition": "pending",
-      "reason": "Nexus ALPHA has thesis panels but no risk management agent enforcing drawdown or position sizing rules."
+      "disposition": "adapted",
+      "proof": [
+        "components/alpha/PositionSizer.tsx",
+        "lib/alphaTradeThesis.ts",
+        "components/alpha/TradeThesisPanel.tsx"
+      ],
+      "adaptationNotes": "The research handoff names invalidation and missing account constraints while the deterministic manual Position Sizer calculates fixed-risk exposure, stop distance, risk/reward, loss at stop, and Kelly reference without placing orders."
     },
     {
       "id": "agent-debate-mechanism",
       "title": "Agent debate: bullish and bearish agents argue thesis before final recommendation",
       "sourceEvidence": "TradingAgents debate mode: agents challenge each other's reasoning",
-      "disposition": "pending",
-      "reason": "Nexus produces single-model analysis; adversarial bull/bear debate not implemented."
+      "disposition": "adapted",
+      "proof": [
+        "lib/alphaTradeThesis.ts",
+        "components/alpha/TradeThesisPanel.tsx"
+      ],
+      "adaptationNotes": "Every structured result contains separate evidence-bounded bull and bear cases before the synthesis. Nexus uses one reviewable council response instead of multiplying provider calls or simulating hidden autonomous personas."
     },
     {
       "id": "backtesting-loop",
       "title": "Backtesting loop: evaluate agent recommendations against historical price data",
       "sourceEvidence": "TradingAgents backtesting harness",
-      "disposition": "pending",
-      "reason": "Nexus ALPHA has no backtesting capability; historical evaluation of agent-generated signals is pending."
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus does not generate or execute a historical trading strategy, so a recommendation backtest would manufacture performance confidence from non-stationary model prose. Market Review preserves human-authored outcome continuity without claiming predictive validity."
     },
     {
       "id": "live-trading-execution",

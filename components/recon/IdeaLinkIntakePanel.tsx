@@ -93,19 +93,26 @@ export default function IdeaLinkIntakePanel() {
       }}
     >
       <div>
-        <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}>
+        <div
+          style={{ fontSize: "12px", fontWeight: 700, color: "var(--text)" }}
+        >
           Idea link intake
         </div>
-        <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}>
-          Paste GitHub or X links — each gets a pending queue row and a stub source-parity
-          matrix. CLI: <code>npm run ideas:register</code>
+        <div
+          style={{ fontSize: "10px", color: "var(--text3)", marginTop: "2px" }}
+        >
+          Paste GitHub or X links — each gets a pending queue row and a stub
+          source-parity matrix. CLI: <code>npm run ideas:register</code>
         </div>
       </div>
 
       <textarea
+        aria-label="GitHub or X idea links"
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
-        placeholder={"https://github.com/org/repo\nhttps://x.com/user/status/123..."}
+        placeholder={
+          "https://github.com/org/repo\nhttps://x.com/user/status/123..."
+        }
         rows={4}
         style={{
           width: "100%",
@@ -120,8 +127,18 @@ export default function IdeaLinkIntakePanel() {
         }}
       />
 
-      <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-        <ShellButton onClick={() => void registerLinks()} disabled={status === "loading"}>
+      <div
+        style={{
+          display: "flex",
+          gap: "8px",
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
+        <ShellButton
+          onClick={() => void registerLinks()}
+          disabled={status === "loading"}
+        >
           {status === "loading" ? "Registering…" : "Register links"}
         </ShellButton>
         {summary ? (
@@ -132,14 +149,22 @@ export default function IdeaLinkIntakePanel() {
       </div>
 
       {message ? (
-        <div style={{ fontSize: "11px", color: status === "error" ? "#f87171" : "#86efac" }}>
+        <div
+          role={status === "error" ? "alert" : "status"}
+          style={{
+            fontSize: "11px",
+            color: status === "error" ? "#f87171" : "#86efac",
+          }}
+        >
           {message}
         </div>
       ) : null}
 
       {pendingItems.length ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          <div style={{ fontSize: "10px", color: "var(--text3)", fontWeight: 600 }}>
+          <div
+            style={{ fontSize: "10px", color: "var(--text3)", fontWeight: 600 }}
+          >
             Pending ({pendingItems.length})
           </div>
           {pendingItems.slice(0, 6).map((item) => (
@@ -152,7 +177,9 @@ export default function IdeaLinkIntakePanel() {
                 paddingLeft: "8px",
               }}
             >
-              <div style={{ fontWeight: 600 }}>{item.kind.toUpperCase()} · {item.id}</div>
+              <div style={{ fontWeight: 600 }}>
+                {item.kind.toUpperCase()} · {item.id}
+              </div>
               <div style={{ wordBreak: "break-all" }}>{item.source}</div>
             </div>
           ))}

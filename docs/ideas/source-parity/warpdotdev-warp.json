@@ -2,15 +2,19 @@
   "schemaVersion": 1,
   "id": "warpdotdev-warp",
   "name": "Warp",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/warpdotdev/warp",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
-    "license": "Apache-2.0",
+    "version": "master-2026-07-26",
+    "reviewedAt": "2026-07-26",
+    "license": "AGPL-3.0 AND MIT",
     "primaryEvidence": [
       "https://github.com/warpdotdev/warp",
-      "https://github.com/warpdotdev/warp/blob/main/README.md"
+      "https://github.com/warpdotdev/warp/blob/master/README.md",
+      "https://github.com/warpdotdev/warp/blob/master/LICENSE-AGPL",
+      "https://github.com/warpdotdev/warp/blob/master/LICENSE-MIT",
+      "https://docs.warp.dev/terminal/command-palette",
+      "https://docs.warp.dev/terminal/entry/command-search"
     ]
   },
   "capabilities": [
@@ -25,9 +29,15 @@
     {
       "id": "command-palette-ux",
       "title": "Command palette UX pattern: fuzzy search over available commands with preview",
-      "sourceEvidence": "Warp command palette: Cmd+P style command discovery",
-      "disposition": "pending",
-      "reason": "Nexus HQ chat is the primary command interface; a standalone command palette with fuzzy search is not yet implemented."
+      "sourceEvidence": "Current Warp Command Palette and Command Search documentation",
+      "disposition": "adapted",
+      "proof": [
+        "lib/commandPalette.ts",
+        "components/ui/CommandPalette.tsx",
+        "components/ui/CommandBar.tsx",
+        "scripts/check-command-palette-runtime.mjs",
+        "specs/features/warp-command-palette.md"
+      ]
     },
     {
       "id": "block-based-terminal-output",

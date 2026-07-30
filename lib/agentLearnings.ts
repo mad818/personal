@@ -14,24 +14,94 @@ import type { AgentId } from "@/components/home/office/types";
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface LearningEntry {
-  id:           string;
-  ts:           number;
-  agent:        AgentId;
-  category:     "failure" | "success" | "pattern" | "correction";
-  queryType:    "code" | "research" | "market" | "security" | "planning" | "general";
-  summary:      string;    // ≤200 chars
+  id: string;
+  ts: number;
+  agent: AgentId;
+  category: "failure" | "success" | "pattern" | "correction";
+  queryType:
+    | "code"
+    | "research"
+    | "market"
+    | "security"
+    | "planning"
+    | "general";
+  summary: string; // ≤200 chars
   proposedFix?: string;
-  applied:      boolean;
+  applied: boolean;
 }
 
 // ── Heuristic failure classifier ──────────────────────────────────────────────
 // No AI calls — keyword scoring only.
 
-const CODE_KEYWORDS     = ["function","const","export","import","tsx","ts","type","interface","component","hook","store","zustand","tailwind","next","react","tsc"];
-const RESEARCH_KEYWORDS = ["search","research","find","article","news","source","report","study","analysis","compare"];
-const MARKET_KEYWORDS   = ["price","btc","eth","bitcoin","market","bull","bear","crypto","fear","greed","trade","position","signal"];
-const SECURITY_KEYWORDS = ["cve","vulnerability","exploit","patch","cvss","security","threat","attack","critical","malware"];
-const PLANNING_KEYWORDS = ["plan","step","task","roadmap","architecture","design","spec","breakdown","phase","milestone"];
+const CODE_KEYWORDS = [
+  "function",
+  "const",
+  "export",
+  "import",
+  "tsx",
+  "ts",
+  "type",
+  "interface",
+  "component",
+  "hook",
+  "store",
+  "zustand",
+  "tailwind",
+  "next",
+  "react",
+  "tsc",
+];
+const RESEARCH_KEYWORDS = [
+  "search",
+  "research",
+  "find",
+  "article",
+  "news",
+  "source",
+  "report",
+  "study",
+  "analysis",
+  "compare",
+];
+const MARKET_KEYWORDS = [
+  "price",
+  "btc",
+  "eth",
+  "bitcoin",
+  "market",
+  "bull",
+  "bear",
+  "crypto",
+  "fear",
+  "greed",
+  "trade",
+  "position",
+  "signal",
+];
+const SECURITY_KEYWORDS = [
+  "cve",
+  "vulnerability",
+  "exploit",
+  "patch",
+  "cvss",
+  "security",
+  "threat",
+  "attack",
+  "critical",
+  "malware",
+];
+const PLANNING_KEYWORDS = [
+  "plan",
+  "step",
+  "task",
+  "roadmap",
+  "architecture",
+  "design",
+  "spec",
+  "breakdown",
+  "phase",
+  "milestone",
+];
 
 export function classifyFailure(
   agent: AgentId,
@@ -41,12 +111,12 @@ export function classifyFailure(
   const combined = (query + " " + answer).toLowerCase();
 
   const score = (keywords: string[]) =>
-    keywords.filter(k => combined.includes(k)).length;
+    keywords.filter((k) => combined.includes(k)).length;
 
   const scores: [LearningEntry["queryType"], number][] = [
-    ["code",     score(CODE_KEYWORDS)],
+    ["code", score(CODE_KEYWORDS)],
     ["research", score(RESEARCH_KEYWORDS)],
-    ["market",   score(MARKET_KEYWORDS)],
+    ["market", score(MARKET_KEYWORDS)],
     ["security", score(SECURITY_KEYWORDS)],
     ["planning", score(PLANNING_KEYWORDS)],
   ];
@@ -54,8 +124,12 @@ export function classifyFailure(
   const top = scores.sort((a, b) => b[1] - a[1])[0];
   const queryType: LearningEntry["queryType"] = top[1] > 0 ? top[0] : "general";
 
-  const truncQ  = query.length > 120 ? query.slice(0, 117) + "…" : query;
-  const summary = `[${agent.toUpperCase()}] ${queryType} query failed: "${truncQ}"`.slice(0, 200);
+  const truncQ = query.length > 120 ? query.slice(0, 117) + "…" : query;
+  const summary =
+    `[${agent.toUpperCase()}] ${queryType} query failed: "${truncQ}"`.slice(
+      0,
+      200,
+    );
 
   return { category: "failure", queryType, summary };
 }
@@ -68,12 +142,15 @@ export function buildLearningsBlock(
   entries: LearningEntry[],
 ): string {
   if (!entries.length) return "";
-  const lines = entries.slice(0, 5).map(e => {
+  const lines = entries.slice(0, 5).map((e) => {
     const prefix =
-      e.category === "failure"    ? "• avoid:"     :
-      e.category === "correction" ? "• corrected:" :
-      e.category === "success"    ? "• works:"     :
-                                    "• pattern:";
+      e.category === "failure"
+        ? "• avoid:"
+        : e.category === "correction"
+          ? "• corrected:"
+          : e.category === "success"
+            ? "• works:"
+            : "• pattern:";
     return `${prefix} ${e.summary}${e.proposedFix ? ` → ${e.proposedFix}` : ""}`;
   });
   return [

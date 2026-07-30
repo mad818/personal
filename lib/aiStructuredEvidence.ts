@@ -70,7 +70,9 @@ function getInlineEvidenceHeading(
     return "inferred";
   }
   if (
-    /^(?:#{1,6}\s*)?(?:\*\*)?verify(?:\s|-)?next(?:\*\*)?\s*:?\s*$/i.test(trimmed)
+    /^(?:#{1,6}\s*)?(?:\*\*)?verify(?:\s|-)?next(?:\*\*)?\s*:?\s*$/i.test(
+      trimmed,
+    )
   ) {
     return "verifyNext";
   }
@@ -120,7 +122,9 @@ export function parseStructuredEvidenceAnswer(
   }
 }
 
-export function parseInlineEvidencePosture(raw: string): InlineEvidencePosture | null {
+export function parseInlineEvidencePosture(
+  raw: string,
+): InlineEvidencePosture | null {
   const lines = raw.replace(/\r\n?/g, "\n").split("\n");
   const bodyLines: string[] = [];
   const sections = {
@@ -150,7 +154,11 @@ export function parseInlineEvidencePosture(raw: string): InlineEvidencePosture |
   const observed = normalizeInlineSection(sections.observed);
   const inferred = normalizeInlineSection(sections.inferred);
   const verifyNext = normalizeInlineSection(sections.verifyNext);
-  if (observed.length === 0 && inferred.length === 0 && verifyNext.length === 0) {
+  if (
+    observed.length === 0 &&
+    inferred.length === 0 &&
+    verifyNext.length === 0
+  ) {
     return null;
   }
 

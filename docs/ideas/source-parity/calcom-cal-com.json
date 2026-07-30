@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "id": "calcom-cal-com",
-  "name": "Cal.com",
-  "status": "in_progress",
+  "name": "Cal.diy",
+  "status": "complete",
   "source": {
-    "url": "https://github.com/calcom/cal.com",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
-    "license": "AGPL-3.0",
+    "url": "https://github.com/calcom/cal.diy",
+    "version": "main re-reviewed 2026-07-27 after calcom/cal.com redirect",
+    "reviewedAt": "2026-07-27",
+    "license": "MIT",
     "primaryEvidence": [
-      "https://github.com/calcom/cal.com",
-      "https://github.com/calcom/cal.com/blob/main/README.md"
+      "https://github.com/calcom/cal.diy",
+      "https://github.com/calcom/cal.diy/blob/main/README.md"
     ]
   },
   "capabilities": [
@@ -33,16 +33,24 @@
     {
       "id": "availability-api-pattern",
       "title": "Availability computation API: given a schedule and existing events, find open slots",
-      "sourceEvidence": "Cal.com availability engine: IANA timezone-aware slot calculation",
-      "disposition": "pending",
-      "reason": "Nexus COMMAND could use availability computation patterns for agent scheduling or task time-blocking; deferred pending scheduling feature."
+      "sourceEvidence": "Cal scheduling availability pattern",
+      "disposition": "implemented",
+      "proof": [
+        "lib/schedulerAvailability.ts",
+        "components/ui/SchedulerAvailabilityPlanner.tsx",
+        "scripts/check-scheduler-availability-runtime.mjs"
+      ]
     },
     {
       "id": "webhook-event-system",
       "title": "Webhook event system: emit booking, cancellation, and rescheduling events to external systems",
-      "sourceEvidence": "Cal.com webhooks: configurable event-driven integrations",
-      "disposition": "pending",
-      "reason": "Nexus automation hooks could adopt Cal.com's webhook event schema patterns; deferred pending Nexus automation lane."
+      "sourceEvidence": "Cal event-driven integration pattern",
+      "disposition": "adapted",
+      "proof": [
+        "lib/eventBus.ts",
+        "app/api/telegram/route.ts",
+        "lib/schedulerGovernance.ts"
+      ]
     }
   ]
 }

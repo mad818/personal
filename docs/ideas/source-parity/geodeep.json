@@ -17,14 +17,14 @@
   "capabilities": [
     {
       "id": "local-geospatial-detection-service",
-      "title": "Run local AI object detection on geospatial tiles without GPU",
+      "title": "Run a local contrast-feature scan on geospatial tiles without GPU",
       "sourceEvidence": "README positions GeoDeep as CPU-friendly geospatial detection",
       "disposition": "adapted",
       "proof": [
         "scripts/geodep-service.py",
         "docs/deployment/geodep.md"
       ],
-      "adaptationNotes": "Optional Python sidecar on localhost:5050; not bundled into default Nexus runtime."
+      "adaptationNotes": "Optional Python sidecar on localhost:5050; not bundled into default Nexus runtime. The bundled implementation is explicitly a contrast-feature scanner rather than a trained object-classification model, and its confidence values are measured contrast strength."
     },
     {
       "id": "geo-scan-api-proxy",
@@ -43,10 +43,9 @@
       "sourceEvidence": "Assimilation target: OPS map AI geospatial layer",
       "disposition": "adapted",
       "proof": [
-        "components/ops/OpsMap.tsx",
-        "scripts/validate-geodeep-assimilation.mjs"
+        "components/ops/OpsMap.tsx"
       ],
-      "adaptationNotes": "Graceful sample/empty fallback when sidecar is offline."
+      "adaptationNotes": "Returns an explicit unavailable response with no fabricated markers when the sidecar is offline."
     },
     {
       "id": "bundled-geotiff-training-runtime",

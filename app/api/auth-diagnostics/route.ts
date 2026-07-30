@@ -3,6 +3,7 @@ import {
   applyAuthNoStoreHeaders,
   getConfiguredNexusToken,
   isNexusAuthEnabled,
+  isNexusPhoneTokenConfigured,
 } from "@/lib/authSession";
 import { getDefaultEntrypoint, RELEASE_DEFAULTS } from "@/lib/releaseMatrix";
 import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
@@ -43,6 +44,8 @@ export async function GET(req: NextRequest) {
     },
     auth: {
       tokenConfigured: Boolean(configuredToken),
+      phoneTokenConfigured: isNexusPhoneTokenConfigured(),
+      authTier: trustContext.session?.authTier ?? null,
       authenticated: authEnabled ? trustContext.sessionAuthenticated : true,
       stepUpActive: authEnabled ? trustContext.stepUpActive : true,
       sessionRemainingSeconds: trustContext.session?.remainingSeconds ?? null,
@@ -62,7 +65,10 @@ export async function GET(req: NextRequest) {
           "settings_writes",
           trustContext,
         ),
-        verification: resolveProtectedActionDescriptor("verification", trustContext),
+        verification: resolveProtectedActionDescriptor(
+          "verification",
+          trustContext,
+        ),
         mutateExecTools: resolveProtectedActionDescriptor(
           "tools_mutate_exec",
           trustContext,

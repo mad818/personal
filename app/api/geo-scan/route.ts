@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
 
-const SAMPLE_DETECTIONS = [
-  { lat: 37.7749, lng: -122.4194, label: "Port logistics cluster", confidence: 0.74 },
-  { lat: 25.7617, lng: -80.1918, label: "Maritime staging node", confidence: 0.68 },
-  { lat: 35.6895, lng: 139.6917, label: "Dense urban traffic pattern", confidence: 0.63 },
-];
-
 /**
  * GET /api/geo-scan
  *
- * Proxies to the local GeoDeep AI service (localhost:5050).
- * Returns detected objects from the most recent satellite tile scan.
+ * Proxies to the local GeoDeep feature-scan service (localhost:5050).
+ * Returns measured high-contrast features from the most recent map-tile scan.
  *
  * If the service is not running, returns an empty detections array
  * with a status hint — the client renders gracefully with no markers.
@@ -29,11 +23,11 @@ export async function GET() {
     if (!r.ok) {
       return NextResponse.json(
         {
-          detections: SAMPLE_DETECTIONS,
-          status: "sample",
-          message: `GeoDeep service returned ${r.status}; showing sample detections instead.`,
+          detections: [],
+          status: "unavailable",
+          message: `GeoDeep service returned ${r.status}; no verified features are available.`,
         },
-        { status: 200 },
+        { status: 503 },
       );
     }
 
@@ -65,13 +59,13 @@ export async function GET() {
     const isTimeout = err instanceof Error && err.name === "TimeoutError";
     return NextResponse.json(
       {
-        detections: SAMPLE_DETECTIONS,
-        status: "sample",
+        detections: [],
+        status: "unavailable",
         message: isTimeout
-          ? "GeoDeep service timed out; showing sample detections."
-          : "GeoDeep service not reachable; showing sample detections until the local scan service is started.",
+          ? "GeoDeep service timed out; no verified features are available."
+          : "GeoDeep service not reachable; start the local scan service to load verified features.",
       },
-      { status: 200 },
+      { status: 503 },
     );
   }
 }

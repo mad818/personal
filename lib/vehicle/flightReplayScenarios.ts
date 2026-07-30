@@ -1,18 +1,21 @@
-import type { VehicleReplayScenario } from "@/lib/vehicle/types"
-import { makeSimulatedTelemetryFrame } from "@/lib/vehicle/simTelemetry"
+import type { VehicleReplayScenario } from "@/lib/vehicle/types";
+import { makeSimulatedTelemetryFrame } from "@/lib/vehicle/simTelemetry";
 
-const SCENARIO_START = 1_777_870_000_000
+const SCENARIO_START = 1_777_870_000_000;
 
 function scenarioFrame(
   scenarioOffset: number,
   step: number,
-  options: Omit<Parameters<typeof makeSimulatedTelemetryFrame>[0], "step" | "timestamp">,
+  options: Omit<
+    Parameters<typeof makeSimulatedTelemetryFrame>[0],
+    "step" | "timestamp"
+  >,
 ) {
   return makeSimulatedTelemetryFrame({
     ...options,
     step: scenarioOffset + step,
     timestamp: SCENARIO_START + scenarioOffset * 10_000 + step * 2_000,
-  })
+  });
 }
 
 export const VEHICLE_REPLAY_SCENARIOS: VehicleReplayScenario[] = [
@@ -118,8 +121,9 @@ export const VEHICLE_REPLAY_SCENARIOS: VehicleReplayScenario[] = [
       incidentType: "operator_review",
     },
   },
-]
+];
 
 export const DEFAULT_VEHICLE_REPLAY_SCENARIO =
-  VEHICLE_REPLAY_SCENARIOS.find((scenario) => scenario.id === "perimeter-patrol-review") ??
-  VEHICLE_REPLAY_SCENARIOS[0]
+  VEHICLE_REPLAY_SCENARIOS.find(
+    (scenario) => scenario.id === "perimeter-patrol-review",
+  ) ?? VEHICLE_REPLAY_SCENARIOS[0];

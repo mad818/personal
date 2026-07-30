@@ -1,8 +1,9 @@
 import { normalizeSessionHref } from "@/lib/exactSessionLinks";
-import {
-  getExactSessionGovernanceProfile,
-} from "@/lib/governanceCatalog";
-import type { HQAssistantIntent, PreparedWorkspaceTarget } from "@/components/home/office/types";
+import { getExactSessionGovernanceProfile } from "@/lib/governanceCatalog";
+import type {
+  HQAssistantIntent,
+  PreparedWorkspaceTarget,
+} from "@/components/home/office/types";
 
 export type AssistantWorkspaceId =
   | "hq-strategium"
@@ -42,6 +43,7 @@ export type AssistantWorkspaceId =
   | "vehicle-artifact-convention"
   | "security-doctrine"
   | "security-ai-surface"
+  | "skills-prompt-forge"
   | "skills-forge"
   | "skills-brain";
 
@@ -192,8 +194,7 @@ const ASSISTANT_WORKSPACES: AssistantWorkspaceEntry[] = [
     route: "/recon",
     href: "/recon?view=osint&focus=recon-lookup",
     label: "Open RECON lookup",
-    detail:
-      "Prepared the target-led recon lane so lookup work is ready first.",
+    detail: "Prepared the target-led recon lane so lookup work is ready first.",
   },
   {
     id: "recon-repo-intel",
@@ -348,6 +349,14 @@ const ASSISTANT_WORKSPACES: AssistantWorkspaceEntry[] = [
       "Prepared the AI-surface review lane so prompt, retrieval, and persistence posture are ready first.",
   },
   {
+    id: "skills-prompt-forge",
+    route: "/skills",
+    href: "/skills?view=prompts&focus=skills-prompt-forge",
+    label: "Open LYRA Prompt Forge",
+    detail:
+      "Prepared the session-only prompt optimizer so target shaping, clarification, and copyable output are ready without durable prompt storage.",
+  },
+  {
     id: "skills-forge",
     route: "/skills",
     href: "/skills?view=forge&focus=skills-forge",
@@ -432,7 +441,9 @@ const ROUTE_INTENT_WORKSPACE_OVERRIDES: Partial<
   },
 };
 
-export function getAssistantWorkspace(id: AssistantWorkspaceId): AssistantWorkspaceEntry {
+export function getAssistantWorkspace(
+  id: AssistantWorkspaceId,
+): AssistantWorkspaceEntry {
   const match = ASSISTANT_WORKSPACES.find((entry) => entry.id === id);
   if (match) return match;
   return ASSISTANT_WORKSPACES[0];

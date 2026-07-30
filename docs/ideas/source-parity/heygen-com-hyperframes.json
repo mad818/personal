@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "id": "heygen-com-hyperframes",
+  "name": "HyperFrames",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/heygen-com/hyperframes",
+    "version": "main reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "Apache-2.0",
+    "primaryEvidence": [
+      "https://github.com/heygen-com/hyperframes",
+      "https://github.com/heygen-com/hyperframes/blob/main/README.md",
+      "https://github.com/heygen-com/hyperframes/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "deterministic-html-timeline",
+      "title": "HTML/CSS media compositions with absolute seekable timing",
+      "sourceEvidence": "README composition, tracks, clips, and frame-seeking model",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/deterministic-media-production/SKILL.md"
+      ]
+    },
+    {
+      "id": "media-workflow-router",
+      "title": "Brief routing for launch, explainer, PR, captions, recut, motion, music, slideshow, and general video",
+      "sourceEvidence": "README 19-skill router and creation-workflow inventory",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/deterministic-media-production/SKILL.md"
+      ]
+    },
+    {
+      "id": "asset-ledger-and-frame-design",
+      "title": "Frozen local asset ledger, frame-aware design, captions, and audio planning",
+      "sourceEvidence": "README media-use, creative, frame.md, captions, and audio workflow",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/deterministic-media-production/SKILL.md"
+      ]
+    },
+    {
+      "id": "local-render-runtime",
+      "title": "CLI, Chrome, FFmpeg, producer, player, and studio runtime",
+      "sourceEvidence": "README local quickstart and package inventory",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus does not need to become a video renderer; an operator may separately approve a pinned local toolchain for a concrete media task."
+    },
+    {
+      "id": "cloud-and-lambda-rendering",
+      "title": "Hosted and AWS Lambda rendering infrastructure",
+      "sourceEvidence": "README cloud render and Lambda packages",
+      "disposition": "excluded",
+      "conflict": "free_local",
+      "reason": "Cloud rendering adds cost, credentials, network, and infrastructure mutation outside this local-first skill adaptation."
+    },
+    {
+      "id": "skills-installer-registry-and-large-clone",
+      "title": "Skill installer, registry components, and full Git LFS source clone",
+      "sourceEvidence": "README skills update/add, registry, and Git LFS development note",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The required workflow is implemented project-locally without 19 upstream skills, registry blocks, or large binary baselines."
+    }
+  ]
+}

@@ -61,7 +61,8 @@ export function parseConnectorPolicy(raw: string | undefined): ConnectorPolicy {
     const parsed = JSON.parse(raw) as Record<string, unknown>;
     const merged: ConnectorPolicy = { ...DEFAULT_CONNECTOR_POLICY };
     for (const key of CONNECTOR_KEYS) {
-      if (typeof parsed[key] === "boolean") merged[key] = parsed[key] as boolean;
+      if (typeof parsed[key] === "boolean")
+        merged[key] = parsed[key] as boolean;
     }
     return merged;
   } catch {
@@ -79,4 +80,3 @@ export function findConnectorKeyForPath(pathname: string): ConnectorKey | null {
   }
   return null;
 }
-

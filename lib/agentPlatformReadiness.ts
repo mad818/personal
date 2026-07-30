@@ -1,12 +1,12 @@
 import "server-only";
 
-import { isFirecrawlConfigured } from "@/lib/firecrawlScrape";
+import { isFirecrawlConfigured } from "@/lib/firecrawlReadiness";
 import {
   readMcpGatewayEnabled,
   readMcpGatewayUrl,
 } from "@/lib/mcpGatewayAdapter";
-import { isMarkItDownConfigured } from "@/lib/markitdownSubprocess";
-import { evaluateTimesFmReadiness } from "@/lib/timesFmForecast";
+import { isMarkItDownConfigured } from "@/lib/markitdownReadiness";
+import { evaluateTimesFmReadiness } from "@/lib/timesFmReadiness";
 
 export function readMcpAllowlistCount(): number {
   return (process.env.NEXUS_MCP_ALLOWED_TOOLS ?? "")
@@ -19,16 +19,21 @@ export function readAgentPlatformReadiness() {
   const mcpEnabled = readMcpGatewayEnabled();
   const mcpUrlConfigured = Boolean(readMcpGatewayUrl());
   const mcpAllowlistCount = readMcpAllowlistCount();
+  const timesfm = evaluateTimesFmReadiness();
 
   return {
     firecrawl: isFirecrawlConfigured(),
-    timesfm: evaluateTimesFmReadiness(),
+    timesfm: {
+      available: timesfm.available,
+      advisoryOnly: timesfm.advisoryOnly,
+      model: timesfm.model,
+    },
     markitdown: isMarkItDownConfigured(),
     mcpGateway: {
       enabled: mcpEnabled,
       urlConfigured: mcpUrlConfigured,
       allowlistCount: mcpAllowlistCount,
-      liveReady: mcpEnabled && mcpUrlConfigured && mcpAllowlistCount > 0,
+      configured: mcpEnabled && mcpUrlConfigured && mcpAllowlistCount > 0,
     },
   };
 }

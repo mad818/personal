@@ -1,6 +1,6 @@
 // ── components/recon/OpsecPanel ─────────────────────────────
-// Local OPSEC check: HTTPS context, fingerprint entropy, WebRTC leak, Tor.
-// All checks are client-side only — no data leaves the browser.
+// Browser OPSEC check: HTTPS context, fingerprint entropy, WebRTC leak, Tor.
+// WebRTC contacts Google STUN. Tor status stays unknown without a safe client proxy.
 
 "use client";
 
@@ -9,8 +9,13 @@ import { useState, useCallback } from "react";
 interface Check {
   id: string;
   label: string;
-  result: "idle" | "checking" | "ok" | "warn";
+  result: "idle" | "checking" | "ok" | "warn" | "unknown";
   note: string;
+}
+
+interface WebRtcProbeResult {
+  verified: boolean;
+  leakIp: string | null;
 }
 
 function calcEntropy(): number {
@@ -39,7 +44,7 @@ function calcEntropy(): number {
   return bits;
 }
 
-function probeWebRTC(): Promise<string | null> {
+function probeWebRTC(): Promise<WebRtcProbeResult> {
   return new Promise((resolve) => {
     try {
       const pc = new RTCPeerConnection({
@@ -56,15 +61,19 @@ function probeWebRTC(): Promise<string | null> {
       pc.createOffer()
         .then((o) => pc.setLocalDescription(o))
         .catch(() => {
+          resolved = true;
           cleanup();
-          resolve(null);
+          resolve({ verified: false, leakIp: null });
         });
       pc.onicecandidate = (e) => {
         if (!e?.candidate) {
           if (!resolved) {
             resolved = true;
             cleanup();
-            resolve(found.size > 0 ? Array.from(found)[0] : null);
+            resolve({
+              verified: true,
+              leakIp: found.size > 0 ? Array.from(found)[0] : null,
+            });
           }
           return;
         }
@@ -75,11 +84,14 @@ function probeWebRTC(): Promise<string | null> {
         if (!resolved) {
           resolved = true;
           cleanup();
-          resolve(found.size > 0 ? Array.from(found)[0] : null);
+          resolve({
+            verified: found.size > 0,
+            leakIp: found.size > 0 ? Array.from(found)[0] : null,
+          });
         }
       }, 3000);
     } catch (_) {
-      resolve(null);
+      resolve({ verified: false, leakIp: null });
     }
   });
 }
@@ -97,9 +109,11 @@ function DotIcon({ result }: { result: Check["result"] }) {
       ? "#10b981"
       : result === "warn"
         ? "#ef4444"
-        : result === "checking"
-          ? "#f59e0b"
-          : "var(--text3)";
+        : result === "unknown"
+          ? "#7ba7d4"
+          : result === "checking"
+            ? "#f59e0b"
+            : "var(--text3)";
   return (
     <span
       style={{
@@ -155,31 +169,28 @@ export default function OpsecPanel() {
     if (lowEnt) s += 30;
 
     // 3 — WebRTC (20 pts)
-    const leakIp = await probeWebRTC();
+    const webRtcProbe = await probeWebRTC();
     updateCheck("webrtc", {
-      result: leakIp ? "warn" : "ok",
-      note: leakIp ? `Leaks local IP: ${leakIp}` : "No WebRTC IP leak detected",
+      result: !webRtcProbe.verified
+        ? "unknown"
+        : webRtcProbe.leakIp
+          ? "warn"
+          : "ok",
+      note: !webRtcProbe.verified
+        ? "WebRTC status unknown — the STUN probe did not complete"
+        : webRtcProbe.leakIp
+          ? `Leaks local IP: ${webRtcProbe.leakIp}`
+          : "No WebRTC IP leak detected",
     });
-    if (!leakIp) s += 20;
+    if (webRtcProbe.verified && !webRtcProbe.leakIp) s += 20;
 
-    // 4 — Tor (20 pts — informational)
-    let isTor = false;
-    try {
-      const tr = await fetch("https://check.torproject.org/api/ip", {
-        signal: AbortSignal.timeout(4000),
-      });
-      const td = await tr.json();
-      isTor = !!td.IsTor;
-    } catch (_) {}
+    // 4 — Tor (informational; excluded from the score)
     updateCheck("tor", {
-      result: "ok",
-      note: isTor
-        ? "Tor exit node detected — high anonymity"
-        : "Not routed through Tor",
+      result: "unknown",
+      note: "Tor status not queried — Nexus does not send your browser IP to Tor Project",
     });
-    s += 20;
 
-    setScore(s);
+    setScore(Math.round((s / 80) * 100));
     setRunning(false);
   }
 
@@ -247,7 +258,8 @@ export default function OpsecPanel() {
               marginTop: "2px",
             }}
           >
-            All checks run locally — nothing leaves your browser
+            Runs in this browser. WebRTC contacts Google STUN; Tor status is not
+            sent to Tor Project.
           </div>
         </div>
         <button

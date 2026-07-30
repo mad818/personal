@@ -1,0 +1,4 @@
+interface:
+  display_name: "Context Engineering"
+  short_description: "Load only authoritative task context and evidence."
+  default_prompt: "Use $context-engineering to assemble the smallest authoritative context pack for this task."

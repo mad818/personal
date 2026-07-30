@@ -46,8 +46,16 @@ export async function GET() {
     return NextResponse.json(await getLocalAccelerationStatus());
   } catch {
     return NextResponse.json({
-      turboVec: { enabled: false, available: false, error: "Status unavailable." },
-      turboQuant: { enabled: false, available: false, error: "Status unavailable." },
+      turboVec: {
+        enabled: false,
+        available: false,
+        error: "Status unavailable.",
+      },
+      turboQuant: {
+        enabled: false,
+        available: false,
+        error: "Status unavailable.",
+      },
     });
   }
 }
@@ -58,32 +66,42 @@ export async function POST(req: NextRequest) {
     const operation = typeof body.operation === "string" ? body.operation : "";
 
     if (operation === "turbovec.search") {
-      const matches = await turboVecSearch((body.input ?? {}) as TurboVecSearchInput);
+      const matches = await turboVecSearch(
+        (body.input ?? {}) as TurboVecSearchInput,
+      );
       return NextResponse.json({ matches });
     }
     if (operation === "turbovec.upsert") {
       const result = await turboVecUpsert(
-        Array.isArray(body.documents) ? (body.documents as TurboVecDocument[]) : [],
+        Array.isArray(body.documents)
+          ? (body.documents as TurboVecDocument[])
+          : [],
       );
       return NextResponse.json({ result });
     }
     if (operation === "turbovec.remove") {
       const result = await turboVecRemove(
         Array.isArray(body.ids)
-          ? body.ids.filter((value): value is string => typeof value === "string")
+          ? body.ids.filter(
+              (value): value is string => typeof value === "string",
+            )
           : [],
       );
       return NextResponse.json({ result });
     }
     if (operation.startsWith("turbovec.")) {
-      const control = operation.slice("turbovec.".length) as TurboVecControlOperation;
+      const control = operation.slice(
+        "turbovec.".length,
+      ) as TurboVecControlOperation;
       if (!TURBOVEC_CONTROLS.has(control)) {
         return errorResponse("Unknown TurboVec control operation.", 400);
       }
       return NextResponse.json({ result: await turboVecControl(control) });
     }
     if (operation.startsWith("turboquant.")) {
-      const control = operation.slice("turboquant.".length) as TurboQuantControlOperation;
+      const control = operation.slice(
+        "turboquant.".length,
+      ) as TurboQuantControlOperation;
       if (!TURBOQUANT_CONTROLS.has(control)) {
         return errorResponse("Unknown TurboQuant control operation.", 400);
       }
@@ -95,7 +113,10 @@ export async function POST(req: NextRequest) {
         control !== "stats" &&
         confirmation !== TURBOQUANT_EXEC_CONFIRMATION
       ) {
-        return errorResponse("TurboQuant command confirmation is required.", 409);
+        return errorResponse(
+          "TurboQuant command confirmation is required.",
+          409,
+        );
       }
       return NextResponse.json({
         result: await turboQuantControl(control, { confirmation }),

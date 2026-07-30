@@ -43,7 +43,7 @@ export function inferEvidenceStrength(input: {
   sourceCount?: number | null;
   inferred?: boolean;
   sourceType?: ResearchSourceType | null;
-}) : EvidenceStrength {
+}): EvidenceStrength {
   if (input.inferred) return "unverified";
   if ((input.citationCount ?? 0) > 0 || (input.sourceCount ?? 0) > 1) {
     return "synthesis-ready";
@@ -56,7 +56,10 @@ export function inferEvidenceStrength(input: {
   ) {
     return "source-backed";
   }
-  if (input.sourceType === "repo-memory" || input.sourceType === "memory-spine") {
+  if (
+    input.sourceType === "repo-memory" ||
+    input.sourceType === "memory-spine"
+  ) {
     return "contextual";
   }
   return "unverified";

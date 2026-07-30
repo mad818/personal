@@ -5,7 +5,11 @@ export type DispatchState = { from: AgentId; to: AgentId } | null;
 export type OfficeCameraPreset = "cinematic" | "closeOps" | "wallReadability";
 export type OfficeVfxQuality = "off" | "low" | "high";
 export type WallFrontTone = "steady" | "warning" | "critical";
-export type OfficeMissionState = "standby" | "routing" | "handoff" | "executing";
+export type OfficeMissionState =
+  | "standby"
+  | "routing"
+  | "handoff"
+  | "executing";
 export type OfficeTimeOfDay = "morning" | "afternoon" | "night";
 
 export const CAMERA_PRESETS: Record<

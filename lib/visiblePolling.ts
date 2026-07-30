@@ -119,7 +119,10 @@ export function createVisiblePollingCoordinator(
           cleanups: [],
           inFlight: false,
           internetRequired,
-          intervalId: environment.setInterval(() => execute(entry!), intervalMs),
+          intervalId: environment.setInterval(
+            () => execute(entry!),
+            intervalMs,
+          ),
           intervalMs,
         };
         entry.cleanups.push(
@@ -162,7 +165,9 @@ export function createVisiblePollingCoordinator(
 
 const visiblePollingCoordinator = createVisiblePollingCoordinator();
 
-export function subscribeVisiblePolling(subscription: VisiblePollingSubscription) {
+export function subscribeVisiblePolling(
+  subscription: VisiblePollingSubscription,
+) {
   return visiblePollingCoordinator.subscribe(subscription);
 }
 

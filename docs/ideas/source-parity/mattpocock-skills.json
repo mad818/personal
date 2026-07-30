@@ -2,45 +2,208 @@
   "schemaVersion": 1,
   "id": "mattpocock-skills",
   "name": "mattpocock/skills",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/mattpocock/skills",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-1.1.0-2026-07-26",
+    "reviewedAt": "2026-07-26",
     "license": "MIT",
     "primaryEvidence": [
-      "https://github.com/mattpocock/skills",
-      "https://github.com/mattpocock/skills/blob/main/README.md"
+      "https://github.com/mattpocock/skills/blob/main/README.md",
+      "https://github.com/mattpocock/skills/blob/main/package.json",
+      "https://github.com/mattpocock/skills/blob/main/LICENSE",
+      "https://github.com/mattpocock/skills/pull/505"
     ]
   },
   "capabilities": [
     {
-      "id": "typescript-skill-taxonomy",
-      "title": "Practical TypeScript skill taxonomy: narrowing, generics, inference, branded types, patterns",
-      "sourceEvidence": "mattpocock/skills: curated real-engineer TypeScript skill progression",
-      "disposition": "pending",
-      "reason": "Nexus TypeScript follows standard Next.js/React patterns; a structured skill taxonomy for ORBIT TypeScript discipline is not yet documented."
+      "id": "skill-ask-matt",
+      "title": "Route an explicit request to the correct engineering or productivity workflow",
+      "sourceEvidence": "README user-invoked ask-matt skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/ask-matt/SKILL.md"]
     },
     {
-      "id": "exercise-based-skill-validation",
-      "title": "Exercise-based skill validation: each skill has a failing test that passes when mastered",
-      "sourceEvidence": "mattpocock/skills: test-gated exercises prove skill acquisition",
-      "disposition": "pending",
-      "reason": "Nexus uses tsc --noEmit and lint as gates; exercise-based skill proof system not implemented."
+      "id": "skill-grill-with-docs",
+      "title": "Interview while aligning domain language and proposing context or ADR updates",
+      "sourceEvidence": "README user-invoked grill-with-docs skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/grill-with-docs/SKILL.md"]
     },
     {
-      "id": "progressive-skill-paths",
-      "title": "Progressive skill paths: beginner → intermediate → advanced with dependencies",
-      "sourceEvidence": "mattpocock/skills: skill graph with prerequisite dependencies",
-      "disposition": "pending",
-      "reason": "Nexus agent skills are flat; progressive skill paths with prerequisites not yet structured."
+      "id": "skill-triage",
+      "title": "Classify issues through an explicit local-first triage state machine",
+      "sourceEvidence": "README user-invoked triage skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/triage/SKILL.md"]
     },
     {
-      "id": "real-world-pattern-library",
-      "title": "Real-world pattern library: common TypeScript patterns extracted from production codebases",
-      "sourceEvidence": "mattpocock/skills: patterns from real production TypeScript at scale",
-      "disposition": "pending",
-      "reason": "Nexus ORBIT uses standard patterns; a curated reference library of production TypeScript patterns is not yet assembled."
+      "id": "skill-improve-codebase-architecture",
+      "title": "Find architecture improvement candidates and present evidence before selection",
+      "sourceEvidence": "README user-invoked improve-codebase-architecture skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/improve-codebase-architecture/SKILL.md"]
+    },
+    {
+      "id": "skill-setup-matt-pocock-skills",
+      "title": "Inspect and align repository workflow conventions without overwriting authority",
+      "sourceEvidence": "README user-invoked setup-matt-pocock-skills skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/setup-matt-pocock-skills/SKILL.md"]
+    },
+    {
+      "id": "skill-to-spec",
+      "title": "Synthesize approved context into a repository-native specification",
+      "sourceEvidence": "README user-invoked to-spec skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/to-spec/SKILL.md"]
+    },
+    {
+      "id": "skill-to-tickets",
+      "title": "Break approved plans into tracer-bullet tasks with dependency edges",
+      "sourceEvidence": "README user-invoked to-tickets skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/to-tickets/SKILL.md"]
+    },
+    {
+      "id": "skill-implement",
+      "title": "Implement an approved spec through incremental TDD and two-axis review",
+      "sourceEvidence": "README user-invoked implement skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/implement/SKILL.md"]
+    },
+    {
+      "id": "skill-wayfinder",
+      "title": "Decompose work larger than one session into bounded investigation tasks",
+      "sourceEvidence": "README user-invoked wayfinder skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/wayfinder/SKILL.md"]
+    },
+    {
+      "id": "skill-grill-me",
+      "title": "Interview the operator until a decision tree is sufficiently resolved",
+      "sourceEvidence": "README user-invoked grill-me skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/grill-me/SKILL.md"]
+    },
+    {
+      "id": "skill-handoff",
+      "title": "Capture a bounded conversation handoff without replacing repository truth",
+      "sourceEvidence": "README user-invoked handoff skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/handoff/SKILL.md"]
+    },
+    {
+      "id": "skill-teach",
+      "title": "Teach a concept interactively against the learner's current understanding",
+      "sourceEvidence": "README user-invoked teach skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/teach/SKILL.md"]
+    },
+    {
+      "id": "skill-writing-great-skills",
+      "title": "Design and validate concise triggerable project skills",
+      "sourceEvidence": "README user-invoked writing-great-skills skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/writing-great-skills/SKILL.md"]
+    },
+    {
+      "id": "skill-prototype",
+      "title": "Build and retire a disposable experiment that answers one design question",
+      "sourceEvidence": "README model-invoked prototype skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/prototype/SKILL.md"]
+    },
+    {
+      "id": "skill-diagnosing-bugs",
+      "title": "Diagnose bugs through reproduction, minimization, hypotheses, instrumentation, and regression proof",
+      "sourceEvidence": "README model-invoked diagnosing-bugs skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/production-engineering/debugging-and-error-recovery/SKILL.md"]
+    },
+    {
+      "id": "skill-research",
+      "title": "Use primary sources and preserve cited repository evidence",
+      "sourceEvidence": "README model-invoked research skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/production-engineering/source-driven-development/SKILL.md"]
+    },
+    {
+      "id": "skill-tdd",
+      "title": "Drive one vertical slice through red, green, and refactor",
+      "sourceEvidence": "README model-invoked tdd skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/production-engineering/test-driven-development/SKILL.md"]
+    },
+    {
+      "id": "skill-domain-modeling",
+      "title": "Test domain terms against examples, code, and boundary cases",
+      "sourceEvidence": "README model-invoked domain-modeling skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/domain-modeling/SKILL.md"]
+    },
+    {
+      "id": "skill-codebase-design",
+      "title": "Apply deep-module, interface, seam, and testability vocabulary",
+      "sourceEvidence": "README model-invoked codebase-design skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/production-engineering/api-and-interface-design/SKILL.md"]
+    },
+    {
+      "id": "skill-code-review",
+      "title": "Review changes independently against engineering standards and the originating specification",
+      "sourceEvidence": "README model-invoked code-review skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/production-engineering/code-review-and-quality/SKILL.md"]
+    },
+    {
+      "id": "skill-resolving-merge-conflicts",
+      "title": "Resolve active merge conflicts hunk by hunk from both sides' intent",
+      "sourceEvidence": "README model-invoked resolving-merge-conflicts skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/mattpocock-engineering/resolving-merge-conflicts/SKILL.md"]
+    },
+    {
+      "id": "skill-grilling",
+      "title": "Apply a reusable decision-tree interview discipline",
+      "sourceEvidence": "README model-invoked grilling skill",
+      "disposition": "adapted",
+      "proof": ["docs/ideas/skills/production-engineering/interview-me/SKILL.md"]
+    },
+    {
+      "id": "user-and-model-invocation-layers",
+      "title": "Separate explicit orchestration entrypoints from model-invoked reusable disciplines",
+      "sourceEvidence": "README reference invocation model",
+      "disposition": "adapted",
+      "proof": [
+        "scripts/validate-matt-pocock-engineering-flows.mjs",
+        "docs/ideas/skills/mattpocock-engineering/ask-matt/agents/openai.yaml",
+        "docs/ideas/skills/mattpocock-engineering/prototype/agents/openai.yaml"
+      ]
+    },
+    {
+      "id": "cross-host-installer",
+      "title": "Install selected skills into supported coding-agent hosts",
+      "sourceEvidence": "README Quickstart installer",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus keeps reviewed project skills tracked inside the repository and does not mutate global host configuration from project verification."
+    },
+    {
+      "id": "claude-plugin-distribution",
+      "title": "Distribute the upstream pack through Claude plugin marketplace metadata",
+      "sourceEvidence": "README Claude Code plugin installation",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus is adapting workflow contracts for its project, not redistributing the upstream plugin or reviving legacy Claude authority."
+    },
+    {
+      "id": "historical-setup-ts-deep-modules",
+      "title": "Install dependency-cruiser and impose a TypeScript deep-module architecture",
+      "sourceEvidence": "Merged PR #505, absent from the current README skill catalog",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "The experimental contribution is not one of the current 22 routed skills, and Nexus already enforces architecture, cycles, test boundaries, and reachability without adding this dependency or restructuring the codebase."
     }
   ]
 }

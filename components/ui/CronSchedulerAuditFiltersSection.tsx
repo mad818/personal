@@ -26,9 +26,19 @@ export default function CronSchedulerAuditFiltersSection({
 }: Props) {
   return (
     <>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexWrap: "wrap",
+        }}
+      >
         {SCHEDULER_AUDIT_FILTER_PRESETS.map((preset) => {
-          const active = areSchedulerAuditFiltersEqual(auditFilters, preset.filters);
+          const active = areSchedulerAuditFiltersEqual(
+            auditFilters,
+            preset.filters,
+          );
           return (
             <button
               key={preset.id}
@@ -52,8 +62,16 @@ export default function CronSchedulerAuditFiltersSection({
           );
         })}
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexWrap: "wrap",
+        }}
+      >
         <select
+          aria-label="Scheduler audit lane"
           value={auditFilters.lane}
           onChange={(event) =>
             onSetAuditFilters((current) => ({
@@ -76,6 +94,7 @@ export default function CronSchedulerAuditFiltersSection({
           <option value="provider_native_batch">Provider-native batch</option>
         </select>
         <select
+          aria-label="Scheduler audit outcome"
           value={auditFilters.status}
           onChange={(event) =>
             onSetAuditFilters((current) => ({
@@ -97,6 +116,7 @@ export default function CronSchedulerAuditFiltersSection({
           <option value="error">Errors only</option>
         </select>
         <select
+          aria-label="Scheduler audit time window"
           value={auditFilters.window}
           onChange={(event) =>
             onSetAuditFilters((current) => ({
@@ -120,7 +140,9 @@ export default function CronSchedulerAuditFiltersSection({
         {hasActiveAuditFilters ? (
           <button
             type="button"
-            onClick={() => onSetAuditFilters({ ...DEFAULT_SCHEDULER_AUDIT_FILTERS })}
+            onClick={() =>
+              onSetAuditFilters({ ...DEFAULT_SCHEDULER_AUDIT_FILTERS })
+            }
             style={{
               borderRadius: 6,
               border: "1px solid rgba(79,110,247,.3)",
@@ -137,7 +159,9 @@ export default function CronSchedulerAuditFiltersSection({
         ) : null}
       </div>
       {auditMsg ? (
-        <div style={{ color: "#9fb7ff", fontSize: 10 }}>{auditMsg}</div>
+        <div role="status" style={{ color: "#9fb7ff", fontSize: 10 }}>
+          {auditMsg}
+        </div>
       ) : null}
     </>
   );

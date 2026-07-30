@@ -20,12 +20,13 @@
       "sourceEvidence": "AlphaEvolve-style search loops with benchmark-gated promotion",
       "disposition": "adapted",
       "proof": [
-        "lib/evolutionImprover.ts",
-        "components/ui/EvolutionImproverActions.tsx",
-        "components/ui/RuntimeEvalTrend.tsx",
-        "scripts/validate-openevolve-assimilation.mjs"
+        "lib/runtimeExperimentContracts.ts",
+        "lib/runtimeExperimentLedger.ts",
+        "app/api/metrics/runtime-experiments/route.ts",
+        "components/skills/BlacksiteLab.tsx",
+        "scripts/check-runtime-experiment-review-runtime.mjs"
       ],
-      "adaptationNotes": "Bounded to existing runtime experiment lane; no autonomous self-modifying production runtime."
+      "reason": "The reachable Blacksite ledger now records keep, reject, or defer with an operator rationale. Keep is benchmark-gated to clean candidate wins and records manual follow-up intent only; it never mutates or deploys runtime behavior."
     },
     {
       "id": "runtime-experiment-comparison",
@@ -35,7 +36,7 @@
       "proof": [
         "lib/runtimeExperimentContracts.ts",
         "lib/runtimeExperimentLedger.ts",
-        "scripts/validate-runtime-experiment-improver.mjs"
+        "components/ui/RuntimeEvalTrend.tsx"
       ]
     },
     {

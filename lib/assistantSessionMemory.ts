@@ -114,8 +114,7 @@ const REVERSE_ENGINEERING_RE =
   /\b(?:reverse engineering|reverse-engineering|binary|ghidra|strings|entropy|ioc|malware|sample)\b/i;
 const SECOND_BRAIN_RE =
   /\b(?:second brain|obsidian|heartbeat|moc|map of content|knowledge pack)\b/i;
-const SCHEDULER_RE =
-  /\b(?:scheduler|scheduled|cron|automation|job|jobs)\b/i;
+const SCHEDULER_RE = /\b(?:scheduler|scheduled|cron|automation|job|jobs)\b/i;
 const MEMORY_RE =
   /\b(?:memory|vault|archive|recall|remember|compiled page|citation|citations|sources?)\b/i;
 const STUDY_RE =
@@ -154,7 +153,10 @@ function getRoutePath(href: string | null | undefined) {
 }
 
 function normalizeFilePathPrefix(value: string) {
-  return value.replace(/\\/g, "/").replace(/^\.?\//, "").trim();
+  return value
+    .replace(/\\/g, "/")
+    .replace(/^\.?\//, "")
+    .trim();
 }
 
 function normalizeCorrectionSensitivity(
@@ -235,7 +237,9 @@ function normalizeOneCorrectionMemory(
       ? entry.provenance.createdAt
       : Date.now();
   return {
-    id: entry?.id?.trim() || `corr-${createdAt}-${Math.random().toString(36).slice(2, 8)}`,
+    id:
+      entry?.id?.trim() ||
+      `corr-${createdAt}-${Math.random().toString(36).slice(2, 8)}`,
     status: normalizeCorrectionStatus(entry?.status),
     scope: normalizeCorrectionScope(entry?.scope),
     content: {
@@ -261,11 +265,13 @@ function normalizeOneCorrectionMemory(
     sensitivity: normalizeCorrectionSensitivity(entry?.sensitivity),
     approvalStrength: clampApprovalStrength(entry?.approvalStrength),
     appliedCount:
-      typeof entry?.appliedCount === "number" && Number.isFinite(entry.appliedCount)
+      typeof entry?.appliedCount === "number" &&
+      Number.isFinite(entry.appliedCount)
         ? Math.max(0, Math.round(entry.appliedCount))
         : 0,
     lastAppliedAt:
-      typeof entry?.lastAppliedAt === "number" && Number.isFinite(entry.lastAppliedAt)
+      typeof entry?.lastAppliedAt === "number" &&
+      Number.isFinite(entry.lastAppliedAt)
         ? entry.lastAppliedAt
         : null,
   };
@@ -313,7 +319,8 @@ export function pruneCorrectionMemories(
   return Array.from(deduped.values())
     .sort((left, right) => {
       const statusDelta =
-        getCorrectionStatusRank(right.status) - getCorrectionStatusRank(left.status);
+        getCorrectionStatusRank(right.status) -
+        getCorrectionStatusRank(left.status);
       if (statusDelta !== 0) return statusDelta;
       const approvalDelta = right.approvalStrength - left.approvalStrength;
       if (approvalDelta !== 0) return approvalDelta;
@@ -346,9 +353,10 @@ export function rememberCorrectionMemory(
       archivedAt: meta.status === "archived" ? Date.now() : null,
     },
     sensitivity: meta.sensitivity ?? "internal",
-    approvalStrength: meta.status === "approved"
-      ? Math.max(2, clampApprovalStrength(meta.approvalStrength))
-      : clampApprovalStrength(meta.approvalStrength),
+    approvalStrength:
+      meta.status === "approved"
+        ? Math.max(2, clampApprovalStrength(meta.approvalStrength))
+        : clampApprovalStrength(meta.approvalStrength),
     appliedCount: 0,
     lastAppliedAt: null,
   });
@@ -364,7 +372,8 @@ export function rememberCorrectionMemory(
   const storedEntry =
     nextEntries.find((entry) => entry.id === nextEntry.id) ??
     nextEntries.find(
-      (entry) => buildCorrectionSignature(entry) === buildCorrectionSignature(nextEntry),
+      (entry) =>
+        buildCorrectionSignature(entry) === buildCorrectionSignature(nextEntry),
     ) ??
     null;
 
@@ -393,11 +402,11 @@ function updateCorrectionMemoryStatus(
         approvedAt:
           status === "approved"
             ? Date.now()
-            : entry.provenance.approvedAt ?? null,
+            : (entry.provenance.approvedAt ?? null),
         archivedAt:
           status === "archived"
             ? Date.now()
-            : entry.provenance.archivedAt ?? null,
+            : (entry.provenance.archivedAt ?? null),
       },
     };
   });
@@ -441,7 +450,9 @@ function getFilePathMatchScore(
   if (!filePath) return 0;
   const normalized = normalizeFilePathPrefix(filePath);
   if (!normalized) return 0;
-  if (entry.scope.filePathPrefixes.some((prefix) => normalized.startsWith(prefix))) {
+  if (
+    entry.scope.filePathPrefixes.some((prefix) => normalized.startsWith(prefix))
+  ) {
     return 28;
   }
   return 0;
@@ -462,10 +473,10 @@ function scoreCorrectionMemory(
 ) {
   const hasScopedFields = Boolean(
     entry.scope.routeSurface ||
-      entry.scope.agent ||
-      entry.scope.taskType ||
-      entry.scope.capability ||
-      entry.scope.filePathPrefixes.length,
+    entry.scope.agent ||
+    entry.scope.taskType ||
+    entry.scope.capability ||
+    entry.scope.filePathPrefixes.length,
   );
   let hasScopeMatch = false;
   let score = entry.approvalStrength * 8;
@@ -474,7 +485,8 @@ function scoreCorrectionMemory(
   if (
     options.routeSurface &&
     entry.scope.routeSurface &&
-    getRoutePath(entry.scope.routeSurface) === getRoutePath(options.routeSurface)
+    getRoutePath(entry.scope.routeSurface) ===
+      getRoutePath(options.routeSurface)
   ) {
     score += 24;
     hasScopeMatch = true;
@@ -569,7 +581,8 @@ function normalizeOneSession(
     intent: session.intent ?? "conversation",
     sourceQuery,
     lastUsedAt:
-      typeof session.lastUsedAt === "number" && Number.isFinite(session.lastUsedAt)
+      typeof session.lastUsedAt === "number" &&
+      Number.isFinite(session.lastUsedAt)
         ? session.lastUsedAt
         : Date.now(),
     confidence: clampConfidence(session.confidence),
@@ -626,7 +639,9 @@ export function rememberUnfinishedSession(
   }
 
   const next = pruneUnfinishedSessions(sessions).filter(
-    (session) => normalizeSessionHref(session.href) !== normalizeSessionHref(baseTarget.href),
+    (session) =>
+      normalizeSessionHref(session.href) !==
+      normalizeSessionHref(baseTarget.href),
   );
 
   next.unshift({
@@ -704,7 +719,8 @@ function scoreUnfinishedSession(
 
   if (
     SCHEDULER_RE.test(lowerInput) &&
-    (session.href.includes("hq-scheduler") || session.artifactClass === "scheduler")
+    (session.href.includes("hq-scheduler") ||
+      session.artifactClass === "scheduler")
   ) {
     score += 18;
   }

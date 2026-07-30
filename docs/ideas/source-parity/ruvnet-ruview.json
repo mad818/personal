@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "ruvnet-ruview",
   "name": "RuView",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/ruvnet/RuView",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "main-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MIT",
     "primaryEvidence": [
       "https://github.com/ruvnet/RuView",
@@ -18,15 +18,17 @@
       "id": "wifi-spatial-sensing",
       "title": "WiFi-based spatial sensing: use CSI (channel state information) data to infer room occupancy and motion",
       "sourceEvidence": "RuView: WiFi CSI sensing for passive indoor positioning without cameras",
-      "disposition": "pending",
-      "reason": "Nexus does not have an IoT sensor ingestion lane; WiFi spatial sensing is a candidate for ESPectre/IoT extension pending that lane's maturity."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Through-wall occupancy and vital-sign inference creates a high-risk surveillance and consent boundary and also requires hardware-specific CSI acquisition. It is not enabled by Nexus's general IoT visibility lane."
     },
     {
       "id": "passive-motion-detection",
       "title": "Passive motion detection without cameras using ambient WiFi signals",
       "sourceEvidence": "RuView passive detection: no active beacons required",
-      "disposition": "pending",
-      "reason": "IoT lane in Nexus is not yet implemented; passive motion detection via WiFi deferred."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Passive motion detection of people without cameras still requires informed consent, retention rules, access controls, and hardware calibration that Nexus does not provide."
     },
     {
       "id": "csi-data-pipeline",
@@ -40,8 +42,9 @@
       "id": "real-time-occupancy-dashboard",
       "title": "Real-time occupancy visualization dashboard",
       "sourceEvidence": "RuView dashboard: live room occupancy map from WiFi data",
-      "disposition": "pending",
-      "reason": "If IoT lane is implemented, real-time occupancy data could surface in COMMAND; deferred pending IoT lane."
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "A live occupancy dashboard would operationalize the excluded through-wall sensing pipeline and expose sensitive presence data; a generic IoT page is not sufficient authorization."
     }
   ]
 }

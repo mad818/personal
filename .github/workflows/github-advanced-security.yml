@@ -40,6 +40,7 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
+          config-file: ./.github/codeql/codeql-config.yml
 
       - name: Build JS/TS
         if: matrix.language == 'javascript-typescript'

@@ -47,7 +47,9 @@ export default function MemoryPalacePanel({
           compartment,
           limit: "3",
         });
-        const response = await apiFetch(`/api/memory/mine?${params.toString()}`);
+        const response = await apiFetch(
+          `/api/memory/mine?${params.toString()}`,
+        );
         if (!response.ok) return;
         const data = (await response.json()) as { mined?: MinedMemory[] };
         if (!cancelled) {
@@ -110,8 +112,12 @@ export default function MemoryPalacePanel({
             <ShellBadge tone="muted">{item.evidenceStrength}</ShellBadge>
             <ShellBadge tone="accent">{item.confidence}% match</ShellBadge>
           </div>
-          <div style={{ fontWeight: 700, color: "var(--text1)" }}>{item.title}</div>
-          <p className="nexus-shell-copy nexus-shell-copy--compact">{item.summary}</p>
+          <div style={{ fontWeight: 700, color: "var(--text1)" }}>
+            {item.title}
+          </div>
+          <p className="nexus-shell-copy nexus-shell-copy--compact">
+            {item.summary}
+          </p>
           {item.facts.length > 0 ? (
             <ul
               style={{

@@ -18,8 +18,11 @@ async function parseRSS(feedUrl: string): Promise<ConflictArticle[]> {
     headers: { "User-Agent": "Mozilla/5.0 (compatible; NexusBot/1.0)" },
     signal: AbortSignal.timeout(10000),
   });
-  if (!r.ok) return [];
+  if (!r.ok) throw new Error(`Conflict feed ${r.status}`);
   const xml = await r.text();
+  if (!/<(?:rss|feed)\b/i.test(xml)) {
+    throw new Error("Conflict feed returned an invalid document.");
+  }
 
   // Extract <item> blocks
   const re = /<item[^>]*>([\s\S]*?)<\/item>/g;
@@ -87,6 +90,19 @@ export async function GET() {
   ];
 
   const results = await Promise.allSettled(FEEDS.map(parseRSS));
+  const availableSources = results.filter(
+    (result) => result.status === "fulfilled",
+  ).length;
+
+  if (availableSources === 0) {
+    return NextResponse.json(
+      {
+        articles: [],
+        error: "Conflict news feeds are temporarily unavailable.",
+      },
+      { status: 502 },
+    );
+  }
 
   const seen = new Set<string>();
   const articles: ConflictArticle[] = [];

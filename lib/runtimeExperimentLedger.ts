@@ -1,13 +1,19 @@
 import { existsSync, mkdirSync, readFileSync } from "fs";
-import { writeFile } from "fs/promises";
+import { appendFile, writeFile } from "fs/promises";
+import { randomUUID } from "crypto";
 import { join } from "path";
 import type { InternalWorkbenchMeta } from "@/lib/assimilation/contracts";
 import { resolveRuntimeProjectRoot } from "@/lib/serverEnvRuntime";
 import {
   runtimeExperimentDefinitionSchema,
+  runtimeExperimentDecisionSchema,
   runtimeExperimentPayloadSchema,
   runtimeExperimentRunSchema,
+  buildRuntimeExperimentDecision,
+  evaluateRuntimeExperimentKeepGate,
   summarizeRuntimeExperiment,
+  type RuntimeExperimentDecision,
+  type RuntimeExperimentDecisionInput,
   type RuntimeExperimentDefinition,
   type RuntimeExperimentLatestSummary,
   type RuntimeExperimentPayload,
@@ -27,6 +33,10 @@ const RUNTIME_EXPERIMENT_HISTORY_FILE = join(
 const RUNTIME_EXPERIMENT_DEFINITIONS_FILE = join(
   METRICS_DIR,
   "runtime-experiment-definitions.json",
+);
+const RUNTIME_EXPERIMENT_DECISIONS_FILE = join(
+  METRICS_DIR,
+  "runtime-experiment-decisions.jsonl",
 );
 
 function ensureMetricsDir() {
@@ -58,6 +68,11 @@ function parseDefinition(input: unknown): RuntimeExperimentDefinition | null {
   return parsed.success ? parsed.data : null;
 }
 
+function parseDecision(input: unknown): RuntimeExperimentDecision | null {
+  const parsed = runtimeExperimentDecisionSchema.safeParse(input);
+  return parsed.success ? parsed.data : null;
+}
+
 export function readLatestRuntimeExperiment(): RuntimeExperimentRun | null {
   return readJsonFile(RUNTIME_EXPERIMENT_LATEST_FILE, parseRun);
 }
@@ -76,7 +91,9 @@ export function readRuntimeExperimentDefinitions(): RuntimeExperimentDefinition[
   }
 }
 
-export function readRuntimeExperimentHistory(limit = 20): RuntimeExperimentRun[] {
+export function readRuntimeExperimentHistory(
+  limit = 20,
+): RuntimeExperimentRun[] {
   if (!existsSync(RUNTIME_EXPERIMENT_HISTORY_FILE)) return [];
   try {
     return readFileSync(RUNTIME_EXPERIMENT_HISTORY_FILE, "utf-8")
@@ -96,6 +113,84 @@ export function readRuntimeExperimentHistory(limit = 20): RuntimeExperimentRun[]
   } catch {
     return [];
   }
+}
+
+export function readRuntimeExperimentDecisions(
+  limit = 60,
+): RuntimeExperimentDecision[] {
+  if (!existsSync(RUNTIME_EXPERIMENT_DECISIONS_FILE)) return [];
+  try {
+    return readFileSync(RUNTIME_EXPERIMENT_DECISIONS_FILE, "utf-8")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .slice(-Math.max(1, Math.min(240, limit)))
+      .map((line) => {
+        try {
+          return parseDecision(JSON.parse(line));
+        } catch {
+          return null;
+        }
+      })
+      .filter((entry): entry is RuntimeExperimentDecision => Boolean(entry))
+      .reverse();
+  } catch {
+    return [];
+  }
+}
+
+export function findRuntimeExperimentRun(
+  runId: string,
+): RuntimeExperimentRun | null {
+  const latest = readLatestRuntimeExperiment();
+  if (latest?.id === runId) return latest;
+  return (
+    readRuntimeExperimentHistory(120).find((run) => run.id === runId) ?? null
+  );
+}
+
+export type RecordRuntimeExperimentDecisionResult =
+  | { ok: true; decision: RuntimeExperimentDecision }
+  | {
+      ok: false;
+      status: 404 | 409;
+      error: string;
+      reasons?: string[];
+    };
+
+export async function recordRuntimeExperimentDecision(
+  input: RuntimeExperimentDecisionInput,
+): Promise<RecordRuntimeExperimentDecisionResult> {
+  const run = findRuntimeExperimentRun(input.runId);
+  if (!run) {
+    return {
+      ok: false,
+      status: 404,
+      error: "Runtime experiment run was not found.",
+    };
+  }
+
+  const gate = evaluateRuntimeExperimentKeepGate(run);
+  if (input.decision === "keep" && !gate.eligible) {
+    return {
+      ok: false,
+      status: 409,
+      error: "Benchmark gate blocked the keep decision.",
+      reasons: gate.reasons,
+    };
+  }
+
+  const decision = buildRuntimeExperimentDecision(run, input, {
+    id: `rtx-decision-${randomUUID()}`,
+    decidedAt: new Date().toISOString(),
+  });
+  ensureMetricsDir();
+  await appendFile(
+    RUNTIME_EXPERIMENT_DECISIONS_FILE,
+    `${JSON.stringify(decision)}\n`,
+    "utf-8",
+  );
+  return { ok: true, decision };
 }
 
 function upsertDefinition(
@@ -137,14 +232,21 @@ export async function recordRuntimeExperimentRun(
   );
 }
 
-export function readRuntimeExperimentPayload(limit = 20): RuntimeExperimentPayload {
+export function readRuntimeExperimentPayload(
+  limit = 20,
+): RuntimeExperimentPayload {
   const latest = readLatestRuntimeExperiment();
   const history = readRuntimeExperimentHistory(limit);
   const definitions = readRuntimeExperimentDefinitions();
+  const decisions = readRuntimeExperimentDecisions(Math.max(20, limit * 3));
   const payload = {
     latest,
     history,
     definitions,
+    decisions,
+    latestDecision: latest
+      ? (decisions.find((decision) => decision.runId === latest.id) ?? null)
+      : null,
     points: history.length,
     summary: summarizeRuntimeExperiment(latest),
   };
@@ -154,14 +256,14 @@ export function readRuntimeExperimentPayload(limit = 20): RuntimeExperimentPaylo
     latest: null,
     history: [],
     definitions: [],
+    decisions: [],
+    latestDecision: null,
     points: 0,
     summary: null,
   };
 }
 
-export function readLatestRuntimeExperimentSummary():
-  | RuntimeExperimentLatestSummary
-  | null {
+export function readLatestRuntimeExperimentSummary(): RuntimeExperimentLatestSummary | null {
   return summarizeRuntimeExperiment(readLatestRuntimeExperiment());
 }
 
@@ -177,6 +279,7 @@ export function buildRuntimeExperimentWorkbenchMeta(): InternalWorkbenchMeta {
     },
     warnings: [
       "Variants never auto-promote into the live runtime.",
+      "Keep records an operator-approved candidate for manual follow-up; it does not mutate or deploy runtime behavior.",
       "Comparison uses the existing runtime eval as baseline truth plus deterministic variant deltas.",
     ],
     timestamp: Date.now(),

@@ -1,0 +1,3 @@
+Before responding to any request about this source analysis, read REPO_CONTEXT.md.
+It contains the full context: stack, architecture, file map, plans, and the defensive-only integration boundary.
+Use it as the ground truth for this source-analysis folder.

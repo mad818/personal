@@ -23,9 +23,7 @@ function readSensors() {
     sensorState.set(simulated.sensorId, simulated);
   }
   return Array.from(sensorState.values()).map((sensor) =>
-    sensor.simulated
-      ? createSimulatedEspectreTelemetry()
-      : sensor,
+    sensor.simulated ? createSimulatedEspectreTelemetry() : sensor,
   );
 }
 

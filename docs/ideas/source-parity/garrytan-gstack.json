@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "id": "garrytan-gstack",
+  "name": "gstack",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/garrytan/gstack",
+    "version": "main reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/garrytan/gstack",
+      "https://github.com/garrytan/gstack/blob/main/README.md",
+      "https://github.com/garrytan/gstack/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "gated-product-sprint",
+      "title": "Discovery through plan, build, review, QA, ship, and retrospective",
+      "sourceEvidence": "README sprint sequence and chained role workflows",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/using-agent-skills/SKILL.md",
+        "docs/ideas/repo-analysis/garrytan-gstack/REPO_CONTEXT.md"
+      ],
+      "adaptationNotes": "Nexus selects the smallest applicable phases and keeps specs, tasks, proof, handoff, and git history project-owned."
+    },
+    {
+      "id": "product-engineering-design-review",
+      "title": "Product, engineering, design, DX, code, and security challenge reviews",
+      "sourceEvidence": "README role inventory for office hours and plan/review specialists",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/spec-driven-development/SKILL.md",
+        "docs/ideas/skills/production-engineering/frontend-ui-engineering/SKILL.md",
+        "docs/ideas/skills/production-engineering/code-review-and-quality/SKILL.md",
+        "docs/ideas/skills/production-engineering/security-and-hardening/SKILL.md"
+      ]
+    },
+    {
+      "id": "browser-qa-evidence",
+      "title": "Real-browser QA with evidence before shipping",
+      "sourceEvidence": "README QA and design-review workflows",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/browser-testing-with-devtools/SKILL.md"
+      ]
+    },
+    {
+      "id": "host-install-and-team-updater",
+      "title": "Host installer, shared-repo bootstrap, and silent auto-update",
+      "sourceEvidence": "README setup and team-mode installation sections",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus owns its project skills and instruction authority; this review does not authorize host mutation or an upstream auto-updater."
+    },
+    {
+      "id": "cookie-deploy-and-external-actions",
+      "title": "Browser cookie setup, deployment setup, landing, and external shipping actions",
+      "sourceEvidence": "Repository browse, setup-browser-cookies, setup-deploy, land-and-deploy, and ship surfaces",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Credential/session import and external deployment require separate named authority and cannot be inherited from source assimilation."
+    },
+    {
+      "id": "automatic-specialist-spawning",
+      "title": "Automatic role and subagent spawning",
+      "sourceEvidence": "README virtual-team and OpenClaw dispatch behavior",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus workflows supply procedure but do not grant automatic subagent authority."
+    }
+  ]
+}

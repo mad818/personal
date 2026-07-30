@@ -11,6 +11,8 @@ import {
   getConfiguredNexusToken,
   getNexusSessionState,
   getNexusStepUpState,
+  isNexusPhoneTokenConfigured,
+  resolveConfiguredLoginToken,
   NEXUS_SESSION_COOKIE,
   NEXUS_STEP_UP_COOKIE,
   setNexusSessionCookie,
@@ -78,6 +80,7 @@ export async function GET(req: NextRequest) {
   const response = NextResponse.json({
     ok: true,
     authEnabled,
+    phoneTokenConfigured: isNexusPhoneTokenConfigured(),
     authenticated: authEnabled ? Boolean(sessionState) : true,
     stepUpActive: authEnabled ? Boolean(stepUpState) : true,
     sessionAgeSeconds: sessionState?.ageSeconds ?? null,
@@ -124,7 +127,10 @@ export async function POST(req: NextRequest) {
       return response;
     }
 
-    const rawBody = (await req.json()) as { token?: unknown; elevate?: unknown };
+    const rawBody = (await req.json()) as {
+      token?: unknown;
+      elevate?: unknown;
+    };
     const token =
       typeof rawBody.token === "string"
         ? normalizeTokenCandidate(rawBody.token)
@@ -144,24 +150,46 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!serverToken || !token || token !== serverToken) {
+    const login = resolveConfiguredLoginToken(token);
+    if (!login.ok || !token) {
       const active =
         prev && now <= prev.resetAt
           ? { count: prev.count + 1, resetAt: prev.resetAt }
           : { count: 1, resetAt: now + WINDOW_MS };
       TOKEN_ATTEMPTS.set(clientId, active);
       const response = tokenJson(
-        { ok: false, code: "invalid_token", retryable: false, error: "Invalid token" },
+        {
+          ok: false,
+          code: "invalid_token",
+          retryable: false,
+          error: "Invalid token",
+        },
         401,
       );
       clearNexusSessionCookie(response);
       return response;
     }
 
+    if (elevate && login.tier === "phone") {
+      return tokenJson(
+        {
+          ok: false,
+          code: "bad_request",
+          retryable: false,
+          error:
+            "Phone token sessions cannot step up. Log in with NEXUS_TOKEN for protected actions.",
+        },
+        403,
+      );
+    }
+
     TOKEN_ATTEMPTS.delete(clientId);
     const sessionCookie = req.cookies.get(NEXUS_SESSION_COOKIE)?.value ?? "";
     const existingSession = await getNexusSessionState(sessionCookie);
-    const session = existingSession ?? (await createNexusSession());
+    const session =
+      existingSession && existingSession.authTier === login.tier
+        ? existingSession
+        : await createNexusSession(login.tier);
     if (!session) {
       return tokenJson(
         {
@@ -189,7 +217,12 @@ export async function POST(req: NextRequest) {
     return response;
   } catch {
     return tokenJson(
-      { ok: false, code: "bad_request", retryable: false, error: "Bad request" },
+      {
+        ok: false,
+        code: "bad_request",
+        retryable: false,
+        error: "Bad request",
+      },
       400,
     );
   }

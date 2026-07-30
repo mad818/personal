@@ -1,0 +1,4 @@
+interface:
+  display_name: "Observability And Instrumentation"
+  short_description: "Add bounded diagnostic evidence without private data."
+  default_prompt: "Use $observability-and-instrumentation to add privacy-safe evidence for this Nexus behavior."

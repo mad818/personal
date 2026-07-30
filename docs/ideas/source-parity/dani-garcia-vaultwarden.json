@@ -2,15 +2,18 @@
   "schemaVersion": 1,
   "id": "dani-garcia-vaultwarden",
   "name": "Vaultwarden",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/dani-garcia/vaultwarden",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "1.36.0-main-2026-07-26",
+    "reviewedAt": "2026-07-26",
     "license": "AGPL-3.0",
     "primaryEvidence": [
       "https://github.com/dani-garcia/vaultwarden",
-      "https://github.com/dani-garcia/vaultwarden/blob/main/README.md"
+      "https://github.com/dani-garcia/vaultwarden/releases",
+      "https://github.com/dani-garcia/vaultwarden/blob/main/LICENSE.txt",
+      "https://bitwarden.com/help/kdf-algorithms/",
+      "https://bitwarden.com/help/bitwarden-security-white-paper/"
     ]
   },
   "capabilities": [
@@ -25,9 +28,16 @@
     {
       "id": "end-to-end-client-encryption",
       "title": "End-to-end client-side encryption before vault sync",
-      "sourceEvidence": "Bitwarden/Vaultwarden: data encrypted client-side with PBKDF2 before leaving device",
-      "disposition": "pending",
-      "reason": "Nexus VAULT could adapt client-side encryption patterns for sensitive data stored in VAULT tab; crypto model reference pending."
+      "sourceEvidence": "Vaultwarden supplies a compatible server while encryption is performed by official clients; current Bitwarden documentation records PBKDF2 HMAC-SHA-256 at 600,000 client iterations as the default/minimum PBKDF2 work factor.",
+      "disposition": "adapted",
+      "reason": "Nexus implements an original, browser-local sealed-notes envelope with PBKDF2-SHA-256, AES-GCM-256, strict validation, fresh salt and IV per seal, manual and automatic locking, full note mutation, passphrase change, and encrypted import/export. It is intentionally not Bitwarden-compatible or a synced end-to-end vault.",
+      "proof": [
+        "lib/sealedVault.ts",
+        "components/vault/SealedVaultPanel.tsx",
+        "app/vault/page.tsx",
+        "scripts/validate-sealed-vault.mjs",
+        "scripts/check-sealed-vault-runtime.mjs"
+      ]
     },
     {
       "id": "self-hosted-password-server",

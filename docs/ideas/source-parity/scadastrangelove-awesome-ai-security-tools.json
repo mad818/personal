@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "scadastrangelove-awesome-ai-security-tools",
+  "name": "Awesome AI Security Tools",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/scadastrangelove/awesome-ai-security-tools",
+    "version": "main catalog snapshot reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "CC0-1.0 for the list; linked projects retain their own licenses",
+    "primaryEvidence": [
+      "https://github.com/scadastrangelove/awesome-ai-security-tools",
+      "https://github.com/scadastrangelove/awesome-ai-security-tools/blob/main/README.md",
+      "https://github.com/scadastrangelove/awesome-ai-security-tools/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "security-tool-taxonomy",
+      "title": "Taxonomy of AI-security and AI-assisted cybersecurity tool families",
+      "sourceEvidence": "README contents and category sections",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/repo-analysis/scadastrangelove-awesome-ai-security-tools/REPO_CONTEXT.md",
+        "docs/ideas/skills/production-engineering/security-and-hardening/SKILL.md"
+      ],
+      "adaptationNotes": "The catalog is review-first CYBER evidence, not an executable toolbox."
+    },
+    {
+      "id": "license-access-maturity-caveats",
+      "title": "Per-source license, access, maturity, model-artifact, and caution flags",
+      "sourceEvidence": "README legend, structured fields, flags, and contribution schema",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/review-external-agent-skill/SKILL.md"
+      ]
+    },
+    {
+      "id": "dated-source-freshness",
+      "title": "Dated repository metrics and explicit refresh-before-release discipline",
+      "sourceEvidence": "README catalog snapshot and metrics refresh guidance",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/source-driven-development/SKILL.md"
+      ]
+    },
+    {
+      "id": "agent-skill-security-review",
+      "title": "Security review of coding-agent skills, plugins, MCP manifests, hooks, and runtimes",
+      "sourceEvidence": "README AI Agent and Coding-Agent Security category",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/review-external-agent-skill/SKILL.md",
+        "docs/ideas/skills/production-engineering/security-and-hardening/SKILL.md",
+        "scripts/validate-skill-capabilities.mjs"
+      ]
+    },
+    {
+      "id": "catalog-tool-installation",
+      "title": "Install or connect cataloged scanners, models, SOC tools, MCP servers, and agents",
+      "sourceEvidence": "README linked project inventory",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Catalog inclusion is not a trust verdict; every linked project requires a separate current source, license, dependency, and authority review."
+    },
+    {
+      "id": "offensive-testing-and-autonomy",
+      "title": "Pentest, exploit, fuzzing, red-team, bug-bounty, credential, and autonomous security action",
+      "sourceEvidence": "README offensive, fuzzing, CTF, red-team, and related categories",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "This tranche authorizes defensive source curation only, not testing third parties or granting offensive tool authority."
+    },
+    {
+      "id": "catalog-metrics-ingestion",
+      "title": "Import and continuously refresh the upstream catalog inside Nexus",
+      "sourceEvidence": "README structured data and update script workflow",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "A static reviewed source link supplies the benefit without a duplicate feed, scheduled network job, or stale shadow database."
+    }
+  ]
+}

@@ -6,8 +6,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useStore } from "@/store/useStore";
-import { sanitizeHtml } from "@/lib/security/sanitizeHtml";
+import {
+  reconLookupErrorMessage,
+  requestReconLookup,
+} from "@/lib/reconLookupContract";
+import { htmlToPlainText } from "@/lib/security/textSafety";
 
 // ── types ─────────────────────────────────────────────────────────────────────
 type TargetType =
@@ -34,6 +37,44 @@ type PanelKey =
 
 type PanelState = Record<PanelKey, string>;
 type LoadingMap = Record<PanelKey, boolean>;
+
+interface GeoLookupResponse {
+  error?: boolean | string;
+  reason?: string;
+  ip?: string;
+  city?: string;
+  region?: string;
+  country_name?: string;
+  country_code?: string;
+  org?: string;
+  asn?: string;
+  timezone?: string;
+}
+
+interface VirusTotalAttributes {
+  last_analysis_stats?: Record<string, number>;
+  reputation?: number;
+  last_analysis_date?: number;
+  registrar?: string;
+  country?: string;
+  last_analysis_results?: Record<string, { category: string; result?: string }>;
+}
+
+interface ShodanLookupResponse {
+  org?: string;
+  country_name?: string;
+  city?: string;
+  isp?: string;
+  asn?: string;
+  os?: string;
+  vulns?: string[];
+  data?: {
+    port?: number;
+    transport?: string;
+    product?: string;
+    _shodan?: { module?: string };
+  }[];
+}
 
 const EMPTY_PANELS: PanelState = {
   rdap: "",
@@ -97,17 +138,20 @@ function badge(text: string, color: string): string {
   return `<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:${color}22;color:${color}">${esc(text)}</span>`;
 }
 
+function lookupFailure(error: unknown, provider?: string): string {
+  return `<span style="color:var(--flo)">${esc(reconLookupErrorMessage(error, provider))}</span>`;
+}
+
 // ── free fetch functions ──────────────────────────────────────────────────────
 
 async function fetchRdapDomain(domain: string): Promise<string> {
   try {
-    const r = await fetch(
-      `https://rdap.org/domain/${encodeURIComponent(domain)}`,
-    );
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
+    const d = await requestReconLookup<Record<string, unknown>>({
+      operation: "rdap_domain",
+      target: domain,
+    });
     const rows: [string, string][] = [];
-    if (d.ldhName) rows.push(["Domain", esc(d.ldhName)]);
+    if (typeof d.ldhName === "string") rows.push(["Domain", esc(d.ldhName)]);
     if (d.status)
       rows.push(["Status", (d.status as string[]).map(esc).join(", ")]);
     const ns = ((d.nameservers || []) as { ldhName?: string }[])
@@ -133,19 +177,20 @@ async function fetchRdapDomain(domain: string): Promise<string> {
     if (exp) rows.push(["Expires", esc(exp.eventDate?.slice(0, 10) ?? "")]);
     return table(rows) || '<span style="color:var(--text3)">No data</span>';
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return lookupFailure(e, "RDAP");
   }
 }
 
 async function fetchRdapIp(ip: string): Promise<string> {
   try {
-    const r = await fetch(`https://rdap.org/ip/${encodeURIComponent(ip)}`);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
+    const d = await requestReconLookup<Record<string, unknown>>({
+      operation: "rdap_ip",
+      target: ip,
+    });
     const rows: [string, string][] = [];
-    if (d.name) rows.push(["Name", esc(d.name)]);
-    if (d.type) rows.push(["Type", esc(d.type)]);
-    if (d.handle) rows.push(["Handle", esc(d.handle)]);
+    if (typeof d.name === "string") rows.push(["Name", esc(d.name)]);
+    if (typeof d.type === "string") rows.push(["Type", esc(d.type)]);
+    if (typeof d.handle === "string") rows.push(["Handle", esc(d.handle)]);
     const cidr = (
       (d.cidr0CIDRs || []) as {
         v4prefix?: string;
@@ -154,7 +199,7 @@ async function fetchRdapIp(ip: string): Promise<string> {
       }[]
     ).map((c) => `${c.v4prefix ?? c.v6prefix}/${c.length}`);
     if (cidr.length) rows.push(["CIDR", esc(cidr[0])]);
-    if (d.country) rows.push(["Country", esc(d.country)]);
+    if (typeof d.country === "string") rows.push(["Country", esc(d.country)]);
     const org = (
       d.entities as { roles?: string[]; vcardArray?: unknown[][] }[]
     )?.find((e) => e.roles?.includes("registrant"));
@@ -164,51 +209,43 @@ async function fetchRdapIp(ip: string): Promise<string> {
     }
     return table(rows) || '<span style="color:var(--text3)">No data</span>';
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return lookupFailure(e, "RDAP");
   }
 }
 
 async function fetchDns(domain: string): Promise<string> {
   try {
     const types = ["A", "MX", "NS", "TXT"] as const;
-    const results = await Promise.allSettled(
-      types.map((t) =>
-        fetch(
-          `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=${t}`,
-        ).then((r) => r.json()),
-      ),
-    );
+    const results = await requestReconLookup<
+      Record<(typeof types)[number], { Answer?: { data: string }[] } | null>
+    >({ operation: "dns_records", target: domain });
     let html = "";
-    types.forEach((type, i) => {
-      const res = results[i];
-      if (
-        res.status === "fulfilled" &&
-        (res.value as { Answer?: { data: string }[] }).Answer?.length
-      ) {
+    types.forEach((type) => {
+      const result = results[type];
+      if (result?.Answer?.length) {
         html += `<div style="font-size:10px;font-weight:700;color:var(--accent);margin:6px 0 2px">${type}</div>`;
-        (res.value as { Answer: { data: string }[] }).Answer.forEach((a) => {
+        result.Answer.forEach((a) => {
           html += `<div style="font-size:11px;color:var(--text);word-break:break-all;padding:1px 0">${esc(String(a.data ?? ""))}</div>`;
         });
       }
     });
     return html || '<span style="color:var(--text3)">No records found</span>';
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return lookupFailure(e, "DNS");
   }
 }
 
 async function fetchCerts(domain: string): Promise<string> {
   try {
-    const r = await fetch(
-      `https://crt.sh/?q=${encodeURIComponent(domain)}&output=json`,
-    );
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const data: {
       common_name?: string;
       not_before?: string;
       not_after?: string;
       issuer_name?: string;
-    }[] = await r.json();
+    }[] = await requestReconLookup({
+      operation: "certificates",
+      target: domain,
+    });
     const seen = new Set<string>();
     const uniq = data
       .filter((c) => {
@@ -236,17 +273,18 @@ async function fetchCerts(domain: string): Promise<string> {
       html += `<div style="font-size:10px;color:var(--text3);margin-top:6px">+${data.length - 12} more — see crt.sh</div>`;
     return html;
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return lookupFailure(e, "Certificate transparency");
   }
 }
 
 async function fetchIpGeo(ip: string): Promise<string> {
   try {
-    const r = await fetch(`https://ipapi.co/${encodeURIComponent(ip)}/json/`);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
+    const d = await requestReconLookup<GeoLookupResponse>({
+      operation: "ip_geo",
+      target: ip,
+    });
     if (d.error)
-      return `<span style="color:var(--flo)">${esc(d.reason ?? d.error)}</span>`;
+      return `<span style="color:var(--flo)">${esc(String(d.reason ?? d.error))}</span>`;
     const rows: [string, string][] = [
       ["IP", esc(d.ip ?? ip)],
       ["City", esc(d.city ?? "—")],
@@ -261,33 +299,46 @@ async function fetchIpGeo(ip: string): Promise<string> {
     ];
     return table(rows);
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return lookupFailure(e, "IP geolocation");
   }
 }
 
 async function fetchDomainGeo(domain: string): Promise<string> {
   try {
-    const rr = await fetch(
-      `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`,
-    );
-    const dd = await rr.json();
-    const ip: string = dd.Answer?.[0]?.data;
-    if (!ip)
+    const result = await requestReconLookup<{
+      ip: string | null;
+      geo: GeoLookupResponse | null;
+    }>({ operation: "domain_geo", target: domain });
+    if (!result.ip || !result.geo)
       return '<span style="color:var(--text3)">Could not resolve domain to IP</span>';
-    return fetchIpGeo(ip);
+    const d = result.geo;
+    if (d.error)
+      return `<span style="color:var(--flo)">${esc(String(d.reason ?? d.error))}</span>`;
+    return table([
+      ["IP", esc(String(d.ip ?? result.ip))],
+      ["City", esc(String(d.city ?? "—"))],
+      ["Region", esc(String(d.region ?? "—"))],
+      [
+        "Country",
+        esc(
+          `${String(d.country_name ?? "")} ${String(d.country_code ?? "")}`.trim(),
+        ),
+      ],
+      ["Org", esc(String(d.org ?? "—"))],
+      ["ASN", esc(String(d.asn ?? "—"))],
+      ["Timezone", esc(String(d.timezone ?? "—"))],
+    ]);
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return lookupFailure(e, "Domain geolocation");
   }
 }
 
 async function fetchSubdomains(domain: string): Promise<string> {
   try {
-    // HackerTarget free tier — no key needed
-    const r = await fetch(
-      `https://api.hackertarget.com/hostsearch/?q=${encodeURIComponent(domain)}`,
-    );
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const text = await r.text();
+    const text = await requestReconLookup<string>({
+      operation: "subdomains",
+      target: domain,
+    });
     if (text.includes("API count exceeded") || text.includes("error")) {
       return '<span style="color:var(--text3)">HackerTarget free limit reached — try again later</span>';
     }
@@ -306,42 +357,24 @@ async function fetchSubdomains(domain: string): Promise<string> {
       html += `<div style="font-size:10px;color:var(--text3);margin-top:4px">Showing first 40 — more may exist</div>`;
     return html;
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return lookupFailure(e, "HackerTarget");
   }
 }
 
 async function fetchDnsSecurity(domain: string): Promise<string> {
   try {
-    const [spfRes, dmarcRes, dkimRes] = await Promise.allSettled([
-      fetch(
-        `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=TXT`,
-      ).then((r) => r.json()),
-      fetch(
-        `https://dns.google/resolve?name=_dmarc.${encodeURIComponent(domain)}&type=TXT`,
-      ).then((r) => r.json()),
-      fetch(
-        `https://dns.google/resolve?name=default._domainkey.${encodeURIComponent(domain)}&type=TXT`,
-      ).then((r) => r.json()),
-    ]);
-
-    const spfRecords =
-      spfRes.status === "fulfilled"
-        ? (
-            (spfRes.value as { Answer?: { data: string }[] }).Answer ?? []
-          ).filter((a) => a.data.includes("v=spf1"))
-        : [];
-    const dmarcRecords =
-      dmarcRes.status === "fulfilled"
-        ? (
-            (dmarcRes.value as { Answer?: { data: string }[] }).Answer ?? []
-          ).filter((a) => a.data.includes("v=DMARC1"))
-        : [];
-    const dkimRecords =
-      dkimRes.status === "fulfilled"
-        ? (
-            (dkimRes.value as { Answer?: { data: string }[] }).Answer ?? []
-          ).filter((a) => a.data.includes("v=DKIM1"))
-        : [];
+    const result = await requestReconLookup<
+      Record<"spf" | "dmarc" | "dkim", { Answer?: { data: string }[] } | null>
+    >({ operation: "dns_security", target: domain });
+    const spfRecords = (result.spf?.Answer ?? []).filter((a) =>
+      a.data.includes("v=spf1"),
+    );
+    const dmarcRecords = (result.dmarc?.Answer ?? []).filter((a) =>
+      a.data.includes("v=DMARC1"),
+    );
+    const dkimRecords = (result.dkim?.Answer ?? []).filter((a) =>
+      a.data.includes("v=DKIM1"),
+    );
 
     const hasSPF = spfRecords.length > 0;
     const hasDMARC = dmarcRecords.length > 0;
@@ -378,18 +411,30 @@ async function fetchDnsSecurity(domain: string): Promise<string> {
       )
     );
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return lookupFailure(e, "DNS security");
   }
 }
 
 async function fetchEmailRep(email: string): Promise<string> {
   try {
-    // emailrep.io — free, no key for basic lookups
-    const r = await fetch(`https://emailrep.io/${encodeURIComponent(email)}`, {
-      headers: { "User-Agent": "Nexus-Prime" },
+    const d = await requestReconLookup<{
+      email?: string;
+      reputation?: string;
+      suspicious?: boolean;
+      references?: number;
+      details?: {
+        blacklisted?: boolean;
+        malicious_activity?: boolean;
+        credentials_leaked?: boolean;
+        spam?: boolean;
+        data_breach?: boolean;
+        days_since_domain_creation?: number;
+        profiles?: string[];
+      };
+    }>({
+      operation: "email_reputation",
+      target: email,
     });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
     const riskCol = d.suspicious ? "#ef4444" : "#10b981";
     const rows: [string, string][] = [
       ["Email", esc(d.email ?? email)],
@@ -421,29 +466,22 @@ async function fetchEmailRep(email: string): Promise<string> {
       ]);
     return table(rows);
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return lookupFailure(e, "Email reputation");
   }
 }
 
 async function fetchUsername(username: string): Promise<string> {
   try {
-    // GitHub public API — no key needed
-    const [ghRes, gravatarRes] = await Promise.allSettled([
-      fetch(
-        `https://api.github.com/users/${encodeURIComponent(username)}`,
-      ).then((r) => r.json()),
-      fetch(
-        `https://www.gravatar.com/${encodeURIComponent(username)}.json`,
-      ).then((r) => r.json()),
-    ]);
+    const result = await requestReconLookup<{
+      github: Record<string, unknown> | null;
+      gravatar: { entry?: Record<string, unknown>[] } | null;
+      partial: boolean;
+    }>({ operation: "username", target: username });
 
     let html = "";
 
-    if (
-      ghRes.status === "fulfilled" &&
-      (ghRes.value as { login?: string }).login
-    ) {
-      const g = ghRes.value as Record<string, unknown>;
+    if (result.github && typeof result.github.login === "string") {
+      const g = result.github;
       html += `<div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:6px">GitHub</div>`;
       const rows: [string, string][] = [
         ["Login", esc(String(g.login ?? ""))],
@@ -461,12 +499,8 @@ async function fetchUsername(username: string): Promise<string> {
       html += `<div style="color:var(--text3);font-size:11px">No GitHub profile found for "${esc(username)}"</div>`;
     }
 
-    if (
-      gravatarRes.status === "fulfilled" &&
-      (gravatarRes.value as { entry?: unknown[] }).entry?.length
-    ) {
-      const entry = (gravatarRes.value as { entry: Record<string, unknown>[] })
-        .entry[0];
+    if (result.gravatar?.entry?.length) {
+      const entry = result.gravatar.entry[0];
       html += `<div style="font-size:10px;font-weight:700;color:var(--accent);margin:10px 0 6px">Gravatar</div>`;
       const gRows: [string, string][] = [];
       if (entry.displayName)
@@ -481,27 +515,22 @@ async function fetchUsername(username: string): Promise<string> {
       if (gRows.length) html += table(gRows);
     }
 
+    if (result.partial) {
+      html +=
+        '<div style="color:var(--text3);font-size:10px;margin-top:6px">One profile source is temporarily unavailable.</div>';
+    }
     return (
       html || '<span style="color:var(--text3)">No public profiles found</span>'
     );
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return lookupFailure(e, "Profile discovery");
   }
 }
 
 // ── BYOK fetch functions ──────────────────────────────────────────────────────
 
-async function fetchHibp(email: string, key: string): Promise<string> {
-  if (!key)
-    return '<span style="color:var(--text3)">Add HIBP key in Settings to check breaches</span>';
+async function fetchHibp(email: string): Promise<string> {
   try {
-    const r = await fetch(
-      `https://haveibeenpwned.com/api/v3/breachedaccount/${encodeURIComponent(email)}?truncateResponse=false`,
-      { headers: { "hibp-api-key": key, "User-Agent": "Nexus-Prime" } },
-    );
-    if (r.status === 404)
-      return '<span style="color:var(--fhi)">✅ No breaches found</span>';
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const breaches: {
       Name?: string;
       Title?: string;
@@ -509,7 +538,9 @@ async function fetchHibp(email: string, key: string): Promise<string> {
       DataClasses?: string[];
       IsSensitive?: boolean;
       IsVerified?: boolean;
-    }[] = await r.json();
+    }[] = await requestReconLookup({ operation: "hibp", target: email });
+    if (!breaches.length)
+      return '<span style="color:var(--fhi)">✅ No breaches found</span>';
     let html = `<div style="font-weight:700;color:var(--flo);margin-bottom:6px">${breaches.length} breach${breaches.length !== 1 ? "es" : ""} found</div>`;
     breaches.forEach((b) => {
       const col = b.IsSensitive
@@ -525,30 +556,20 @@ async function fetchHibp(email: string, key: string): Promise<string> {
     });
     return html;
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return lookupFailure(e, "HIBP");
   }
 }
 
 async function fetchVirusTotal(
   target: string,
   type: Exclude<TargetType, "auto">,
-  key: string,
 ): Promise<string> {
-  if (!key)
-    return '<span style="color:var(--text3)">Add VirusTotal key in Settings</span>';
   try {
-    let endpoint = "";
-    if (type === "hash")
-      endpoint = `https://www.virustotal.com/api/v3/files/${encodeURIComponent(target)}`;
-    else if (type === "ip")
-      endpoint = `https://www.virustotal.com/api/v3/ip_addresses/${encodeURIComponent(target)}`;
-    else {
-      const dom = type === "url" ? new URL(target).hostname : target;
-      endpoint = `https://www.virustotal.com/api/v3/domains/${encodeURIComponent(dom)}`;
-    }
-    const r = await fetch(endpoint, { headers: { "x-apikey": key } });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
+    const targetType =
+      type === "hash" || type === "ip" || type === "url" ? type : "domain";
+    const d = await requestReconLookup<{
+      data?: { attributes?: VirusTotalAttributes };
+    }>({ operation: "virustotal", target, targetType });
     const stats = d.data?.attributes?.last_analysis_stats ?? {};
     const total = (Object.values(stats) as number[]).reduce(
       (a, b) => a + (b ?? 0),
@@ -594,19 +615,16 @@ async function fetchVirusTotal(
     }
     return html;
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return lookupFailure(e, "VirusTotal");
   }
 }
 
-async function fetchShodan(ip: string, key: string): Promise<string> {
-  if (!key)
-    return '<span style="color:var(--text3)">Add Shodan key in Settings</span>';
+async function fetchShodan(ip: string): Promise<string> {
   try {
-    const r = await fetch(
-      `https://api.shodan.io/shodan/host/${encodeURIComponent(ip)}?key=${encodeURIComponent(key)}`,
-    );
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
+    const d = await requestReconLookup<ShodanLookupResponse>({
+      operation: "shodan",
+      target: ip,
+    });
     const rows: [string, string][] = [];
     if (d.org) rows.push(["Org", esc(d.org)]);
     if (d.country_name) rows.push(["Country", esc(d.country_name)]);
@@ -614,46 +632,25 @@ async function fetchShodan(ip: string, key: string): Promise<string> {
     if (d.isp) rows.push(["ISP", esc(d.isp)]);
     if (d.asn) rows.push(["ASN", esc(d.asn)]);
     if (d.os) rows.push(["OS", esc(d.os)]);
-    if ((d.vulns as string[])?.length)
-      rows.push([
-        "CVEs",
-        (d.vulns as string[]).slice(0, 5).map(esc).join(", "),
-      ]);
+    if (d.vulns?.length)
+      rows.push(["CVEs", d.vulns.slice(0, 5).map(esc).join(", ")]);
     let html = table(rows);
-    if (
-      (
-        d.data as {
-          port?: number;
-          transport?: string;
-          product?: string;
-          _shodan?: { module?: string };
-        }[]
-      )?.length
-    ) {
+    if (d.data?.length) {
       html += '<div style="margin-top:8px;font-size:11px">';
-      (
-        d.data as {
-          port?: number;
-          transport?: string;
-          product?: string;
-          _shodan?: { module?: string };
-        }[]
-      )
-        .slice(0, 10)
-        .forEach((svc) => {
-          html += `<div style="display:flex;gap:8px;padding:2px 0;border-bottom:1px solid var(--border)">
+      d.data.slice(0, 10).forEach((svc) => {
+        html += `<div style="display:flex;gap:8px;padding:2px 0;border-bottom:1px solid var(--border)">
           <span style="color:var(--accent);font-weight:700;min-width:40px">${esc(String(svc.port ?? ""))}</span>
           <span style="color:var(--text3)">${esc(svc.transport ?? "tcp")}</span>
           <span style="color:var(--text)">${esc((svc.product ?? svc._shodan?.module ?? "").slice(0, 40))}</span>
         </div>`;
-        });
-      if ((d.data as unknown[]).length > 10)
-        html += `<div style="color:var(--text3);margin-top:4px;font-size:10px">+${(d.data as unknown[]).length - 10} more ports</div>`;
+      });
+      if (d.data.length > 10)
+        html += `<div style="color:var(--text3);margin-top:4px;font-size:10px">+${d.data.length - 10} more ports</div>`;
       html += "</div>";
     }
     return html;
   } catch (e) {
-    return `<span style="color:var(--flo)">${esc(String(e))}</span>`;
+    return lookupFailure(e, "Shodan");
   }
 }
 
@@ -715,7 +712,7 @@ function Panel({
       {loading ? (
         <div style={{ color: "var(--text3)", fontSize: "11px" }}>Scanning…</div>
       ) : content ? (
-        <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
+        <div style={{ whiteSpace: "pre-wrap" }}>{htmlToPlainText(content)}</div>
       ) : (
         <div style={{ color: "var(--text3)", fontSize: "11px" }}>—</div>
       )}
@@ -746,8 +743,6 @@ function Category({ label }: { label: string }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function ReconLookup() {
-  const settings = useStore((s) => s.settings);
-
   const [target, setTarget] = useState("");
   const [typeVal, setTypeVal] = useState<TargetType>("auto");
   const [loading, setLoading] = useState(false);
@@ -824,7 +819,7 @@ export default function ReconLookup() {
     // ── Email lookups ───────────────────────────────────────────────────────
     if (isEmail) {
       tasks.push(fetchEmailRep(raw).then((v) => set("emailrep", v)));
-      tasks.push(fetchHibp(raw, settings.hibpKey).then((v) => set("hibp", v)));
+      tasks.push(fetchHibp(raw).then((v) => set("hibp", v)));
     } else {
       placeholder("emailrep", "Email targets only");
       placeholder("hibp", "Email targets only");
@@ -840,8 +835,9 @@ export default function ReconLookup() {
 
     // ── VirusTotal ──────────────────────────────────────────────────────────
     if (domain || ip || isHash || isUrl) {
+      const virusTotalTarget = isEmail && domain ? domain : raw;
       tasks.push(
-        fetchVirusTotal(raw, resolvedType, settings.vtKey).then((v) =>
+        fetchVirusTotal(virusTotalTarget, resolvedType).then((v) =>
           set("vt", v),
         ),
       );
@@ -851,9 +847,7 @@ export default function ReconLookup() {
 
     // ── Shodan ──────────────────────────────────────────────────────────────
     if (ip) {
-      tasks.push(
-        fetchShodan(ip, settings.shodanKey).then((v) => set("shodan", v)),
-      );
+      tasks.push(fetchShodan(ip).then((v) => set("shodan", v)));
     } else {
       placeholder("shodan", "IP targets only");
     }
@@ -904,6 +898,7 @@ export default function ReconLookup() {
         }}
       >
         <input
+          aria-label="Recon target"
           style={{ ...INPUT, flex: 1, minWidth: "200px" }}
           placeholder="Domain · IP · Email · Hash · URL · Username"
           value={target}
@@ -913,6 +908,7 @@ export default function ReconLookup() {
           }}
         />
         <select
+          aria-label="Recon target type"
           style={{ ...INPUT, width: "auto", cursor: "pointer" }}
           value={typeVal}
           onChange={(e) => setTypeVal(e.target.value as TargetType)}
@@ -1032,9 +1028,9 @@ export default function ReconLookup() {
       </div>
 
       <p style={{ fontSize: "10px", color: "var(--text3)", marginTop: "12px" }}>
-        Free — no key needed: RDAP · DNS · crt.sh · ipapi.co · HackerTarget ·
-        emailrep.io · GitHub · dns.google (SPF/DMARC/DKIM). BYOK (optional):
-        Have I Been Pwned · VirusTotal · Shodan — add in ⚙️ Settings.
+        All lookups are proxied through the protected Nexus server boundary.
+        Free providers need no key; optional HIBP, VirusTotal, and Shodan keys
+        stay server-side and can be added in ⚙️ Settings.
       </p>
     </div>
   );

@@ -40,6 +40,7 @@ export const MISSION_TEMPLATES: Array<{
   reentrySummary: string;
   expiryHours: number;
   prompt: string;
+  cron?: string;
 }> = [
   {
     id: "brief",
@@ -88,6 +89,32 @@ export const MISSION_TEMPLATES: Array<{
     expiryHours: 24,
     prompt:
       "Review the newest compiled pages, saved clips, route-less artifacts, untagged pages, and linked-context drift. Return a second-brain heartbeat with the strongest new insight, weak archive seams, and the next exact repair actions to file into VAULT.",
+  },
+  {
+    id: "second-brain-night-shift",
+    label: "Second brain night shift",
+    outputTarget: "review",
+    approvalPolicy: "human_gate",
+    scope: "Private source-locked refinery staging only",
+    reentrySummary:
+      "Review the staged atoms, source traces, links, and friction in VAULT before approving or rejecting the proposal.",
+    expiryHours: 24,
+    cron: "0 3 * * *",
+    prompt:
+      "Prepare the next bounded second-brain refinery proposal from unprocessed local Markdown. Stop at the desk review gate; do not promote permanent notes.",
+  },
+  {
+    id: "second-brain-weekly-audit",
+    label: "Second brain weekly audit",
+    outputTarget: "vault",
+    approvalPolicy: "observe",
+    scope: "Report-only integrity audit of the private Markdown vault",
+    reentrySummary:
+      "Review missing sources, orphans, stale tentative notes, unresolved friction, stale threads, and pending decisions.",
+    expiryHours: 72,
+    cron: "0 22 * * 0",
+    prompt:
+      "Run the report-only second-brain integrity audit. Do not repair, rewrite, or promote any note.",
   },
 ];
 

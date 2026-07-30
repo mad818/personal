@@ -63,12 +63,14 @@ export const AI_HARDENING_COVERAGE: AIHardeningCoverageItem[] = [
       {
         label: "Open runtime focus",
         href: "/command?focus=runtime-efficiency",
-        detail: "Keep runtime and prompt-quality posture visible while hardening AI outputs.",
+        detail:
+          "Keep runtime and prompt-quality posture visible while hardening AI outputs.",
       },
       {
         label: "Open impact",
         href: "/resources?view=impact&file=components/command/AIBriefing.tsx",
-        detail: "Trace adjacent helpers and likely touched callers before editing.",
+        detail:
+          "Trace adjacent helpers and likely touched callers before editing.",
       },
     ],
   },
@@ -107,7 +109,8 @@ export const AI_HARDENING_COVERAGE: AIHardeningCoverageItem[] = [
       {
         label: "Open ALPHA",
         href: "/alpha",
-        detail: "Inspect live trade rationale rendering and saved-signal history.",
+        detail:
+          "Inspect live trade rationale rendering and saved-signal history.",
       },
       {
         label: "Open impact",
@@ -151,17 +154,20 @@ export const AI_HARDENING_COVERAGE: AIHardeningCoverageItem[] = [
       {
         label: "Open HQ chronicle",
         href: "/hq?focus=hq-chronicle",
-        detail: "Inspect the main answer surface with visible evidence posture in place.",
+        detail:
+          "Inspect the main answer surface with visible evidence posture in place.",
       },
       {
         label: "Open hallucination playbook",
         href: "/resources?view=playbooks&playbook=hallucination-hardening",
-        detail: "Run the shared workflow before widening visible evidence posture into HQ replies.",
+        detail:
+          "Run the shared workflow before widening visible evidence posture into HQ replies.",
       },
       {
         label: "Open impact",
         href: "/resources?view=impact&file=components/home/office/HQTerminalSection.tsx",
-        detail: "Inspect the local blast radius around HQ chronicle rendering before changing it.",
+        detail:
+          "Inspect the local blast radius around HQ chronicle rendering before changing it.",
       },
     ],
   },
@@ -170,5 +176,7 @@ export const AI_HARDENING_COVERAGE: AIHardeningCoverageItem[] = [
 export function getAIHardeningCoverageStatusLabel(
   status: AIHardeningCoverageStatus,
 ) {
-  return status === "visible_evidence" ? "Visible evidence posture" : "Boundary only";
+  return status === "visible_evidence"
+    ? "Visible evidence posture"
+    : "Boundary only";
 }

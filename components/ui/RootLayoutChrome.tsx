@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect } from "react";
+import { useEffect, type MouseEvent } from "react";
 import {
   usePathname,
   useSearchParams,
@@ -25,8 +25,12 @@ import {
   getCinematicIASurfaceForPath,
   isGACinematicSurface,
 } from "@/lib/cinematicIA";
+import { BRAND_NAME, getSurfaceBranding } from "@/lib/brand";
 import { getDefaultEntrypoint } from "@/lib/releaseMatrix";
 import ShellBackgroundServices from "@/components/ui/ShellBackgroundServices";
+import PhonePostureSync from "@/components/ui/PhonePostureSync";
+import HqOperatorLayoutSync from "@/components/ui/HqOperatorLayoutSync";
+import LocalUsageTracker from "@/components/ui/LocalUsageTracker";
 
 const CommandBar = dynamic(() => import("@/components/ui/CommandBar"), {
   ssr: false,
@@ -45,6 +49,36 @@ type RootLayoutChromeProps = {
   children: React.ReactNode;
   initiallyAuthed: boolean;
 };
+
+function SkipToMainContent() {
+  const focusMainContent = (event: MouseEvent<HTMLAnchorElement>) => {
+    const main = document.getElementById("nexus-main-content");
+    if (!main) return;
+    event.preventDefault();
+    main.focus({ preventScroll: true });
+    main.scrollIntoView({ block: "start" });
+    window.history.replaceState(null, "", "#nexus-main-content");
+  };
+
+  return (
+    <a
+      className="nexus-skip-link"
+      data-testid="nexus-skip-link"
+      href="#nexus-main-content"
+      onClick={focusMainContent}
+    >
+      Skip to main content
+    </a>
+  );
+}
+
+function RouteAnnouncement({ label }: { label: string }) {
+  return (
+    <p aria-atomic="true" aria-live="polite" className="sr-only" role="status">
+      {label}
+    </p>
+  );
+}
 
 function LandingAccessRedirect({
   pathname,
@@ -65,6 +99,9 @@ function LandingAccessRedirect({
 
   return (
     <main
+      id="nexus-main-content"
+      tabIndex={-1}
+      aria-label="Homefront access redirect"
       className="homefront-landing min-h-screen bg-black text-white"
       data-testid="landing-access-redirect"
       style={{
@@ -89,26 +126,53 @@ export default function RootLayoutChrome({
   const currentSearch = searchParams.toString();
   const isPublicLanding =
     pathname === "/" || (pathname == null && segments.length === 0);
+  const cinematicSurface = getCinematicIASurfaceForPath(pathname);
+  const routeBranding = getSurfaceBranding(cinematicSurface.surface);
+
+  useEffect(() => {
+    const nextTitle = isPublicLanding
+      ? BRAND_NAME
+      : `${routeBranding.visibleLabel} · ${BRAND_NAME}`;
+    if (document.title !== nextTitle) document.title = nextTitle;
+  }, [isPublicLanding, routeBranding.visibleLabel]);
 
   if (isPublicLanding) {
-    return <>{children}</>;
+    return (
+      <>
+        <SkipToMainContent />
+        <RouteAnnouncement label="Homefront landing loaded" />
+        {children}
+      </>
+    );
   }
 
   if (!initiallyAuthed) {
-    return <LandingAccessRedirect pathname={pathname} search={currentSearch} />;
+    return (
+      <>
+        <SkipToMainContent />
+        <RouteAnnouncement label="Opening Homefront access" />
+        <LandingAccessRedirect pathname={pathname} search={currentSearch} />
+      </>
+    );
   }
 
-  const cinematicSurface = getCinematicIASurfaceForPath(pathname);
   const isGaSurface = isGACinematicSurface(cinematicSurface.surface);
 
   return (
     <>
       <ParticleBackground />
+      <PhonePostureSync />
+      <HqOperatorLayoutSync />
       <AuthGate initiallyAuthed={initiallyAuthed}>
+        <LocalUsageTracker />
         <RuntimePolicyCookieSync />
         <ShellHydrationBeacon />
         <ToastContainer>
           <ErrorBoundary label="RootLayout">
+            <SkipToMainContent />
+            <RouteAnnouncement
+              label={`${routeBranding.visibleLabel} workspace loaded`}
+            />
             <Nav />
             <UIRulesEvaluator />
             <DynamicAlerts />
@@ -116,6 +180,9 @@ export default function RootLayoutChrome({
             <PreparedWorkspaceAutoHeal />
             <ShellHealthGuard />
             <main
+              id="nexus-main-content"
+              tabIndex={-1}
+              aria-label={`${routeBranding.visibleLabel} workspace`}
               className="nexus-root-main"
               data-cinematic-ia={CINEMATIC_IA_VERSION}
               data-cinematic-surface={cinematicSurface.surface}

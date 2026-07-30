@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  AGENT_HOME,
-  AGENT_MEETING,
-  AGENT_PEEK,
-} from "./constants";
+import { AGENT_HOME, AGENT_MEETING, AGENT_PEEK } from "./constants";
 import type { AgentId } from "./types";
 import { HQ_WORKFLOW_PROMPTS } from "./workflowCommands";
 import type { StrategiumFront, StrategiumPrompt } from "./HQStrategiumDeck";
@@ -164,7 +160,10 @@ export function formatRelativeTime(ts: number): string {
 }
 
 export function humanizePhase(value: string) {
-  return value.replace(/([A-Z])/g, " $1").replace(/_/g, " ").trim();
+  return value
+    .replace(/([A-Z])/g, " $1")
+    .replace(/_/g, " ")
+    .trim();
 }
 
 export function frontToneScore(tone: StrategiumFront["tone"]) {

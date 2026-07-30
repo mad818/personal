@@ -140,9 +140,11 @@ export async function GET() {
     ]);
 
     const merged = new Map<string, EarthquakeRecord>();
+    let successfulSources = 0;
 
     if (significantRes.status === "fulfilled" && significantRes.value.ok) {
       const data = (await significantRes.value.json()) as USGSGeoJSON;
+      successfulSources += 1;
       Array.from(extractEarthquakes(data)).forEach(([id, eq]) => {
         merged.set(id, eq);
       });
@@ -150,6 +152,7 @@ export async function GET() {
 
     if (recentRes.status === "fulfilled" && recentRes.value.ok) {
       const data = (await recentRes.value.json()) as USGSGeoJSON;
+      successfulSources += 1;
       Array.from(extractEarthquakes(data)).forEach(([id, eq]) => {
         if (!merged.has(id)) {
           merged.set(id, eq);
@@ -157,13 +160,13 @@ export async function GET() {
       });
     }
 
-    if (merged.size === 0) {
+    if (successfulSources === 0) {
       return NextResponse.json(
         {
-          error: "Both USGS feeds failed or returned no data",
+          error: "Earthquake feeds are temporarily unavailable.",
           earthquakes: [],
         },
-        { status: 200 },
+        { status: 502 },
       );
     }
 
@@ -180,11 +183,13 @@ export async function GET() {
       { count: earthquakes.length, earthquakes },
       { headers: { "Cache-Control": "public, max-age=300, s-maxage=300" } },
     );
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Unknown error";
+  } catch {
     return NextResponse.json(
-      { error: `Earthquake fetch failed: ${msg}`, earthquakes: [] },
-      { status: 500 },
+      {
+        error: "Earthquake feeds are temporarily unavailable.",
+        earthquakes: [],
+      },
+      { status: 502 },
     );
   }
 }

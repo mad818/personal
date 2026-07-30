@@ -41,4 +41,3 @@ export function getCloudInferenceStatusLabel(options: {
   if (options.configured) return "ready";
   return "needs key";
 }
-

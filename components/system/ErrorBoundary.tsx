@@ -8,7 +8,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  * NEXUS PRIME error boundary component.
  * Catches React render errors, logs them to the eventBus 'system:error' channel,
- * and displays a styled fallback UI matching the Sadie Sink rose/gold theme.
+ * and displays the shared Homefront route-recovery plane.
  * Includes a "Retry" button to unmount/remount children and attempt recovery.
  *
  * Usage:
@@ -18,7 +18,9 @@
  */
 
 import React, { Component, type ReactNode, type ErrorInfo } from "react";
+import RouteStatePanel from "@/components/ui/RouteStatePanel";
 import { eventBus } from "@/lib/eventBus";
+import { getDefaultEntrypoint } from "@/lib/releaseMatrix";
 
 // ── Props & State ──────────────────────────────────────────────────────────────
 interface Props {
@@ -99,185 +101,46 @@ function ErrorFallback({
   error: Error | null;
   onRetry: () => void;
 }): React.ReactElement {
-  const [expanded, setExpanded] = React.useState(false);
+  const debugDetail =
+    process.env.NODE_ENV !== "production" && error
+      ? [error.message, error.stack].filter(Boolean).join("\n\n")
+      : undefined;
 
   return (
-    <div
-      role="alert"
-      style={{
-        background: "var(--surf)",
-        border: "1px solid var(--accent)",
-        borderRadius: "var(--r)",
-        padding: "20px 24px",
-        margin: "8px",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Subtle accent glow strip */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "2px",
-          background:
-            "linear-gradient(90deg, var(--accent), var(--accent2), transparent)",
-        }}
-      />
-
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          marginBottom: "12px",
-        }}
-      >
-        <span
-          style={{
-            fontSize: "16px",
-            lineHeight: 1,
-          }}
-        >
-          ⚠
-        </span>
-        <div>
-          <div
-            style={{
-              color: "var(--accent)",
-              fontWeight: 600,
-              fontSize: "13px",
-              letterSpacing: ".02em",
-            }}
-          >
-            SYSTEM FAULT — {label.toUpperCase()}
-          </div>
-          <div
-            style={{
-              color: "var(--text2)",
-              fontSize: "11px",
-              marginTop: "2px",
-            }}
-          >
-            A render error was caught and logged to diagnostics.
-          </div>
-        </div>
-      </div>
-
-      {/* Error message */}
-      {error && (
-        <div
-          style={{
-            background: "var(--bg)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--rs)",
-            padding: "10px 12px",
-            marginBottom: "14px",
-            color: "var(--blush)",
-            fontSize: "12px",
-            fontFamily: "monospace",
-            wordBreak: "break-word",
-          }}
-        >
-          {error.message}
-        </div>
-      )}
-
-      {/* Stack trace toggle */}
-      {error?.stack && (
-        <div style={{ marginBottom: "14px" }}>
+    <RouteStatePanel
+      kind="error"
+      eyebrow={`Recovery / ${label}`}
+      title="Workspace interrupted"
+      description={`The ${label} surface stopped rendering. Retry it locally, reload the current route, or return to HQ.`}
+      announcement={`The ${label} Nexus surface encountered a render error`}
+      testId="root-error-boundary-state"
+      debugDetail={debugDetail}
+      actions={
+        <>
           <button
-            onClick={() => setExpanded((e) => !e)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--text2)",
-              fontSize: "11px",
-              cursor: "pointer",
-              padding: "0",
-              textDecoration: "underline",
-              textDecorationColor: "var(--border2)",
-            }}
+            type="button"
+            className="nexus-route-state__action nexus-route-state__action--primary"
+            onClick={onRetry}
           >
-            {expanded ? "▲ Hide stack trace" : "▼ Show stack trace"}
+            Retry surface
           </button>
-          {expanded && (
-            <pre
-              style={{
-                marginTop: "8px",
-                padding: "10px",
-                background: "var(--bg)",
-                border: "1px solid var(--border)",
-                borderRadius: "var(--rs)",
-                fontSize: "10px",
-                color: "var(--text3)",
-                overflowX: "auto",
-                maxHeight: "200px",
-                overflowY: "scroll",
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {error.stack}
-            </pre>
-          )}
-        </div>
-      )}
-
-      {/* Actions */}
-      <div style={{ display: "flex", gap: "8px" }}>
-        <button
-          onClick={onRetry}
-          style={{
-            background: "var(--accent)",
-            color: "var(--text)",
-            border: "none",
-            borderRadius: "var(--rs)",
-            padding: "7px 16px",
-            fontSize: "12px",
-            fontWeight: 600,
-            cursor: "pointer",
-            letterSpacing: ".04em",
-            transition: "opacity .15s",
-          }}
-          onMouseEnter={(e) =>
-            ((e.target as HTMLButtonElement).style.opacity = ".8")
-          }
-          onMouseLeave={(e) =>
-            ((e.target as HTMLButtonElement).style.opacity = "1")
-          }
-        >
-          RETRY
-        </button>
-        <button
-          onClick={() => window.location.reload()}
-          style={{
-            background: "var(--surf2)",
-            color: "var(--text2)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--rs)",
-            padding: "7px 16px",
-            fontSize: "12px",
-            fontWeight: 500,
-            cursor: "pointer",
-            letterSpacing: ".04em",
-            transition: "border-color .15s",
-          }}
-          onMouseEnter={(e) =>
-            ((e.target as HTMLButtonElement).style.borderColor =
-              "var(--border2)")
-          }
-          onMouseLeave={(e) =>
-            ((e.target as HTMLButtonElement).style.borderColor =
-              "var(--border)")
-          }
-        >
-          RELOAD PAGE
-        </button>
-      </div>
-    </div>
+          <button
+            type="button"
+            className="nexus-route-state__action"
+            onClick={() => window.location.reload()}
+          >
+            Reload page
+          </button>
+          <button
+            type="button"
+            className="nexus-route-state__action"
+            onClick={() => window.location.assign(getDefaultEntrypoint())}
+          >
+            Open HQ
+          </button>
+        </>
+      }
+    />
   );
 }
 

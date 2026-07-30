@@ -23,8 +23,8 @@ function main() {
   console.log("  3. Rebuild MSI and verify signature with signtool verify.");
   console.log("");
   console.log("Posture check:");
+  console.log("  npm run desktop:signing:preflight");
   console.log("  npm run desktop:trust-chain:check");
-  console.log("  GET /api/status → readiness.desktopTrust");
   console.log("");
 
   const confPath = join(root, "desktop", "src-tauri", "tauri.conf.json");

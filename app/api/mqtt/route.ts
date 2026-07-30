@@ -28,7 +28,7 @@
  *     request.signal.addEventListener('abort', () => client.end())
  *
  * ─── TO CONNECT MQTT OVER WEBSOCKET (browser-side) ───────────────────────────
- *  Use the wsManager with a broker that supports WS (e.g., ws://localhost:9001)
+ *  Add a reviewed browser adapter only if a broker-backed WebSocket lane ships.
  *  Most MQTT brokers (Mosquitto, EMQX, HiveMQ) support WS on port 9001.
  * ─────────────────────────────────────────────────────────────────────────────
  */

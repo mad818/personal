@@ -18,8 +18,11 @@ import PageTransition from "@/components/ui/PageTransition";
 import MemoryPanel from "@/components/ui/MemoryPanel";
 import CronSchedulerPanel from "@/components/ui/CronSchedulerPanel";
 import SurfaceFocusStrip from "@/components/ui/SurfaceFocusStrip";
+import { toast } from "@/components/ui/Toast";
 import { useSessionHrefAutoHeal } from "@/hooks/useSessionHrefAutoHeal";
 import { useSurfaceFocusScroll } from "@/hooks/useSurfaceFocusScroll";
+import { usePhonePosture } from "@/hooks/usePhonePosture";
+import { resolveHqCompactOperator } from "@/lib/hqOperatorLayout";
 import { runAgent, type AgentStep } from "@/lib/agent";
 import { mergeAssistantGuidance } from "@/lib/assistantGuidance";
 import { buildSystemPrompt } from "@/lib/ai";
@@ -46,9 +49,7 @@ import {
   selectContextAssets,
   type ContextAssetId,
 } from "@/lib/contextPolicy";
-import {
-  buildLearningMissionPromptBlock,
-} from "@/lib/learningMissions";
+import { buildLearningMissionPromptBlock } from "@/lib/learningMissions";
 import { consumeQueuedHQPrompt } from "@/lib/hqPromptQueue";
 import {
   buildMinedMemoryPromptBlock,
@@ -71,7 +72,8 @@ import {
   sortCouncilResults,
   type CouncilMember,
 } from "@/lib/personaEngine";
-import { useStore } from "@/store/useStore";
+import { getCouncilIdeationFrameLabel } from "@/lib/councilDivergence";
+import { useStore, type HqConsoleFocusMode } from "@/store/useStore";
 import {
   buildCorrectionMemoryPromptBlock,
   buildCapabilitiesBlock,
@@ -80,7 +82,10 @@ import {
 } from "@/lib/liveContext";
 import { buildRagContextBlockAsync } from "@/lib/ragRouter";
 import { getTopLessonsForAgent, getLessonTree } from "@/hooks/useLessons";
-import { buildWorkflowPackPromptBlock, resolveWorkflowPackId } from "@/lib/workflowPacks";
+import {
+  buildWorkflowPackPromptBlock,
+  resolveWorkflowPackId,
+} from "@/lib/workflowPacks";
 import {
   detectRouteFromPrompt,
   detectRouteFromTool,
@@ -104,10 +109,9 @@ import {
 import { resolveHQAssistantContext } from "./hqAssistantContext";
 import HQConsoleShellSection from "./HQConsoleShellSection";
 import HQTerminalSection from "./HQTerminalSection";
+import TeamOrchestrationStrip from "./TeamOrchestrationStrip";
 import HQPreludePostureSection from "./HQPreludePostureSection";
-import {
-  resolveHQWorkflowCommand,
-} from "./workflowCommands";
+import { resolveHQWorkflowCommand } from "./workflowCommands";
 import {
   type StrategiumCommandVerb,
   HQStrategiumDeck,
@@ -180,11 +184,8 @@ function classifyUnfinishedArtifactClass(input: {
   intent: HQAssistantIntent;
   capabilityId: string;
   routeHint?: string | null;
-}) : UnfinishedSessionArtifactClass {
-  if (
-    input.intent === "learning" ||
-    input.capabilityId === "guided-learning"
-  ) {
+}): UnfinishedSessionArtifactClass {
+  if (input.intent === "learning" || input.capabilityId === "guided-learning") {
     return "study";
   }
   if (input.capabilityId === "memory-palace") {
@@ -223,15 +224,10 @@ function getContinuationValue(input: {
   preparedWorkspace: PreparedWorkspaceTarget | null;
 }) {
   if (!input.preparedWorkspace) return 0;
-  if (
-    input.intent === "learning" ||
-    input.capabilityId === "guided-learning"
-  ) {
+  if (input.intent === "learning" || input.capabilityId === "guided-learning") {
     return 90;
   }
-  if (
-    input.capabilityId === "memory-palace"
-  ) {
+  if (input.capabilityId === "memory-palace") {
     return 86;
   }
   if (
@@ -266,7 +262,7 @@ function selectMemoryCompartment(input: {
   capabilityId: string;
   query: string;
   workflowCompartment?: MemoryCompartment | null;
-}) : MemoryCompartment | null {
+}): MemoryCompartment | null {
   if (input.workflowCompartment) {
     return input.workflowCompartment;
   }
@@ -370,14 +366,20 @@ export default function OfficeCommandCenter() {
   const clearPreparedWorkspace = useStore((s) => s.clearPreparedWorkspace);
   const setPrivacyShieldStatus = useStore((s) => s.setPrivacyShieldStatus);
   const setSwitchOperatorStatus = useStore((s) => s.setSwitchOperatorStatus);
-  const patchSwitchOperatorStatus = useStore((s) => s.patchSwitchOperatorStatus);
+  const patchSwitchOperatorStatus = useStore(
+    (s) => s.patchSwitchOperatorStatus,
+  );
   const unfinishedSessions = useStore((s) => s.unfinishedSessions);
   const correctionMemories = useStore((s) => s.correctionMemories);
-  const rememberUnfinishedSession = useStore((s) => s.rememberUnfinishedSession);
+  const rememberUnfinishedSession = useStore(
+    (s) => s.rememberUnfinishedSession,
+  );
   const proposeCorrectionMemory = useStore((s) => s.proposeCorrectionMemory);
   const approveCorrectionMemory = useStore((s) => s.approveCorrectionMemory);
   const archiveCorrectionMemory = useStore((s) => s.archiveCorrectionMemory);
-  const markCorrectionMemoriesApplied = useStore((s) => s.markCorrectionMemoriesApplied);
+  const markCorrectionMemoriesApplied = useStore(
+    (s) => s.markCorrectionMemoriesApplied,
+  );
   const officeEditMode = useStore((s) => s.officeEditMode);
   const setOfficeEditMode = useStore((s) => s.setOfficeEditMode);
   const resetOfficeLayout = useStore((s) => s.resetOfficeLayout);
@@ -391,7 +393,14 @@ export default function OfficeCommandCenter() {
   const officeCameraPreset = (settings.officeCameraPreset ??
     "cinematic") as OfficeCameraPreset;
   const officeSplitHeightPx = settings.officeSplitHeightPx ?? 0;
-  const hqConsoleFocusMode = settings.hqConsoleFocusMode ?? "game";
+  const hqConsoleFocusMode = settings.hqConsoleFocusMode ?? "command";
+  const phonePosture = usePhonePosture();
+  const hqCompactOperator = resolveHqCompactOperator({
+    phonePosture,
+    hqCompactOperatorLayout: settings.hqCompactOperatorLayout,
+  });
+  const effectiveHqFocusMode = hqCompactOperator ? "chat" : hqConsoleFocusMode;
+  const showHqPlayfield = !hqCompactOperator;
   const officeOperationalMode = settings.officeOperationalMode ?? "normal";
   const officeVfxQuality = (settings.officeVfxQuality ?? "low") as
     | "off"
@@ -400,10 +409,10 @@ export default function OfficeCommandCenter() {
   const setOfficeLayout = useStore((s) => s.setOfficeLayout);
   const setTab = useStore((s) => s.setTab);
   const addNotification = useStore((s) => s.addNotification);
-  const addLog          = useStore((s) => s.addLog);
-  const addPendingEdit  = useStore((s) => s.addPendingEdit);
-  const activePersona    = useStore((s) => s.activePersona);
-  const councilMode      = useStore((s) => s.councilMode);
+  const addLog = useStore((s) => s.addLog);
+  const addPendingEdit = useStore((s) => s.addPendingEdit);
+  const activePersona = useStore((s) => s.activePersona);
+  const councilMode = useStore((s) => s.councilMode);
   const setCouncilResults = useStore((s) => s.setCouncilResults);
   const clearCouncilResults = useStore((s) => s.clearCouncilResults);
 
@@ -448,6 +457,7 @@ export default function OfficeCommandCenter() {
     text: string;
     agent: string;
   } | null>(null);
+  const [loggingLesson, setLoggingLesson] = useState(false);
   const [pendingCorrectionId, setPendingCorrectionId] = useState<string | null>(
     null,
   );
@@ -491,10 +501,10 @@ export default function OfficeCommandCenter() {
   const pendingCorrection = useMemo(
     () =>
       pendingCorrectionId
-        ? correctionMemories.find(
+        ? (correctionMemories.find(
             (entry) =>
               entry.id === pendingCorrectionId && entry.status === "proposed",
-          ) ?? null
+          ) ?? null)
         : null,
     [correctionMemories, pendingCorrectionId],
   );
@@ -666,6 +676,13 @@ export default function OfficeCommandCenter() {
   }, [addNotification, addLog]);
 
   useEffect(() => {
+    if (!hqCompactOperator) return;
+    if (hqConsoleFocusMode !== "chat") {
+      updateSettings({ hqConsoleFocusMode: "chat" });
+    }
+  }, [hqCompactOperator, hqConsoleFocusMode, updateSettings]);
+
+  useEffect(() => {
     const onResize = () => {
       const compact = window.innerWidth < 980;
       setCompactSplitControls(compact);
@@ -772,130 +789,87 @@ export default function OfficeCommandCenter() {
     router.push(`/command?memoryAsk=${encodeURIComponent(trimmed)}`);
   }, [activeAgent, input, router, setTab]);
 
-  const send = useCallback(async (options: {
-    forceAnswerHere?: boolean;
-    forceRouteAction?: boolean;
-    overrideText?: string;
-  } = {}) => {
-    const value = (options.overrideText ?? input).trim();
-    if (!value) return;
-    if (activeAgent) return;
-    setPrivacyShieldStatus(null);
-    const AGENT_PIN_RE = /^@(jansky|orbit|nova|cipher|flux):\s*/i;
-    const pinMatch = value.match(AGENT_PIN_RE);
-    const unpinnedValue = pinMatch ? value.replace(AGENT_PIN_RE, "").trim() : value;
-    const workflow = resolveHQWorkflowCommand(unpinnedValue);
-    const operatorRequested =
-      workflow?.id === "operator" || hasSwitchOperatorSignal(unpinnedValue);
-    const answerStylePlan = resolveHQAnswerStylePlan(unpinnedValue, {
-      hasWorkflow: Boolean(workflow),
-    });
-    const dispatchPlan = resolveAssistantDispatch(unpinnedValue, {
-      forceAnswerHere: options.forceAnswerHere,
-      forceRouteAction: options.forceRouteAction,
-    });
-    const operatorPlan = operatorRequested
-      ? await runSwitchOperator({ command: unpinnedValue })
-      : null;
-    if (operatorPlan) {
-      setSwitchOperatorStatus(operatorPlan.status);
-    }
-    const routeFromPrompt =
-      operatorPlan?.routeHint ??
-      workflow?.route ??
-      dispatchPlan.routeHref ??
-      detectRouteFromPrompt(unpinnedValue);
-    const assistantContext = resolveHQAssistantContext({
-      input: unpinnedValue,
-      answerStyle: answerStylePlan.style,
-      routeHint: routeFromPrompt,
-      unfinishedSessions,
-    });
-    let liveRetrieval: AssistantLiveRetrievalResult | null = null;
-    let minedMemory: MinedMemory[] = [];
+  const send = useCallback(
+    async (
+      options: {
+        forceAnswerHere?: boolean;
+        forceRouteAction?: boolean;
+        overrideText?: string;
+      } = {},
+    ) => {
+      const value = (options.overrideText ?? input).trim();
+      if (!value) return;
+      if (activeAgent) return;
+      setPrivacyShieldStatus(null);
+      const AGENT_PIN_RE = /^@(jansky|orbit|nova|cipher|flux):\s*/i;
+      const pinMatch = value.match(AGENT_PIN_RE);
+      const unpinnedValue = pinMatch
+        ? value.replace(AGENT_PIN_RE, "").trim()
+        : value;
+      const workflow = resolveHQWorkflowCommand(unpinnedValue);
+      const operatorRequested =
+        workflow?.id === "operator" || hasSwitchOperatorSignal(unpinnedValue);
+      const answerStylePlan = resolveHQAnswerStylePlan(unpinnedValue, {
+        hasWorkflow: Boolean(workflow),
+      });
+      const dispatchPlan = resolveAssistantDispatch(unpinnedValue, {
+        forceAnswerHere: options.forceAnswerHere,
+        forceRouteAction: options.forceRouteAction,
+      });
+      const operatorPlan = operatorRequested
+        ? await runSwitchOperator({ command: unpinnedValue })
+        : null;
+      if (operatorPlan) {
+        setSwitchOperatorStatus(operatorPlan.status);
+      }
+      const routeFromPrompt =
+        operatorPlan?.routeHint ??
+        workflow?.route ??
+        dispatchPlan.routeHref ??
+        detectRouteFromPrompt(unpinnedValue);
+      const assistantContext = resolveHQAssistantContext({
+        input: unpinnedValue,
+        answerStyle: answerStylePlan.style,
+        routeHint: routeFromPrompt,
+        unfinishedSessions,
+      });
+      let liveRetrieval: AssistantLiveRetrievalResult | null = null;
+      let minedMemory: MinedMemory[] = [];
 
-    if (
-      !workflow &&
-      !operatorPlan &&
-      dispatchPlan.operatorChoiceNeeded &&
-      dispatchPlan.preparedWorkspace
-    ) {
-      const choiceText = `I can answer here, or open ${dispatchPlan.preparedWorkspace.label.replace(/^Open\s+/i, "")} so the workspace is in front. Which is better for this move?`;
-      clearCouncilResults();
-      setInput("");
-      setLiveSteps([]);
-      setDispatchBubble(null);
-      setDispatchBar(null);
-      addOfficeMessage({ role: "user", text: value });
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", text: value },
-        {
+      if (
+        !workflow &&
+        !operatorPlan &&
+        dispatchPlan.operatorChoiceNeeded &&
+        dispatchPlan.preparedWorkspace
+      ) {
+        const choiceText = `I can answer here, or open ${dispatchPlan.preparedWorkspace.label.replace(/^Open\s+/i, "")} so the workspace is in front. Which is better for this move?`;
+        clearCouncilResults();
+        setInput("");
+        setLiveSteps([]);
+        setDispatchBubble(null);
+        setDispatchBar(null);
+        addOfficeMessage({ role: "user", text: value });
+        setMessages((prev) => [
+          ...prev,
+          { role: "user", text: value },
+          {
+            role: "agent",
+            agent: dispatchPlan.agent,
+            text: choiceText,
+            sourceQuery: value,
+            answerStyle: dispatchPlan.answerStyle,
+            responseKind: "assistant",
+            assistantIntent: dispatchPlan.intent,
+            preparedWorkspace: dispatchPlan.preparedWorkspace,
+            actionModel: dispatchPlan.actionModel,
+            operatorWorkflow: dispatchPlan.operatorWorkflow,
+          },
+        ]);
+        addOfficeMessage({
           role: "agent",
           agent: dispatchPlan.agent,
           text: choiceText,
-          sourceQuery: value,
-          answerStyle: dispatchPlan.answerStyle,
-          responseKind: "assistant",
-          assistantIntent: dispatchPlan.intent,
-          preparedWorkspace: dispatchPlan.preparedWorkspace,
-          actionModel: dispatchPlan.actionModel,
-          operatorWorkflow: dispatchPlan.operatorWorkflow,
-        },
-      ]);
-      addOfficeMessage({
-        role: "agent",
-        agent: dispatchPlan.agent,
-        text: choiceText,
-      });
-      setPreparedWorkspace(dispatchPlan.preparedWorkspace, {
-        intent: dispatchPlan.intent,
-        sourceQuery: value,
-      });
-      rememberUnfinishedSession(dispatchPlan.preparedWorkspace, {
-        intent: dispatchPlan.intent,
-        sourceQuery: value,
-        confidence: 82,
-        capability: dispatchPlan.capabilityId,
-        completionState: "prepared",
-      });
-      setEmotion("idle");
-      return;
-    }
-
-    if (!workflow && !operatorPlan && dispatchPlan.answerMode === "route_action" && dispatchPlan.routeHref) {
-      const targetLabel =
-        dispatchPlan.preparedWorkspace?.label.replace(/^Open\s+/i, "") ??
-        dispatchPlan.routeHref;
-      const routeText = `Opening ${targetLabel}. I staged the right workspace so the next move is visible.`;
-      clearCouncilResults();
-      setInput("");
-      setLiveSteps([]);
-      setDispatchBubble(null);
-      setDispatchBar(null);
-      addOfficeMessage({ role: "user", text: value });
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", text: value },
-        {
-          role: "agent",
-          agent: dispatchPlan.agent,
-          text: routeText,
-          sourceQuery: value,
-          answerStyle: dispatchPlan.answerStyle,
-          responseKind: "assistant",
-          assistantIntent: dispatchPlan.intent,
-          preparedWorkspace: dispatchPlan.preparedWorkspace,
-          actionModel: dispatchPlan.actionModel,
-          operatorWorkflow: dispatchPlan.operatorWorkflow,
-        },
-      ]);
-      addOfficeMessage({
-        role: "agent",
-        agent: dispatchPlan.agent,
-        text: routeText,
-      });
-      if (dispatchPlan.preparedWorkspace) {
+        });
         setPreparedWorkspace(dispatchPlan.preparedWorkspace, {
           intent: dispatchPlan.intent,
           sourceQuery: value,
@@ -903,926 +877,1026 @@ export default function OfficeCommandCenter() {
         rememberUnfinishedSession(dispatchPlan.preparedWorkspace, {
           intent: dispatchPlan.intent,
           sourceQuery: value,
-          confidence: 88,
+          confidence: 82,
           capability: dispatchPlan.capabilityId,
           completionState: "prepared",
         });
-      } else {
-        clearPreparedWorkspace();
+        setEmotion("idle");
+        return;
       }
-      setTab(getTabFromHref(dispatchPlan.routeHref));
-      router.push(dispatchPlan.routeHref);
-      setEmotion("success");
-      window.setTimeout(() => setEmotion("idle"), 900);
-      return;
-    }
 
-    if (!workflow && !operatorPlan && dispatchPlan.localReply) {
-      const localReply = dispatchPlan.localReply;
+      if (
+        !workflow &&
+        !operatorPlan &&
+        dispatchPlan.answerMode === "route_action" &&
+        dispatchPlan.routeHref
+      ) {
+        const targetLabel =
+          dispatchPlan.preparedWorkspace?.label.replace(/^Open\s+/i, "") ??
+          dispatchPlan.routeHref;
+        const routeText = `Opening ${targetLabel}. I staged the right workspace so the next move is visible.`;
+        clearCouncilResults();
+        setInput("");
+        setLiveSteps([]);
+        setDispatchBubble(null);
+        setDispatchBar(null);
+        addOfficeMessage({ role: "user", text: value });
+        setMessages((prev) => [
+          ...prev,
+          { role: "user", text: value },
+          {
+            role: "agent",
+            agent: dispatchPlan.agent,
+            text: routeText,
+            sourceQuery: value,
+            answerStyle: dispatchPlan.answerStyle,
+            responseKind: "assistant",
+            assistantIntent: dispatchPlan.intent,
+            preparedWorkspace: dispatchPlan.preparedWorkspace,
+            actionModel: dispatchPlan.actionModel,
+            operatorWorkflow: dispatchPlan.operatorWorkflow,
+          },
+        ]);
+        addOfficeMessage({
+          role: "agent",
+          agent: dispatchPlan.agent,
+          text: routeText,
+        });
+        if (dispatchPlan.preparedWorkspace) {
+          setPreparedWorkspace(dispatchPlan.preparedWorkspace, {
+            intent: dispatchPlan.intent,
+            sourceQuery: value,
+          });
+          rememberUnfinishedSession(dispatchPlan.preparedWorkspace, {
+            intent: dispatchPlan.intent,
+            sourceQuery: value,
+            confidence: 88,
+            capability: dispatchPlan.capabilityId,
+            completionState: "prepared",
+          });
+        } else {
+          clearPreparedWorkspace();
+        }
+        setTab(getTabFromHref(dispatchPlan.routeHref));
+        router.push(dispatchPlan.routeHref);
+        setEmotion("success");
+        window.setTimeout(() => setEmotion("idle"), 900);
+        return;
+      }
+
+      if (!workflow && !operatorPlan && dispatchPlan.localReply) {
+        const localReply = dispatchPlan.localReply;
+        clearCouncilResults();
+        setInput("");
+        setLiveSteps([]);
+        setDispatchBubble(null);
+        setDispatchBar(null);
+        addOfficeMessage({ role: "user", text: value });
+        setMessages((prev) => [
+          ...prev,
+          { role: "user", text: value },
+          {
+            role: "agent",
+            agent: dispatchPlan.agent,
+            text: localReply,
+            sourceQuery: value,
+            answerStyle: dispatchPlan.answerStyle,
+            responseKind: "assistant",
+            assistantIntent: dispatchPlan.intent,
+            actionModel: dispatchPlan.actionModel,
+            operatorWorkflow: dispatchPlan.operatorWorkflow,
+          },
+        ]);
+        addOfficeMessage({
+          role: "agent",
+          agent: dispatchPlan.agent,
+          text: localReply,
+        });
+        clearPreparedWorkspace();
+        setEmotion("happy");
+        window.setTimeout(() => setEmotion("idle"), 900);
+        return;
+      }
+
+      if (answerStylePlan.verifiedRetrievalRequired) {
+        try {
+          const params = new URLSearchParams({ q: unpinnedValue });
+          if (routeFromPrompt) params.set("routeHint", routeFromPrompt);
+          const response = await apiFetch(
+            `/api/assistant/retrieve?${params.toString()}`,
+            {
+              cache: "no-store",
+            },
+          );
+          if (response.ok) {
+            liveRetrieval =
+              (await response.json()) as AssistantLiveRetrievalResult;
+          }
+        } catch {
+          liveRetrieval = null;
+        }
+      }
+
+      const memoryCompartment = selectMemoryCompartment({
+        intent: assistantContext.intent,
+        capabilityId: assistantContext.capabilityId,
+        query: unpinnedValue,
+        workflowCompartment:
+          assistantContext.learningMission?.memoryCompartment ?? null,
+      });
+      const shouldMineMemory =
+        assistantContext.intent === "learning" ||
+        assistantContext.intent === "research" ||
+        assistantContext.intent === "memory_recall" ||
+        assistantContext.capabilityId === "memory-palace" ||
+        assistantContext.learningMission?.workflowPackId ===
+          "research-workflow";
+
+      if (shouldMineMemory) {
+        try {
+          const params = new URLSearchParams({
+            q: unpinnedValue,
+            limit: assistantContext.intent === "learning" ? "4" : "3",
+          });
+          if (memoryCompartment) {
+            params.set("compartment", memoryCompartment);
+          }
+          const response = await apiFetch(
+            `/api/memory/mine?${params.toString()}`,
+            {
+              cache: "no-store",
+            },
+          );
+          if (response.ok) {
+            const data = (await response.json()) as { mined?: MinedMemory[] };
+            minedMemory = Array.isArray(data.mined) ? data.mined : [];
+          }
+        } catch {
+          minedMemory = [];
+        }
+      }
+
+      // ── M8: /meta command — JANSKY analyses learnings and proposes one prompt fix ──
+      if (value.toLowerCase().startsWith("/meta")) {
+        clearPreparedWorkspace();
+        setInput("");
+        setMessages((prev) => [...prev, { role: "user", text: value }]);
+        setActiveAgent("jansky");
+        setEmotion("thinking");
+        try {
+          const metaResult = await runHQMetaCommand();
+          if (metaResult.kind === "pending_edit") {
+            addPendingEdit(metaResult.edit);
+          }
+          setMessages((prev) => [
+            ...prev,
+            { role: "agent", agent: "jansky", text: metaResult.text },
+          ]);
+          setEmotion("success");
+          setTimeout(() => setEmotion("happy"), 550);
+        } catch (err) {
+          const msg =
+            err instanceof Error ? err.message : "Meta-analysis failed.";
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "agent",
+              agent:
+                "jansky" as import("@/components/home/office/types").AgentId,
+              text: `Error: ${msg}`,
+            },
+          ]);
+          setEmotion("error");
+        } finally {
+          setTimeout(() => {
+            setActiveAgent(null);
+            setEmotion("idle");
+          }, 1200);
+        }
+        return;
+      }
+      // ─────────────────────────────────────────────────────────────────────────────
+
       clearCouncilResults();
       setInput("");
       setLiveSteps([]);
       setDispatchBubble(null);
       setDispatchBar(null);
+
+      // Persist messages for the "LLM fuel" and trash-can environment props.
       addOfficeMessage({ role: "user", text: value });
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", text: value },
-        {
-          role: "agent",
-          agent: dispatchPlan.agent,
-          text: localReply,
-          sourceQuery: value,
-          answerStyle: dispatchPlan.answerStyle,
-          responseKind: "assistant",
-          assistantIntent: dispatchPlan.intent,
-          actionModel: dispatchPlan.actionModel,
-          operatorWorkflow: dispatchPlan.operatorWorkflow,
-        },
-      ]);
-      addOfficeMessage({
-        role: "agent",
-        agent: dispatchPlan.agent,
-        text: localReply,
-      });
-      clearPreparedWorkspace();
-      setEmotion("happy");
-      window.setTimeout(() => setEmotion("idle"), 900);
-      return;
-    }
 
-    if (answerStylePlan.verifiedRetrievalRequired) {
-      try {
-        const params = new URLSearchParams({ q: unpinnedValue });
-        if (routeFromPrompt) params.set("routeHint", routeFromPrompt);
-        const response = await apiFetch(`/api/assistant/retrieve?${params.toString()}`, {
-          cache: "no-store",
-        });
-        if (response.ok) {
-          liveRetrieval = (await response.json()) as AssistantLiveRetrievalResult;
-        }
-      } catch {
-        liveRetrieval = null;
-      }
-    }
-
-    const memoryCompartment = selectMemoryCompartment({
-      intent: assistantContext.intent,
-      capabilityId: assistantContext.capabilityId,
-      query: unpinnedValue,
-      workflowCompartment: assistantContext.learningMission?.memoryCompartment ?? null,
-    });
-    const shouldMineMemory =
-      assistantContext.intent === "learning" ||
-      assistantContext.intent === "research" ||
-      assistantContext.intent === "memory_recall" ||
-      assistantContext.capabilityId === "memory-palace" ||
-      assistantContext.learningMission?.workflowPackId === "research-workflow";
-
-    if (shouldMineMemory) {
-      try {
-        const params = new URLSearchParams({
-          q: unpinnedValue,
-          limit: assistantContext.intent === "learning" ? "4" : "3",
-        });
-        if (memoryCompartment) {
-          params.set("compartment", memoryCompartment);
-        }
-        const response = await apiFetch(`/api/memory/mine?${params.toString()}`, {
-          cache: "no-store",
-        });
-        if (response.ok) {
-          const data = (await response.json()) as { mined?: MinedMemory[] };
-          minedMemory = Array.isArray(data.mined) ? data.mined : [];
-        }
-      } catch {
-        minedMemory = [];
-      }
-    }
-
-    // ── M8: /meta command — JANSKY analyses learnings and proposes one prompt fix ──
-    if (value.toLowerCase().startsWith("/meta")) {
-      clearPreparedWorkspace();
-      setInput("");
+      // Display in terminal UI (local, includes steps).
       setMessages((prev) => [...prev, { role: "user", text: value }]);
-      setActiveAgent("jansky");
+
+      // Phase 1: JANSKY routing + animation.
+      setRoutingAgent("jansky");
       setEmotion("thinking");
-      try {
-        const metaResult = await runHQMetaCommand();
-        if (metaResult.kind === "pending_edit") {
-          addPendingEdit(metaResult.edit);
+
+      // Give the office time to show a routing flash.
+      await new Promise((r) => setTimeout(r, 450));
+
+      // Allow operator to force an agent with @AGENTNAME: prefix.
+      // E.g. "@ORBIT: fix the bug in lib/agent.ts" — skips auto-detection.
+      const detectedTarget = workflow?.agent ?? dispatchPlan.agent;
+      const target: AgentId = pinMatch
+        ? (pinMatch[1].toLowerCase() as AgentId)
+        : (operatorPlan?.targetAgent ??
+          resolveHQTargetAgent(answerStylePlan, detectedTarget));
+      // Strip the pin prefix from the payload sent to the agent.
+      const agentInput =
+        operatorPlan?.agentPrompt ?? workflow?.userPrompt ?? unpinnedValue;
+      const shouldRunCouncil =
+        councilMode && !pinMatch && !workflow && !operatorRequested;
+
+      // Phase 2: dispatch ring + travel bar (only when specialist != JANSKY).
+      if (target !== "jansky") {
+        setDispatchBubble(DISPATCH_LINES[target] ?? `→ ${target}`);
+        setDispatchBar({ from: "jansky", to: target });
+        setDispatchedTo(target);
+        setEmotion("excited");
+
+        await new Promise((r) => setTimeout(r, 700));
+
+        setActiveAgent(target);
+        setRoutingAgent(null);
+        setDispatchedTo(null);
+        setDispatchBubble(null);
+        setDispatchBar(null);
+      } else {
+        setActiveAgent("jansky");
+        setRoutingAgent(null);
+        setDispatchedTo(null);
+        setEmotion("working");
+      }
+
+      if (operatorPlan && !operatorPlan.dispatch) {
+        if (operatorPlan.preparedWorkspace) {
+          setPreparedWorkspace(operatorPlan.preparedWorkspace, {
+            intent: "workflow",
+            sourceQuery: value,
+          });
+          rememberUnfinishedSession(operatorPlan.preparedWorkspace, {
+            intent: "workflow",
+            sourceQuery: value,
+            confidence: 90,
+            completionState: "prepared",
+          });
+        } else {
+          clearPreparedWorkspace();
         }
         setMessages((prev) => [
           ...prev,
-          { role: "agent", agent: "jansky", text: metaResult.text },
+          {
+            role: "agent",
+            agent: "jansky",
+            text: operatorPlan.summary,
+            sourceQuery: value,
+            answerStyle: "workflow",
+            responseKind: "workflow",
+            assistantIntent: "workflow",
+            preparedWorkspace: operatorPlan.preparedWorkspace,
+          },
         ]);
-        setEmotion("success");
-        setTimeout(() => setEmotion("happy"), 550);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "Meta-analysis failed.";
-        setMessages((prev) => [
-          ...prev,
-          { role: "agent", agent: "jansky" as import("@/components/home/office/types").AgentId, text: `Error: ${msg}` },
-        ]);
-        setEmotion("error");
-      } finally {
-        setTimeout(() => { setActiveAgent(null); setEmotion("idle"); }, 1200);
-      }
-      return;
-    }
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    clearCouncilResults();
-    setInput("");
-    setLiveSteps([]);
-    setDispatchBubble(null);
-    setDispatchBar(null);
-
-    // Persist messages for the "LLM fuel" and trash-can environment props.
-    addOfficeMessage({ role: "user", text: value });
-
-    // Display in terminal UI (local, includes steps).
-    setMessages((prev) => [...prev, { role: "user", text: value }]);
-
-    // Phase 1: JANSKY routing + animation.
-    setRoutingAgent("jansky");
-    setEmotion("thinking");
-
-    // Give the office time to show a routing flash.
-    await new Promise((r) => setTimeout(r, 450));
-
-    // Allow operator to force an agent with @AGENTNAME: prefix.
-    // E.g. "@ORBIT: fix the bug in lib/agent.ts" — skips auto-detection.
-    const detectedTarget = workflow?.agent ?? dispatchPlan.agent;
-    const target: AgentId = pinMatch
-      ? (pinMatch[1].toLowerCase() as AgentId)
-      : operatorPlan?.targetAgent ??
-        resolveHQTargetAgent(answerStylePlan, detectedTarget);
-    // Strip the pin prefix from the payload sent to the agent.
-    const agentInput =
-      operatorPlan?.agentPrompt ?? workflow?.userPrompt ?? unpinnedValue;
-    const shouldRunCouncil =
-      councilMode && !pinMatch && !workflow && !operatorRequested;
-
-    // Phase 2: dispatch ring + travel bar (only when specialist != JANSKY).
-    if (target !== "jansky") {
-      setDispatchBubble(DISPATCH_LINES[target] ?? `→ ${target}`);
-      setDispatchBar({ from: "jansky", to: target });
-      setDispatchedTo(target);
-      setEmotion("excited");
-
-      await new Promise((r) => setTimeout(r, 700));
-
-      setActiveAgent(target);
-      setRoutingAgent(null);
-      setDispatchedTo(null);
-      setDispatchBubble(null);
-      setDispatchBar(null);
-    } else {
-      setActiveAgent("jansky");
-      setRoutingAgent(null);
-      setDispatchedTo(null);
-      setEmotion("working");
-    }
-
-    if (operatorPlan && !operatorPlan.dispatch) {
-      if (operatorPlan.preparedWorkspace) {
-        setPreparedWorkspace(operatorPlan.preparedWorkspace, {
-          intent: "workflow",
-          sourceQuery: value,
-        });
-        rememberUnfinishedSession(operatorPlan.preparedWorkspace, {
-          intent: "workflow",
-          sourceQuery: value,
-          confidence: 90,
-          completionState: "prepared",
-        });
-      } else {
-        clearPreparedWorkspace();
-      }
-      setMessages((prev) => [
-        ...prev,
-        {
+        addOfficeMessage({
           role: "agent",
           agent: "jansky",
           text: operatorPlan.summary,
-          sourceQuery: value,
-          answerStyle: "workflow",
-          responseKind: "workflow",
-          assistantIntent: "workflow",
-          preparedWorkspace: operatorPlan.preparedWorkspace,
-        },
-      ]);
-      addOfficeMessage({
-        role: "agent",
-        agent: "jansky",
-        text: operatorPlan.summary,
-      });
-      setEmotion(operatorPlan.status.mode === "blocked" ? "error" : "success");
-      setTimeout(() => {
-        setActiveAgent(null);
-        setEmotion("idle");
-        setLiveSteps([]);
-      }, 1200);
-      return;
-    }
+        });
+        setEmotion(
+          operatorPlan.status.mode === "blocked" ? "error" : "success",
+        );
+        setTimeout(() => {
+          setActiveAgent(null);
+          setEmotion("idle");
+          setLiveSteps([]);
+        }, 1200);
+        return;
+      }
 
-    // Memory diff — injects a one-line summary of the last session's outcome
-    const memDiff = answerStylePlan.includeMemoryDiff
-      ? buildMemoryDiffBlock(settings.lastSessionSummary ?? "")
-      : "";
-    const systemBase = buildSystemPrompt(settings, memDiff);
-    const learningMissionBlock = buildLearningMissionPromptBlock(
-      assistantContext.learningMission,
-    );
-    const minedMemoryBlock = buildMinedMemoryPromptBlock(minedMemory);
+      // Memory diff — injects a one-line summary of the last session's outcome
+      const memDiff = answerStylePlan.includeMemoryDiff
+        ? buildMemoryDiffBlock(settings.lastSessionSummary ?? "")
+        : "";
+      const systemBase = buildSystemPrompt(settings, memDiff);
+      const learningMissionBlock = buildLearningMissionPromptBlock(
+        assistantContext.learningMission,
+      );
+      const minedMemoryBlock = buildMinedMemoryPromptBlock(minedMemory);
 
-    const workflowPackId = resolveWorkflowPackId({
-      assistantIntent: assistantContext.intent,
-      capabilityId: assistantContext.capabilityId,
-      learningMission: assistantContext.learningMission,
-      query: agentInput,
-    });
-    const referencedFilePath =
-      agentInput.match(
-        /\b(?:app|components|lib|store|hooks|scripts|tests|docs)\/[A-Za-z0-9._/-]+\.(?:[cm]?tsx?|md|mjs|json)\b/,
-      )?.[0] ?? null;
-    const lessonTree = getLessonTree();
-
-    const buildPromptForAgent = async (
-      agentId: AgentId,
-      personaMode: CouncilMember["persona"],
-    ) => {
-      const manifest = selectContextAssets({
-        query: agentInput,
-        answerStyle: answerStylePlan.style,
+      const workflowPackId = resolveWorkflowPackId({
         assistantIntent: assistantContext.intent,
         capabilityId: assistantContext.capabilityId,
-        routeHint: routeFromPrompt,
-        filePath: referencedFilePath,
         learningMission: assistantContext.learningMission,
-        workflowPackId,
-        verifiedRetrievalRequired: answerStylePlan.verifiedRetrievalRequired,
-        includeLessons: answerStylePlan.includeLessons,
-        includeLiveContext:
-          answerStylePlan.includeLiveContext ||
-          answerStylePlan.style === "live_current",
-        hasMinedMemory: minedMemory.length > 0,
-        hasPreparedWorkspace: Boolean(
-          assistantContext.preparedWorkspaceBlock.trim(),
-        ),
-        hasContinuation: Boolean(assistantContext.continuationBlock.trim()),
-        hasVerificationDocs:
-          Boolean(liveRetrieval) ||
-          answerStylePlan.includeRag ||
-          assistantContext.intent === "research",
+        query: agentInput,
       });
-      const wantsLiveIntel = manifest.assets.some(
-        (asset) => asset.id === "live_intel",
-      );
-      const wantsLessons = manifest.assets.some((asset) => asset.id === "lessons");
-      const wantsVerification = manifest.assets.some(
-        (asset) => asset.id === "retrieval_docs",
-      );
-      const liveBundle = wantsLiveIntel
-        ? buildFilteredLiveContextBundle(useStore.getState(), agentId, {
-            maxChars: manifest.laneBudgetChars,
-            includeStackContext: false,
-            includeLearnings: false,
-          })
-        : {
-            context: "",
-            report: {
-              chars: 0,
-              compacted: false,
-            },
-          };
-      const ragBlock =
-        wantsVerification && !liveRetrieval
-          ? await buildRagContextBlockAsync(agentInput, {
-              savedArticles: useStore.getState().savedArticles,
-            })
-          : "";
-      const liveRetrievalBlock =
-        wantsVerification && liveRetrieval
-          ? buildAssistantLiveRetrievalPromptBlock(liveRetrieval)
-          : "";
-      const topLessons = wantsLessons
-        ? lessonTree
-          ? getTopLessonsForAgent(lessonTree, agentInput, agentId, 3)
-          : lessons.slice(0, 3)
-        : [];
-      const matchedCorrections = findRelevantCorrectionMemories(
-        useStore.getState().correctionMemories,
-        {
-          input: agentInput,
-          routeSurface: routeFromPrompt ?? assistantContext.preparedWorkspace?.href,
-          agent: agentId,
+      const referencedFilePath =
+        agentInput.match(
+          /\b(?:app|components|lib|store|hooks|scripts|tests|docs)\/[A-Za-z0-9._/-]+\.(?:[cm]?tsx?|md|mjs|json)\b/,
+        )?.[0] ?? null;
+      const lessonTree = getLessonTree();
+
+      const buildPromptForAgent = async (
+        agentId: AgentId,
+        personaMode: CouncilMember["persona"],
+      ) => {
+        const manifest = selectContextAssets({
+          query: agentInput,
+          answerStyle: answerStylePlan.style,
+          assistantIntent: assistantContext.intent,
+          capabilityId: assistantContext.capabilityId,
+          routeHint: routeFromPrompt,
           filePath: referencedFilePath,
-          taskType: assistantContext.intent,
-          capability: assistantContext.capabilityId,
-          limit: 3,
-        },
-      );
-      const correctionBlock = buildCorrectionMemoryPromptBlock(
-        matchedCorrections,
-      );
-      const lessonsBlock = buildLessonsPromptBlock(agentId, topLessons);
-      const contentByAsset: Partial<Record<ContextAssetId, string>> = {};
-      for (const asset of manifest.assets) {
-        if (!asset.section) continue;
-        contentByAsset[asset.id] = await fetchProjectContextSlices(
-          asset.section,
-          asset.slices,
-        );
-      }
-      contentByAsset.live_intel = liveBundle.context;
-      contentByAsset.stack = buildStackContextBlock();
-      contentByAsset.workflow_pack = buildWorkflowPackPromptBlock(workflowPackId);
-      contentByAsset.learning_mission = learningMissionBlock;
-      contentByAsset.retrieval_docs = liveRetrievalBlock || ragBlock;
-      contentByAsset.mined_memory = minedMemoryBlock;
-      contentByAsset.assistant_context =
-        assistantContext.promptBlock +
-        buildCapabilitiesBlock(agentId) +
-        correctionBlock +
-        dispatchPlan.contextBlock;
-      contentByAsset.continuation = assistantContext.continuationBlock;
-      contentByAsset.prepared_workspace = assistantContext.preparedWorkspaceBlock;
-      contentByAsset.lessons = lessonsBlock;
-      const contextBundle = renderContextBundle({
-        manifest,
-        contentByAsset,
-      });
-
-      return {
-        enrichedPrompt:
-          buildAgentPrompt(agentId, systemBase, personaMode) +
-          answerStylePlan.promptDirective +
-          contextBundle.context +
-          (workflow?.systemDirective ?? ""),
-        contextReport: contextBundle.report,
-        liveReport: liveBundle.report,
-        ragChars: ragBlock.length,
-        lessonsChars: lessonsBlock.length,
-        lessonIds: topLessons.map((lesson) => lesson.id),
-        matchedCorrections,
-      };
-    };
-
-    if (shouldRunCouncil) {
-      const members = resolveCouncilMembers({
-        target,
-        intent: assistantContext.intent,
-        routeHint: routeFromPrompt,
-      });
-      const councilBuilds = await Promise.all(
-        members.map(async (member) => ({
-          member,
-          build: await buildPromptForAgent(member.agent, member.persona),
-        })),
-      );
-      const firstBuild = councilBuilds[0]?.build ?? null;
-      setContextLoadReport(firstBuild?.contextReport ?? null);
-      Array.from(
-        new Set(councilBuilds.flatMap(({ build }) => build.lessonIds)),
-      ).forEach((lessonId) => reinforceLesson(lessonId));
-
-      const councilPromptMap = new Map(
-        councilBuilds.map(({ member, build }) => [
-          `${member.agent}:${member.persona}`,
-          build,
-        ]),
-      );
-      const councilIntroStep: AgentStep = {
-        type: "thinking",
-        content: `Council convened: ${members
-          .map(
-            (member) =>
-              `${member.agent.toUpperCase()} [${member.persona}]`,
-          )
-          .join(" · ")}`,
-      };
-      let latestCouncilSteps: AgentStep[] = [councilIntroStep];
-      setLiveSteps([...latestCouncilSteps]);
-
-      try {
-        const partialResults: CouncilResult[] = [];
-        const results = await runCouncil({
-          message: agentInput,
-          members,
-          buildSystemPrompt: (member) =>
-            councilPromptMap.get(`${member.agent}:${member.persona}`)
-              ?.enrichedPrompt ?? systemBase,
-          onPartialResult: (result) => {
-            partialResults.push(result);
-            const sorted = sortCouncilResults(partialResults, members);
-            setCouncilResults(sorted);
-            latestCouncilSteps = [
-              councilIntroStep,
-              ...sorted.map((entry) => ({
-                type: "thinking" as const,
-                content: `${entry.agent.toUpperCase()} [${entry.persona}] ready in ${(
-                  entry.duration / 1000
-                ).toFixed(1)}s`,
-              })),
-            ];
-            setLiveSteps([...latestCouncilSteps]);
-          },
+          learningMission: assistantContext.learningMission,
+          workflowPackId,
+          verifiedRetrievalRequired: answerStylePlan.verifiedRetrievalRequired,
+          includeLessons: answerStylePlan.includeLessons,
+          includeLiveContext:
+            answerStylePlan.includeLiveContext ||
+            answerStylePlan.style === "live_current",
+          hasMinedMemory: minedMemory.length > 0,
+          hasPreparedWorkspace: Boolean(
+            assistantContext.preparedWorkspaceBlock.trim(),
+          ),
+          hasContinuation: Boolean(assistantContext.continuationBlock.trim()),
+          hasVerificationDocs:
+            Boolean(liveRetrieval) ||
+            answerStylePlan.includeRag ||
+            assistantContext.intent === "research",
         });
-
-        if (results.length === 0) {
-          throw new Error(
-            "Council returned no answers. Retry once the active AI lane is healthy.",
+        const wantsLiveIntel = manifest.assets.some(
+          (asset) => asset.id === "live_intel",
+        );
+        const wantsLessons = manifest.assets.some(
+          (asset) => asset.id === "lessons",
+        );
+        const wantsVerification = manifest.assets.some(
+          (asset) => asset.id === "retrieval_docs",
+        );
+        const liveBundle = wantsLiveIntel
+          ? buildFilteredLiveContextBundle(useStore.getState(), agentId, {
+              maxChars: manifest.laneBudgetChars,
+              includeStackContext: false,
+              includeLearnings: false,
+            })
+          : {
+              context: "",
+              report: {
+                chars: 0,
+                compacted: false,
+              },
+            };
+        const ragBlock =
+          wantsVerification && !liveRetrieval
+            ? await buildRagContextBlockAsync(agentInput, {
+                savedArticles: useStore.getState().savedArticles,
+              })
+            : "";
+        const liveRetrievalBlock =
+          wantsVerification && liveRetrieval
+            ? buildAssistantLiveRetrievalPromptBlock(liveRetrieval)
+            : "";
+        const topLessons = wantsLessons
+          ? lessonTree
+            ? getTopLessonsForAgent(lessonTree, agentInput, agentId, 3)
+            : lessons.slice(0, 3)
+          : [];
+        const matchedCorrections = findRelevantCorrectionMemories(
+          useStore.getState().correctionMemories,
+          {
+            input: agentInput,
+            routeSurface:
+              routeFromPrompt ?? assistantContext.preparedWorkspace?.href,
+            agent: agentId,
+            filePath: referencedFilePath,
+            taskType: assistantContext.intent,
+            capability: assistantContext.capabilityId,
+            limit: 3,
+          },
+        );
+        const correctionBlock =
+          buildCorrectionMemoryPromptBlock(matchedCorrections);
+        const lessonsBlock = buildLessonsPromptBlock(agentId, topLessons);
+        const contentByAsset: Partial<Record<ContextAssetId, string>> = {};
+        for (const asset of manifest.assets) {
+          if (!asset.section) continue;
+          contentByAsset[asset.id] = await fetchProjectContextSlices(
+            asset.section,
+            asset.slices,
           );
         }
+        contentByAsset.live_intel = liveBundle.context;
+        contentByAsset.stack = buildStackContextBlock();
+        contentByAsset.workflow_pack =
+          buildWorkflowPackPromptBlock(workflowPackId);
+        contentByAsset.learning_mission = learningMissionBlock;
+        contentByAsset.retrieval_docs = liveRetrievalBlock || ragBlock;
+        contentByAsset.mined_memory = minedMemoryBlock;
+        contentByAsset.assistant_context =
+          assistantContext.promptBlock +
+          buildCapabilitiesBlock(agentId) +
+          correctionBlock +
+          dispatchPlan.contextBlock;
+        contentByAsset.continuation = assistantContext.continuationBlock;
+        contentByAsset.prepared_workspace =
+          assistantContext.preparedWorkspaceBlock;
+        contentByAsset.lessons = lessonsBlock;
+        const contextBundle = renderContextBundle({
+          manifest,
+          contentByAsset,
+        });
 
-        setCouncilResults(results);
-        clearPreparedWorkspace();
-        const councilSummary = `Council complete: ${results
-          .map((result) => `${result.agent.toUpperCase()} [${result.persona}]`)
-          .join(" · ")}. Review the side-by-side answers below, use one as a draft, or merge them back through JANSKY.`;
-        setMessages((prev) => [
-          ...prev,
-          {
+        return {
+          enrichedPrompt:
+            buildAgentPrompt(agentId, systemBase, personaMode) +
+            answerStylePlan.promptDirective +
+            contextBundle.context +
+            (workflow?.systemDirective ?? ""),
+          contextReport: contextBundle.report,
+          liveReport: liveBundle.report,
+          ragChars: ragBlock.length,
+          lessonsChars: lessonsBlock.length,
+          lessonIds: topLessons.map((lesson) => lesson.id),
+          matchedCorrections,
+        };
+      };
+
+      if (shouldRunCouncil) {
+        const members = resolveCouncilMembers({
+          target,
+          intent: assistantContext.intent,
+          routeHint: routeFromPrompt,
+          input: agentInput,
+        });
+        const councilBuilds = await Promise.all(
+          members.map(async (member) => ({
+            member,
+            build: await buildPromptForAgent(member.agent, member.persona),
+          })),
+        );
+        const firstBuild = councilBuilds[0]?.build ?? null;
+        setContextLoadReport(firstBuild?.contextReport ?? null);
+        Array.from(
+          new Set(councilBuilds.flatMap(({ build }) => build.lessonIds)),
+        ).forEach((lessonId) => reinforceLesson(lessonId));
+
+        const councilPromptMap = new Map(
+          councilBuilds.map(({ member, build }) => [
+            `${member.agent}:${member.persona}`,
+            build,
+          ]),
+        );
+        const councilIntroStep: AgentStep = {
+          type: "thinking",
+          content: `Council convened: ${members
+            .map(
+              (member) =>
+                `${member.agent.toUpperCase()} [${member.persona}${
+                  member.frame
+                    ? ` · ${getCouncilIdeationFrameLabel(member.frame)}`
+                    : ""
+                }]`,
+            )
+            .join(" · ")}`,
+        };
+        let latestCouncilSteps: AgentStep[] = [councilIntroStep];
+        setLiveSteps([...latestCouncilSteps]);
+
+        try {
+          const partialResults: CouncilResult[] = [];
+          const results = await runCouncil({
+            message: agentInput,
+            members,
+            buildSystemPrompt: (member) =>
+              councilPromptMap.get(`${member.agent}:${member.persona}`)
+                ?.enrichedPrompt ?? systemBase,
+            onPartialResult: (result) => {
+              partialResults.push(result);
+              const sorted = sortCouncilResults(partialResults, members);
+              setCouncilResults(sorted);
+              latestCouncilSteps = [
+                councilIntroStep,
+                ...sorted.map((entry) => ({
+                  type: "thinking" as const,
+                  content: `${entry.agent.toUpperCase()} [${entry.persona}${
+                    entry.frame
+                      ? ` · ${getCouncilIdeationFrameLabel(entry.frame)}`
+                      : ""
+                  }] ready in ${(entry.duration / 1000).toFixed(1)}s`,
+                })),
+              ];
+              setLiveSteps([...latestCouncilSteps]);
+            },
+          });
+
+          if (results.length === 0) {
+            throw new Error(
+              "Council returned no answers. Retry once the active AI lane is healthy.",
+            );
+          }
+
+          setCouncilResults(results);
+          clearPreparedWorkspace();
+          const councilSummary = `Council complete: ${results
+            .map(
+              (result) =>
+                `${result.agent.toUpperCase()} [${result.persona}${
+                  result.frame
+                    ? ` · ${getCouncilIdeationFrameLabel(result.frame)}`
+                    : ""
+                }]`,
+            )
+            .join(
+              " · ",
+            )}. Review the side-by-side answers below, use one as a draft, or merge them back through JANSKY.`;
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "agent",
+              agent: "jansky",
+              text: councilSummary,
+              steps: latestCouncilSteps,
+              sourceQuery: value,
+              assistantIntent: assistantContext.intent,
+            },
+          ]);
+          addOfficeMessage({
             role: "agent",
             agent: "jansky",
             text: councilSummary,
-            steps: latestCouncilSteps,
-            sourceQuery: value,
-            assistantIntent: assistantContext.intent,
-          },
-        ]);
-        addOfficeMessage({
-          role: "agent",
-          agent: "jansky",
-          text: councilSummary,
-        });
-        updateSettings({
-          lastSessionSummary: buildOfficeRunSessionSummary({
-            query: value,
-            result: councilSummary,
-            steps: latestCouncilSteps,
-            target: "jansky",
-          }),
-        });
-        setEmotion("success");
-        setTimeout(() => setEmotion("happy"), 550);
-      } catch (err) {
-        clearPreparedWorkspace();
-        setCouncilResults([]);
-        const msg =
-          err instanceof Error ? err.message : "Council dispatch failed.";
-        setMessages((prev) => [
-          ...prev,
-          {
+          });
+          updateSettings({
+            lastSessionSummary: buildOfficeRunSessionSummary({
+              query: value,
+              result: councilSummary,
+              steps: latestCouncilSteps,
+              target: "jansky",
+            }),
+          });
+          setEmotion("success");
+          setTimeout(() => setEmotion("happy"), 550);
+        } catch (err) {
+          clearPreparedWorkspace();
+          setCouncilResults([]);
+          const msg =
+            err instanceof Error ? err.message : "Council dispatch failed.";
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "agent",
+              agent: "jansky",
+              text: `Error: ${msg}`,
+              steps: latestCouncilSteps,
+              sourceQuery: value,
+              assistantIntent: assistantContext.intent,
+            },
+          ]);
+          addOfficeMessage({
             role: "agent",
             agent: "jansky",
             text: `Error: ${msg}`,
-            steps: latestCouncilSteps,
-            sourceQuery: value,
-            assistantIntent: assistantContext.intent,
-          },
-        ]);
-        addOfficeMessage({
-          role: "agent",
-          agent: "jansky",
-          text: `Error: ${msg}`,
-        });
-        setEmotion("error");
-      } finally {
-        setTimeout(() => {
-          setActiveAgent(null);
-          setEmotion("idle");
-          setLiveSteps([]);
-        }, 1200);
+          });
+          setEmotion("error");
+        } finally {
+          setTimeout(() => {
+            setActiveAgent(null);
+            setEmotion("idle");
+            setLiveSteps([]);
+          }, 1200);
+        }
+        return;
       }
-      return;
-    }
 
-    if (workflow?.id === "vault-weekly") {
-      try {
-        const weeklyResponse = await apiFetch("/api/memory/pages?limit=48", {
-          cache: "no-store",
-        });
-        const weeklyPayload = weeklyResponse.ok
-          ? ((await weeklyResponse.json()) as {
-              pages?: CompiledMemoryPageSummary[];
-            })
-          : { pages: [] };
-        const weeklyPages = Array.isArray(weeklyPayload.pages)
-          ? weeklyPayload.pages
-          : [];
-        const weeklySynthesis = await buildVaultWeeklySynthesis({
-          savedArticles: useStore.getState().savedArticles,
-          compiledPages: weeklyPages,
-        });
-        clearPreparedWorkspace();
-        setMessages((prev) => [
-          ...prev,
-          {
+      if (workflow?.id === "vault-weekly") {
+        try {
+          const weeklyResponse = await apiFetch("/api/memory/pages?limit=48", {
+            cache: "no-store",
+          });
+          const weeklyPayload = weeklyResponse.ok
+            ? ((await weeklyResponse.json()) as {
+                pages?: CompiledMemoryPageSummary[];
+              })
+            : { pages: [] };
+          const weeklyPages = Array.isArray(weeklyPayload.pages)
+            ? weeklyPayload.pages
+            : [];
+          const weeklySynthesis = await buildVaultWeeklySynthesis({
+            savedArticles: useStore.getState().savedArticles,
+            compiledPages: weeklyPages,
+          });
+          clearPreparedWorkspace();
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "agent",
+              agent: target,
+              text: weeklySynthesis.content,
+              sourceQuery: value,
+              answerStyle: "workflow",
+              responseKind: "workflow",
+              assistantIntent: "workflow",
+            },
+          ]);
+          addOfficeMessage({
             role: "agent",
             agent: target,
             text: weeklySynthesis.content,
+          });
+          queueOfficeRunSideEffects({
+            query: value,
+            result: weeklySynthesis.content,
+            steps: [],
+            target,
+            workflow,
+            artifactOverrides: {
+              title: "Vault weekly · Archive synthesis",
+              summary:
+                "Seven-day archive synthesis with compact themes, repair lane, and strongest next session.",
+              sourceLabel: "Vault weekly synthesis",
+              topic: "Weekly archive synthesis",
+              route: "/command",
+              workflowPackId: "second-brain",
+              memoryCompartment: "conversation",
+              sourceRefs: weeklySynthesis.sourceRefs,
+              sourceType: "memory-spine",
+              evidenceStrength: "contextual",
+              extraTags: weeklySynthesis.tags,
+            },
+          });
+          setEmotion("success");
+          setTimeout(() => setEmotion("happy"), 550);
+        } catch (err) {
+          const msg =
+            err instanceof Error ? err.message : "Weekly synthesis failed.";
+          clearPreparedWorkspace();
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "agent",
+              agent: target,
+              text: `Error: ${msg}`,
+              sourceQuery: value,
+              answerStyle: "workflow",
+              responseKind: "workflow",
+              assistantIntent: "workflow",
+            },
+          ]);
+          addOfficeMessage({
+            role: "agent",
+            agent: target,
+            text: `Error: ${msg}`,
+          });
+          setEmotion("error");
+        } finally {
+          setTimeout(() => {
+            setActiveAgent(null);
+            setEmotion("idle");
+            setLiveSteps([]);
+          }, 1200);
+        }
+        return;
+      }
+
+      const promptBuild = await buildPromptForAgent(target, activePersona);
+      setContextLoadReport(promptBuild.contextReport);
+      Array.from(new Set(promptBuild.lessonIds)).forEach((lessonId) =>
+        reinforceLesson(lessonId),
+      );
+      const enrichedPrompt = promptBuild.enrichedPrompt;
+
+      const runWithDirective = async (
+        extraDirective = "",
+        seedSteps: AgentStep[] = [],
+      ) => {
+        const runSteps: AgentStep[] = [...seedSteps];
+        let preparedWorkspaceCandidate =
+          operatorPlan?.preparedWorkspace ?? assistantContext.preparedWorkspace;
+        const result = await runAgent({
+          settings,
+          agentId: target,
+          toolCatalog: dispatchPlan.toolCatalog,
+          systemPrompt: enrichedPrompt + extraDirective,
+          messages: [{ role: "user", content: agentInput }],
+          efficiencyHint: {
+            contextScope: "agent_scoped",
+            liveContextChars: promptBuild.liveReport.chars,
+            liveContextCompacted: promptBuild.liveReport.compacted,
+            memoryDiffChars: memDiff.length,
+            ragChars: promptBuild.ragChars,
+            lessonsChars: promptBuild.lessonsChars,
+          },
+          onStep: (step) => {
+            if (step.type === "tool_call") {
+              const routeFromTool = detectRouteFromTool(step.tool);
+              if (routeFromTool) {
+                const toolContext = resolveHQAssistantContext({
+                  input: agentInput,
+                  answerStyle: answerStylePlan.style,
+                  routeHint: routeFromTool,
+                  unfinishedSessions,
+                });
+                if (toolContext.preparedWorkspace) {
+                  preparedWorkspaceCandidate = toolContext.preparedWorkspace;
+                }
+              }
+            }
+            if (step.type === "phase" || step.type === "task_plan") return;
+            runSteps.push(step);
+            setLiveSteps([...runSteps]);
+          },
+        });
+
+        return {
+          result,
+          steps: runSteps,
+          preparedWorkspace: preparedWorkspaceCandidate,
+        };
+      };
+
+      let latestSteps: AgentStep[] = [];
+      const hasVerifiedRetrievalPreflight = Boolean(liveRetrieval?.verified);
+
+      try {
+        let { result, steps, preparedWorkspace } = await runWithDirective();
+        latestSteps = steps;
+
+        if (
+          answerStylePlan.verifiedRetrievalRequired &&
+          !hasVerifiedRetrievalPreflight &&
+          !hasVerifiedRetrievalStep(steps)
+        ) {
+          const safeguardStep: AgentStep = {
+            type: "thinking",
+            content:
+              "Live-query safeguard: no verified retrieval occurred on the first pass. Retrying with forced verification.",
+          };
+          const retrySeed = [...steps, safeguardStep];
+          setLiveSteps([...retrySeed]);
+          const retryRun = await runWithDirective(
+            buildHQRetrievalRetryDirective(),
+            retrySeed,
+          );
+          result = retryRun.result;
+          steps = retryRun.steps;
+          preparedWorkspace = retryRun.preparedWorkspace;
+          latestSteps = steps;
+
+          if (!hasVerifiedRetrievalStep(steps)) {
+            result = `${buildAssistantLiveRetrievalFallback(liveRetrieval)}\n\n${result}`;
+          }
+        }
+
+        const chronicleText = healHQAnswerForChronicle(result, answerStylePlan);
+        if (preparedWorkspace) {
+          const continuationConfidence =
+            assistantContext.intent === "repo_work" ||
+            assistantContext.intent === "research" ||
+            assistantContext.intent === "archive_continuity" ||
+            assistantContext.intent === "workflow"
+              ? 88
+              : assistantContext.intent === "learning"
+                ? 86
+                : assistantContext.intent === "memory_recall"
+                  ? 84
+                  : assistantContext.intent === "workspace_action" ||
+                      assistantContext.intent === "product_help"
+                    ? 82
+                    : assistantContext.intent === "live_current"
+                      ? 80
+                      : 76;
+          const artifactClass = classifyUnfinishedArtifactClass({
+            intent: assistantContext.intent,
+            capabilityId: assistantContext.capabilityId,
+            routeHint: preparedWorkspace.href,
+          });
+          const continuationValue = getContinuationValue({
+            intent: assistantContext.intent,
+            capabilityId: assistantContext.capabilityId,
+            preparedWorkspace,
+          });
+          setPreparedWorkspace(preparedWorkspace, {
+            intent: assistantContext.intent,
             sourceQuery: value,
-            answerStyle: "workflow",
-            responseKind: "workflow",
-            assistantIntent: "workflow",
-          },
-        ]);
-        addOfficeMessage({
-          role: "agent",
-          agent: target,
-          text: weeklySynthesis.content,
-        });
-        queueOfficeRunSideEffects({
+          });
+          rememberUnfinishedSession(preparedWorkspace, {
+            intent: assistantContext.intent,
+            sourceQuery: value,
+            confidence: continuationConfidence,
+            capability: assistantContext.capabilityId,
+            artifactClass,
+            continuationValue,
+            completionState: "prepared",
+          });
+        } else {
+          clearPreparedWorkspace();
+        }
+        const vaultCaptureSuggestion = buildVaultCaptureSuggestion({
           query: value,
-          result: weeklySynthesis.content,
-          steps: [],
-          target,
-          workflow,
-          artifactOverrides: {
-            title: "Vault weekly · Archive synthesis",
-            summary:
-              "Seven-day archive synthesis with compact themes, repair lane, and strongest next session.",
-            sourceLabel: "Vault weekly synthesis",
-            topic: "Weekly archive synthesis",
-            route: "/command",
-            workflowPackId: "second-brain",
-            memoryCompartment: "conversation",
-            sourceRefs: weeklySynthesis.sourceRefs,
-            sourceType: "memory-spine",
-            evidenceStrength: "contextual",
-            extraTags: weeklySynthesis.tags,
-          },
+          result: chronicleText,
+          agentId: target,
+          assistantIntent: assistantContext.intent,
+          preparedWorkspace,
+          suppress: workflow?.outputTarget === "compiled_memory_page",
         });
-        setEmotion("success");
-        setTimeout(() => setEmotion("happy"), 550);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "Weekly synthesis failed.";
-        clearPreparedWorkspace();
+        const latestArtifact = useStore.getState().agentRunHistory[0];
+        const correctionGuidance = promptBuild.matchedCorrections.length
+          ? {
+              kind: "learning" as const,
+              tone: "info" as const,
+              title: "Correction memory applied",
+              detail:
+                promptBuild.matchedCorrections.length === 1
+                  ? `1 approved correction shaped this run: ${promptBuild.matchedCorrections[0]?.content.rule}`
+                  : `${promptBuild.matchedCorrections.length} approved corrections shaped this run before wider lessons were loaded.`,
+            }
+          : null;
+
+        if (promptBuild.matchedCorrections.length) {
+          markCorrectionMemoriesApplied(
+            promptBuild.matchedCorrections.map((entry) => entry.id),
+          );
+        }
+
+        // Finalize UI: agent reply + tool trace.
+        const runtimeReceipt = await loadAssistantRuntimeReceipt(settings, {
+          provider: latestArtifact?.providerUsed,
+          filesChanged: false,
+        });
+        const actionModel = mergeAssistantRuntimeReceipt(
+          dispatchPlan.actionModel,
+          runtimeReceipt,
+        );
+
         setMessages((prev) => [
           ...prev,
           {
             role: "agent",
             agent: target,
-            text: `Error: ${msg}`,
+            text: chronicleText,
+            steps: steps.length ? steps : undefined,
             sourceQuery: value,
-            answerStyle: "workflow",
-            responseKind: "workflow",
-            assistantIntent: "workflow",
+            answerStyle: answerStylePlan.style,
+            responseKind: answerStylePlan.responseKind,
+            showEvidencePosture: answerStylePlan.showEvidencePosture,
+            assistantIntent: assistantContext.intent,
+            preparedWorkspace,
+            actionModel,
+            operatorWorkflow: dispatchPlan.operatorWorkflow,
+            assistantGuidance: mergeAssistantGuidance(
+              assistantContext.assistantGuidance,
+              correctionGuidance,
+            ),
+            vaultCaptureSuggestion,
           },
         ]);
-        addOfficeMessage({ role: "agent", agent: target, text: `Error: ${msg}` });
+
+        addOfficeMessage({ role: "agent", agent: target, text: chronicleText });
+
+        queueOfficeRunSideEffects({
+          query: value,
+          result: chronicleText,
+          steps,
+          target,
+          workflow,
+        });
+
+        if (operatorPlan) {
+          patchSwitchOperatorStatus({
+            mode: "completed",
+            providerUsed: latestArtifact?.providerUsed,
+            detail: `Operator mode completed one bounded run for ${
+              operatorPlan.status.taskId ?? "the selected tranche"
+            }.`,
+            nextStep:
+              preparedWorkspace?.detail ??
+              operatorPlan.status.nextStep ??
+              "Review the selected lane before widening the next move.",
+          });
+        }
+
+        setEmotion("success");
+        setTimeout(() => setEmotion("happy"), 550);
+
+        const sessionSummary = buildOfficeRunSessionSummary({
+          query: value,
+          result: chronicleText,
+          steps,
+          target,
+        });
+        updateSettings({ lastSessionSummary: sessionSummary });
+        const proposedLesson = buildOfficeRunLessonProposal({
+          query: value,
+          result: chronicleText,
+          steps,
+          target,
+        });
+        if (proposedLesson) {
+          setPendingLesson({ text: proposedLesson, agent: target });
+        }
+        const proposedCorrection = buildOfficeRunCorrectionProposal({
+          query: value,
+          result: chronicleText,
+          steps,
+          target,
+          assistantIntent: assistantContext.intent,
+          capabilityId: assistantContext.capabilityId,
+          routeHint: routeFromPrompt,
+          preparedWorkspace,
+        });
+        if (proposedCorrection) {
+          const storedProposal = proposeCorrectionMemory({
+            status: "proposed",
+            scope: proposedCorrection.scope,
+            content: proposedCorrection.content,
+            provenance: {
+              sourceQuery: value,
+              sourceRunId: latestArtifact?.runId,
+              sourceSessionHref: preparedWorkspace?.href ?? null,
+            },
+            sensitivity: proposedCorrection.sensitivity,
+          });
+          setPendingCorrectionId(storedProposal?.id ?? null);
+        } else {
+          setPendingCorrectionId(null);
+        }
+      } catch (err) {
+        if (operatorPlan) {
+          patchSwitchOperatorStatus({
+            mode: "failed",
+            detail:
+              err instanceof Error
+                ? err.message
+                : "Operator mode failed before the bounded run could complete.",
+          });
+        }
+        clearPreparedWorkspace();
+        const failure = resolveAssistantFailure(err);
+        const msg = normalizeAssistantFailureMessage(err);
+        const runtimeReceipt = await loadAssistantRuntimeReceipt(settings, {
+          recoveryCode: failure.recoveryCode,
+          filesChanged: false,
+        });
+        const recoveryActionModel = buildAssistantChatActionModel({
+          answerMode: "direct",
+          routeHref: null,
+          preparedWorkspace: null,
+          sourceText: value,
+          recoveryAction: failure.recoveryAction,
+          diagnostic: failure.diagnostic,
+          operatorWorkflow: dispatchPlan.operatorWorkflow,
+          runtimeReceipt,
+        });
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "agent",
+            agent: target,
+            text: msg,
+            steps: latestSteps.length ? latestSteps : undefined,
+            sourceQuery: value,
+            assistantIntent: assistantContext.intent,
+            actionModel: recoveryActionModel,
+            operatorWorkflow: dispatchPlan.operatorWorkflow,
+          },
+        ]);
+        addOfficeMessage({ role: "agent", agent: target, text: msg });
         setEmotion("error");
       } finally {
+        // Release active agent lock.
         setTimeout(() => {
           setActiveAgent(null);
           setEmotion("idle");
           setLiveSteps([]);
         }, 1200);
       }
-      return;
-    }
-
-    const promptBuild = await buildPromptForAgent(target, activePersona);
-    setContextLoadReport(promptBuild.contextReport);
-    Array.from(new Set(promptBuild.lessonIds)).forEach((lessonId) =>
-      reinforceLesson(lessonId),
-    );
-    const enrichedPrompt = promptBuild.enrichedPrompt;
-
-    const runWithDirective = async (
-      extraDirective = "",
-      seedSteps: AgentStep[] = [],
-    ) => {
-      const runSteps: AgentStep[] = [...seedSteps];
-      let preparedWorkspaceCandidate =
-        operatorPlan?.preparedWorkspace ?? assistantContext.preparedWorkspace;
-      const result = await runAgent({
-        settings,
-        agentId: target,
-        toolCatalog: dispatchPlan.toolCatalog,
-        systemPrompt: enrichedPrompt + extraDirective,
-        messages: [{ role: "user", content: agentInput }],
-        efficiencyHint: {
-          contextScope: "agent_scoped",
-          liveContextChars: promptBuild.liveReport.chars,
-          liveContextCompacted: promptBuild.liveReport.compacted,
-          memoryDiffChars: memDiff.length,
-          ragChars: promptBuild.ragChars,
-          lessonsChars: promptBuild.lessonsChars,
-        },
-        onStep: (step) => {
-          if (step.type === "tool_call") {
-            const routeFromTool = detectRouteFromTool(step.tool);
-            if (routeFromTool) {
-              const toolContext = resolveHQAssistantContext({
-                input: agentInput,
-                answerStyle: answerStylePlan.style,
-                routeHint: routeFromTool,
-                unfinishedSessions,
-              });
-              if (toolContext.preparedWorkspace) {
-                preparedWorkspaceCandidate = toolContext.preparedWorkspace;
-              }
-            }
-          }
-          if (step.type === "phase" || step.type === "task_plan") return;
-          runSteps.push(step);
-          setLiveSteps([...runSteps]);
-        },
-      });
-
-      return {
-        result,
-        steps: runSteps,
-        preparedWorkspace: preparedWorkspaceCandidate,
-      };
-    };
-
-    let latestSteps: AgentStep[] = [];
-    const hasVerifiedRetrievalPreflight = Boolean(liveRetrieval?.verified);
-
-    try {
-      let { result, steps, preparedWorkspace } = await runWithDirective();
-      latestSteps = steps;
-
-      if (
-        answerStylePlan.verifiedRetrievalRequired &&
-        !hasVerifiedRetrievalPreflight &&
-        !hasVerifiedRetrievalStep(steps)
-      ) {
-        const safeguardStep: AgentStep = {
-          type: "thinking",
-          content:
-            "Live-query safeguard: no verified retrieval occurred on the first pass. Retrying with forced verification.",
-        };
-        const retrySeed = [...steps, safeguardStep];
-        setLiveSteps([...retrySeed]);
-        const retryRun = await runWithDirective(
-          buildHQRetrievalRetryDirective(),
-          retrySeed,
-        );
-        result = retryRun.result;
-        steps = retryRun.steps;
-        preparedWorkspace = retryRun.preparedWorkspace;
-        latestSteps = steps;
-
-        if (!hasVerifiedRetrievalStep(steps)) {
-          result = `${buildAssistantLiveRetrievalFallback(liveRetrieval)}\n\n${result}`;
-        }
-      }
-
-      const chronicleText = healHQAnswerForChronicle(result, answerStylePlan);
-      if (preparedWorkspace) {
-        const continuationConfidence =
-          assistantContext.intent === "repo_work" ||
-          assistantContext.intent === "research" ||
-          assistantContext.intent === "archive_continuity" ||
-          assistantContext.intent === "workflow"
-            ? 88
-            : assistantContext.intent === "learning"
-              ? 86
-            : assistantContext.intent === "memory_recall"
-              ? 84
-              : assistantContext.intent === "workspace_action" ||
-                  assistantContext.intent === "product_help"
-                ? 82
-                : assistantContext.intent === "live_current"
-                  ? 80
-                  : 76;
-        const artifactClass = classifyUnfinishedArtifactClass({
-          intent: assistantContext.intent,
-          capabilityId: assistantContext.capabilityId,
-          routeHint: preparedWorkspace.href,
-        });
-        const continuationValue = getContinuationValue({
-          intent: assistantContext.intent,
-          capabilityId: assistantContext.capabilityId,
-          preparedWorkspace,
-        });
-        setPreparedWorkspace(preparedWorkspace, {
-          intent: assistantContext.intent,
-          sourceQuery: value,
-        });
-        rememberUnfinishedSession(preparedWorkspace, {
-          intent: assistantContext.intent,
-          sourceQuery: value,
-          confidence: continuationConfidence,
-          capability: assistantContext.capabilityId,
-          artifactClass,
-          continuationValue,
-          completionState: "prepared",
-        });
-      } else {
-        clearPreparedWorkspace();
-      }
-      const vaultCaptureSuggestion = buildVaultCaptureSuggestion({
-        query: value,
-        result: chronicleText,
-        agentId: target,
-        assistantIntent: assistantContext.intent,
-        preparedWorkspace,
-        suppress: workflow?.outputTarget === "compiled_memory_page",
-      });
-      const latestArtifact = useStore.getState().agentRunHistory[0];
-      const correctionGuidance = promptBuild.matchedCorrections.length
-        ? {
-            kind: "learning" as const,
-            tone: "info" as const,
-            title: "Correction memory applied",
-            detail:
-              promptBuild.matchedCorrections.length === 1
-                ? `1 approved correction shaped this run: ${promptBuild.matchedCorrections[0]?.content.rule}`
-                : `${promptBuild.matchedCorrections.length} approved corrections shaped this run before wider lessons were loaded.`,
-          }
-        : null;
-
-      if (promptBuild.matchedCorrections.length) {
-        markCorrectionMemoriesApplied(
-          promptBuild.matchedCorrections.map((entry) => entry.id),
-        );
-      }
-
-      // Finalize UI: agent reply + tool trace.
-      const runtimeReceipt = await loadAssistantRuntimeReceipt(settings, {
-        provider: latestArtifact?.providerUsed,
-        filesChanged: false,
-      });
-      const actionModel = mergeAssistantRuntimeReceipt(
-        dispatchPlan.actionModel,
-        runtimeReceipt,
-      );
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "agent",
-          agent: target,
-          text: chronicleText,
-          steps: steps.length ? steps : undefined,
-          sourceQuery: value,
-          answerStyle: answerStylePlan.style,
-          responseKind: answerStylePlan.responseKind,
-          showEvidencePosture: answerStylePlan.showEvidencePosture,
-          assistantIntent: assistantContext.intent,
-          preparedWorkspace,
-          actionModel,
-          operatorWorkflow: dispatchPlan.operatorWorkflow,
-          assistantGuidance: mergeAssistantGuidance(
-            assistantContext.assistantGuidance,
-            correctionGuidance,
-          ),
-          vaultCaptureSuggestion,
-        },
-      ]);
-
-      addOfficeMessage({ role: "agent", agent: target, text: chronicleText });
-
-      queueOfficeRunSideEffects({
-        query: value,
-        result: chronicleText,
-        steps,
-        target,
-        workflow,
-      });
-
-      if (operatorPlan) {
-        patchSwitchOperatorStatus({
-          mode: "completed",
-          providerUsed: latestArtifact?.providerUsed,
-          detail: `Operator mode completed one bounded run for ${
-            operatorPlan.status.taskId ?? "the selected tranche"
-          }.`,
-          nextStep:
-            preparedWorkspace?.detail ??
-            operatorPlan.status.nextStep ??
-            "Review the selected lane before widening the next move.",
-        });
-      }
-
-      setEmotion("success");
-      setTimeout(() => setEmotion("happy"), 550);
-
-      const sessionSummary = buildOfficeRunSessionSummary({
-        query: value,
-        result: chronicleText,
-        steps,
-        target,
-      });
-      updateSettings({ lastSessionSummary: sessionSummary });
-      const proposedLesson = buildOfficeRunLessonProposal({
-        query: value,
-        result: chronicleText,
-        steps,
-        target,
-      });
-      if (proposedLesson) {
-        setPendingLesson({ text: proposedLesson, agent: target });
-      }
-      const proposedCorrection = buildOfficeRunCorrectionProposal({
-        query: value,
-        result: chronicleText,
-        steps,
-        target,
-        assistantIntent: assistantContext.intent,
-        capabilityId: assistantContext.capabilityId,
-        routeHint: routeFromPrompt,
-        preparedWorkspace,
-      });
-      if (proposedCorrection) {
-        const storedProposal = proposeCorrectionMemory({
-          status: "proposed",
-          scope: proposedCorrection.scope,
-          content: proposedCorrection.content,
-          provenance: {
-            sourceQuery: value,
-            sourceRunId: latestArtifact?.runId,
-            sourceSessionHref: preparedWorkspace?.href ?? null,
-          },
-          sensitivity: proposedCorrection.sensitivity,
-        });
-        setPendingCorrectionId(storedProposal?.id ?? null);
-      } else {
-        setPendingCorrectionId(null);
-      }
-    } catch (err) {
-      if (operatorPlan) {
-        patchSwitchOperatorStatus({
-          mode: "failed",
-          detail:
-            err instanceof Error
-              ? err.message
-              : "Operator mode failed before the bounded run could complete.",
-        });
-      }
-      clearPreparedWorkspace();
-      const failure = resolveAssistantFailure(err);
-      const msg = normalizeAssistantFailureMessage(err);
-      const runtimeReceipt = await loadAssistantRuntimeReceipt(settings, {
-        recoveryCode: failure.recoveryCode,
-        filesChanged: false,
-      });
-      const recoveryActionModel = buildAssistantChatActionModel({
-        answerMode: "direct",
-        routeHref: null,
-        preparedWorkspace: null,
-        sourceText: value,
-        recoveryAction: failure.recoveryAction,
-        diagnostic: failure.diagnostic,
-        operatorWorkflow: dispatchPlan.operatorWorkflow,
-        runtimeReceipt,
-      });
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "agent",
-          agent: target,
-          text: msg,
-          steps: latestSteps.length ? latestSteps : undefined,
-          sourceQuery: value,
-          assistantIntent: assistantContext.intent,
-          actionModel: recoveryActionModel,
-          operatorWorkflow: dispatchPlan.operatorWorkflow,
-        },
-      ]);
-      addOfficeMessage({ role: "agent", agent: target, text: msg });
-      setEmotion("error");
-    } finally {
-      // Release active agent lock.
-      setTimeout(() => {
-        setActiveAgent(null);
-        setEmotion("idle");
-        setLiveSteps([]);
-      }, 1200);
-    }
-  }, [
-    input,
-    activeAgent,
-    addOfficeMessage,
-    addPendingEdit,
-    clearCouncilResults,
-    clearPreparedWorkspace,
-    councilMode,
-    settings,
-    updateSettings,
-    activePersona,
-    lessons,
-    reinforceLesson,
-    setCouncilResults,
-    setContextLoadReport,
-    setPreparedWorkspace,
-    setSwitchOperatorStatus,
-    setPrivacyShieldStatus,
-    patchSwitchOperatorStatus,
-    proposeCorrectionMemory,
-    markCorrectionMemoriesApplied,
-    rememberUnfinishedSession,
-    router,
-    setTab,
-    unfinishedSessions,
-  ]);
+    },
+    [
+      input,
+      activeAgent,
+      addOfficeMessage,
+      addPendingEdit,
+      clearCouncilResults,
+      clearPreparedWorkspace,
+      councilMode,
+      settings,
+      updateSettings,
+      activePersona,
+      lessons,
+      reinforceLesson,
+      setCouncilResults,
+      setContextLoadReport,
+      setPreparedWorkspace,
+      setSwitchOperatorStatus,
+      setPrivacyShieldStatus,
+      patchSwitchOperatorStatus,
+      proposeCorrectionMemory,
+      markCorrectionMemoriesApplied,
+      rememberUnfinishedSession,
+      router,
+      setTab,
+      unfinishedSessions,
+    ],
+  );
 
   const handleAssistantAction = useCallback(
     (
@@ -2075,7 +2149,10 @@ export default function OfficeCommandCenter() {
         mode === "war" ? "war" : mode === "nightOps" ? "nightOps" : "focus";
       const preset = OFFICE_LAYOUT_PRESETS[presetKey];
       const nextLayout = Object.fromEntries(
-        Object.entries(preset.layout).map(([key, value]) => [key, { ...value }]),
+        Object.entries(preset.layout).map(([key, value]) => [
+          key,
+          { ...value },
+        ]),
       ) as typeof preset.layout;
 
       updateSettings({
@@ -2135,27 +2212,24 @@ export default function OfficeCommandCenter() {
     },
     [router, setTab],
   );
-  const {
-    applySplitHeight,
-    openBriefingTab,
-    toggleSplitLock,
-  } = useOfficeConsoleShellControls({
-    router,
-    setTab,
-    openSurface,
-    primaryFrontHref,
-    strategiumSystems,
-    setMemoryOpen,
-    setSchedulerOpen,
-    officeHeightPx,
-    setOfficeHeightPx,
-    updateOfficeSplitHeight: (patch) => updateSettings(patch),
-    splitDragLocked,
-    setSplitNotice,
-    setSplitDragLocked,
-  });
+  const { applySplitHeight, openBriefingTab, toggleSplitLock } =
+    useOfficeConsoleShellControls({
+      router,
+      setTab,
+      openSurface,
+      primaryFrontHref,
+      strategiumSystems,
+      setMemoryOpen,
+      setSchedulerOpen,
+      officeHeightPx,
+      setOfficeHeightPx,
+      updateOfficeSplitHeight: (patch) => updateSettings(patch),
+      splitDragLocked,
+      setSplitNotice,
+      setSplitDragLocked,
+    });
   const setHqConsoleFocusMode = useCallback(
-    (mode: "game" | "chat") => {
+    (mode: HqConsoleFocusMode) => {
       updateSettings({ hqConsoleFocusMode: mode });
       setShowSplitMore(false);
     },
@@ -2209,92 +2283,105 @@ export default function OfficeCommandCenter() {
 
         <div
           className="nexus-hq-commandTable"
-          data-hq-focus-mode={hqConsoleFocusMode}
+          data-hq-focus-mode={effectiveHqFocusMode}
         >
           <div className="nexus-hq-commandTable__workspace">
             <div className="nexus-hq-console">
-              <div
-                id="hq-console-shell"
-                style={{ scrollMarginTop: "120px", flexShrink: 0 }}
-              >
-                <HQConsoleShellSection
-                  activeAgent={activeAgent}
-                  evalGrade={evalGrade}
-                  evalTrail={evalTrail}
-                  evalStale={evalStale}
-                  evalFailureCount={evalFailureCount}
-                  evalUpdatedAt={evalUpdatedAt}
-                  runtimeStatusLabel={runtimeStatusLabel}
-                  runtimePhaseLabel={runtimePhaseLabel}
-                  clockLabel={clockLabel}
-                  consoleFocusMode={hqConsoleFocusMode}
-                  officeHeightPx={officeHeightPx}
-                  compactSplitControls={compactSplitControls}
-                  viewportHeight={viewportHeight}
-                  splitDragLocked={splitDragLocked}
-                  showSplitMore={showSplitMore}
-                  splitNotice={splitNotice}
-                  officeEditMode={officeEditMode}
-                  officeLayout={officeLayout}
-                  agentPos={agentPos}
-                  roomMissionState={roomMissionState}
-                  roomMissionLabel={roomMissionLabel}
-                  roomMissionNote={roomMissionNote}
-                  commandTempo={commandTempo}
-                  primaryFront={primaryFront}
-                  officeSceneMode={officeSceneMode}
-                  surfaceMotionProfile={surfaceMotionProfile}
-                  officeMotion={officeMotion}
-                  officeCameraPreset={officeCameraPreset}
-                  officeVfxQuality={officeVfxQuality}
-                  dispatchBar={dispatchBar}
-                  emotion={emotion}
-                  onOpenMemory={() => setMemoryOpen(true)}
-                  onOpenScheduler={() => setSchedulerOpen(true)}
-                  onOpenPrimaryFront={() => openSurface(primaryFrontHref)}
-                  onOpenSweep={() => openSurface("/intel?view=sweeps")}
-                  onOpenForge={() => openSurface("/skills?view=forge")}
-                  onOpenDoctrine={() => openSurface("/security?view=doctrine")}
-                  onToggleEditMode={() => setOfficeEditMode(!officeEditMode)}
-                  onResetLayout={() => resetOfficeLayout()}
-                  onSetCameraPreset={(preset) =>
-                    updateSettings({ officeCameraPreset: preset })
-                  }
-                  onSetVfxQuality={(quality) =>
-                    updateSettings({ officeVfxQuality: quality })
-                  }
-                  onOpenBriefingTab={openBriefingTab}
-                  onSetConsoleFocusMode={setHqConsoleFocusMode}
-                  onApplyStageHeight={applySplitHeight}
-                  onToggleSplitLock={toggleSplitLock}
-                  onSetShowSplitMore={setShowSplitMore}
-                />
-              </div>
+              {!showHqPlayfield ? null : (
+                <div
+                  id="hq-console-shell"
+                  style={{ scrollMarginTop: "120px", flexShrink: 0 }}
+                >
+                  <HQConsoleShellSection
+                    activeAgent={activeAgent}
+                    evalGrade={evalGrade}
+                    evalTrail={evalTrail}
+                    evalStale={evalStale}
+                    evalFailureCount={evalFailureCount}
+                    evalUpdatedAt={evalUpdatedAt}
+                    runtimeStatusLabel={runtimeStatusLabel}
+                    runtimePhaseLabel={runtimePhaseLabel}
+                    clockLabel={clockLabel}
+                    consoleFocusMode={hqConsoleFocusMode}
+                    officeHeightPx={officeHeightPx}
+                    compactSplitControls={compactSplitControls}
+                    viewportHeight={viewportHeight}
+                    splitDragLocked={splitDragLocked}
+                    showSplitMore={showSplitMore}
+                    splitNotice={splitNotice}
+                    officeEditMode={officeEditMode}
+                    officeLayout={officeLayout}
+                    agentPos={agentPos}
+                    roomMissionState={roomMissionState}
+                    roomMissionLabel={roomMissionLabel}
+                    roomMissionNote={roomMissionNote}
+                    commandTempo={commandTempo}
+                    primaryFront={primaryFront}
+                    officeSceneMode={officeSceneMode}
+                    surfaceMotionProfile={surfaceMotionProfile}
+                    officeMotion={officeMotion}
+                    officeCameraPreset={officeCameraPreset}
+                    officeVfxQuality={officeVfxQuality}
+                    dispatchBar={dispatchBar}
+                    emotion={emotion}
+                    onOpenMemory={() => setMemoryOpen(true)}
+                    onOpenScheduler={() => setSchedulerOpen(true)}
+                    onOpenPrimaryFront={() => openSurface(primaryFrontHref)}
+                    onOpenSweep={() => openSurface("/intel?view=sweeps")}
+                    onOpenForge={() => openSurface("/skills?view=forge")}
+                    onOpenDoctrine={() =>
+                      openSurface("/security?view=doctrine")
+                    }
+                    onToggleEditMode={() => setOfficeEditMode(!officeEditMode)}
+                    onResetLayout={() => resetOfficeLayout()}
+                    onSetCameraPreset={(preset) =>
+                      updateSettings({ officeCameraPreset: preset })
+                    }
+                    onSetVfxQuality={(quality) =>
+                      updateSettings({ officeVfxQuality: quality })
+                    }
+                    onOpenBriefingTab={openBriefingTab}
+                    onSetConsoleFocusMode={setHqConsoleFocusMode}
+                    onApplyStageHeight={applySplitHeight}
+                    onToggleSplitLock={toggleSplitLock}
+                    onSetShowSplitMore={setShowSplitMore}
+                  />
+                </div>
+              )}
 
-              <MemoryPanel open={memoryOpen} onClose={() => setMemoryOpen(false)} />
+              <MemoryPanel
+                open={memoryOpen}
+                onClose={() => setMemoryOpen(false)}
+              />
               <CronSchedulerPanel
                 open={schedulerOpen}
                 focus={schedulerFocus}
                 onClose={() => setSchedulerOpen(false)}
               />
 
-              {hqConsoleFocusMode === "chat" ? (
+              {effectiveHqFocusMode === "chat" ? (
                 <div
                   id="hq-chronicle"
                   data-testid="hq-chat-panel"
                   style={{
                     scrollMarginTop: "120px",
                     display: "flex",
+                    flexDirection: "column",
                     flex: "1 1 auto",
                     minHeight: 0,
                   }}
                 >
+                  <TeamOrchestrationStrip
+                    query={input}
+                    activeAgent={activeAgent}
+                  />
                   <HQTerminalSection
                     messages={messages}
                     activeAgent={activeAgent}
                     activeColor={activeColor}
                     liveSteps={liveSteps}
                     pendingLesson={pendingLesson}
+                    lessonLogging={loggingLesson}
                     pendingCorrection={pendingCorrection}
                     input={input}
                     surfaceMotionProfile={surfaceMotionProfile}
@@ -2323,23 +2410,46 @@ export default function OfficeCommandCenter() {
                     onUseCouncilResult={(result) =>
                       setInput(buildCouncilAdoptDraft(result))
                     }
-                    onLogLesson={() => {
-                      if (!pendingLesson) return;
-                      apiFetch("/api/tools", {
-                        method: "POST",
-                        body: JSON.stringify({
-                          tool: "log_lesson",
-                          input: {
-                            agent: pendingLesson.agent,
-                            lesson: pendingLesson.text,
-                          },
-                        }),
-                      }).catch(() => {
-                        /* non-fatal */
-                      });
-                      setPendingLesson(null);
+                    onLogLesson={async () => {
+                      if (!pendingLesson || loggingLesson) return;
+                      setLoggingLesson(true);
+                      try {
+                        const response = await apiFetch("/api/tools", {
+                          method: "POST",
+                          body: JSON.stringify({
+                            tool: "log_lesson",
+                            input: {
+                              agent: pendingLesson.agent,
+                              lesson: pendingLesson.text,
+                            },
+                          }),
+                        });
+                        if (!response.ok) {
+                          throw new Error(
+                            `Lesson logging failed (${response.status}).`,
+                          );
+                        }
+                        setPendingLesson(null);
+                        toast({
+                          title: "Lesson logged",
+                          message:
+                            "The approved lesson is now in the local lesson log.",
+                          severity: "low",
+                        });
+                      } catch {
+                        toast({
+                          title: "Lesson not logged",
+                          message:
+                            "The proposal is still pending. Check the tools route and retry.",
+                          severity: "medium",
+                        });
+                      } finally {
+                        setLoggingLesson(false);
+                      }
                     }}
-                    onDismissLesson={() => setPendingLesson(null)}
+                    onDismissLesson={() => {
+                      if (!loggingLesson) setPendingLesson(null);
+                    }}
                     onApproveCorrection={() => {
                       if (!pendingCorrection) return;
                       approveCorrectionMemory(pendingCorrection.id);
@@ -2356,94 +2466,96 @@ export default function OfficeCommandCenter() {
             </div>
           </div>
 
-        {hqConsoleFocusMode === "chat" ? (
-        <HQPreludePostureSection
-            eyebrow="Sector rail"
-            title="Live sector."
-            description="Fronts and continuity stay beside the chronicle."
-            activeProfileLabel={activeProfile.label}
-            activeProfileFocusTabs={activeProfile.focusTabs}
-            activeAgent={activeAgent}
-            evalGrade={evalGrade}
-            primaryFrontLabel={primaryFront.label}
-            runtimeStatusLabel={runtimeStatusLabel}
-            runtimePhaseLabel={runtimePhaseLabel}
-            evalStale={evalStale}
-            primaryFrontNote={primaryFront.note}
-            commandTempo={commandTempo}
-            enabledScheduledJobsCount={enabledScheduledJobs.length}
-            warmedAgentStationsCount={
-              strategiumAgents.filter((agent) => agent.status !== "standby").length
-            }
-            sessionRecapSummary={sessionRecap.summary}
-            investigateLabel={`Investigate ${primaryFront.label}`}
-            investigateNote={
-              primaryFront.tab === "cyber" || primaryFront.tab === "intel"
-                ? `Open ${primaryFront.label} with the most relevant live theater already staged.`
-                : "Widen evidence through sweeps and recon before escalating action."
-            }
-            onOpenPrimaryFront={() => openSurface(primaryFrontHref)}
-            onOpenObserve={() =>
-              openSurface(buildMissionHref("/command", "observe"))
-            }
-            onOpenInvestigate={() =>
-              openSurface(
-                buildMissionHref(
-                  primaryFront.tab === "cyber" || primaryFront.tab === "intel"
-                    ? primaryFrontHref
-                    : "/intel?view=sweeps",
-                  "investigate",
-                  {
-                    source:
-                      primaryFront.tab === "cyber" || primaryFront.tab === "intel"
-                        ? primaryFront.tab
-                        : "intel",
-                  },
-                ),
-              )
-            }
-            onOpenArchive={() =>
-              openSurface(buildMissionHref("/vault", "archive"))
-            }
-            onOpenLaunch={() =>
-              openSurface(buildMissionHref("/vehicle", "launch"))
-            }
-            onOpenScheduler={() => setSchedulerOpen(true)}
-            onOpenFieldManual={() => openSurface("resources")}
-          />
-        ) : null}
+          {effectiveHqFocusMode === "chat" && !hqCompactOperator ? (
+            <HQPreludePostureSection
+              eyebrow="Sector rail"
+              title="Live sector."
+              description="Fronts and continuity stay beside the chronicle."
+              activeProfileLabel={activeProfile.label}
+              activeProfileFocusTabs={activeProfile.focusTabs}
+              activeAgent={activeAgent}
+              evalGrade={evalGrade}
+              primaryFrontLabel={primaryFront.label}
+              runtimeStatusLabel={runtimeStatusLabel}
+              runtimePhaseLabel={runtimePhaseLabel}
+              evalStale={evalStale}
+              primaryFrontNote={primaryFront.note}
+              commandTempo={commandTempo}
+              enabledScheduledJobsCount={enabledScheduledJobs.length}
+              warmedAgentStationsCount={
+                strategiumAgents.filter((agent) => agent.status !== "standby")
+                  .length
+              }
+              sessionRecapSummary={sessionRecap.summary}
+              investigateLabel={`Investigate ${primaryFront.label}`}
+              investigateNote={
+                primaryFront.tab === "cyber" || primaryFront.tab === "intel"
+                  ? `Open ${primaryFront.label} with the most relevant live theater already staged.`
+                  : "Widen evidence through sweeps and recon before escalating action."
+              }
+              onOpenPrimaryFront={() => openSurface(primaryFrontHref)}
+              onOpenObserve={() =>
+                openSurface(buildMissionHref("/command", "observe"))
+              }
+              onOpenInvestigate={() =>
+                openSurface(
+                  buildMissionHref(
+                    primaryFront.tab === "cyber" || primaryFront.tab === "intel"
+                      ? primaryFrontHref
+                      : "/intel?view=sweeps",
+                    "investigate",
+                    {
+                      source:
+                        primaryFront.tab === "cyber" ||
+                        primaryFront.tab === "intel"
+                          ? primaryFront.tab
+                          : "intel",
+                    },
+                  ),
+                )
+              }
+              onOpenArchive={() =>
+                openSurface(buildMissionHref("/vault", "archive"))
+              }
+              onOpenLaunch={() =>
+                openSurface(buildMissionHref("/vehicle", "launch"))
+              }
+              onOpenScheduler={() => setSchedulerOpen(true)}
+              onOpenFieldManual={() => openSurface("resources")}
+            />
+          ) : null}
         </div>
 
-        {hqConsoleFocusMode === "chat" ? (
-        <div id="hq-strategium" style={{ scrollMarginTop: "120px" }}>
-          <HQStrategiumDeck
-            operationalMode={officeOperationalMode}
-            activeAgent={activeAgent}
-            evalGrade={evalGrade}
-            evalStale={evalStale}
-            runtimeStatus={runtimeStatusLabel}
-            runtimePhase={runtimePhaseLabel}
-            latestChronicle={latestChronicle}
-            pendingLessonAgent={pendingLesson?.agent ?? null}
-            pendingLessonSummary={pendingLesson?.text ?? null}
-            postureSummary={postureSummary}
-            threatLabel={threatLabel}
-            tempoLabel={commandTempo}
-            fronts={strategiumFronts}
-            agents={strategiumAgents}
-            systems={strategiumSystems}
-            missionCodex={missionCodex}
-            sessionRecap={sessionRecap}
-            shortcuts={strategiumShortcuts}
-            verbs={strategiumVerbs}
-            prompts={STRATEGIUM_PROMPTS}
-            onSetOperationalMode={applyOperationalPreset}
-            onPrimePrompt={primePrompt}
-            onOpenTab={openSurface}
-            onOpenMemory={() => setMemoryOpen(true)}
-            onOpenScheduler={() => setSchedulerOpen(true)}
-          />
-        </div>
+        {effectiveHqFocusMode === "chat" && !hqCompactOperator ? (
+          <div id="hq-strategium" style={{ scrollMarginTop: "120px" }}>
+            <HQStrategiumDeck
+              operationalMode={officeOperationalMode}
+              activeAgent={activeAgent}
+              evalGrade={evalGrade}
+              evalStale={evalStale}
+              runtimeStatus={runtimeStatusLabel}
+              runtimePhase={runtimePhaseLabel}
+              latestChronicle={latestChronicle}
+              pendingLessonAgent={pendingLesson?.agent ?? null}
+              pendingLessonSummary={pendingLesson?.text ?? null}
+              postureSummary={postureSummary}
+              threatLabel={threatLabel}
+              tempoLabel={commandTempo}
+              fronts={strategiumFronts}
+              agents={strategiumAgents}
+              systems={strategiumSystems}
+              missionCodex={missionCodex}
+              sessionRecap={sessionRecap}
+              shortcuts={strategiumShortcuts}
+              verbs={strategiumVerbs}
+              prompts={STRATEGIUM_PROMPTS}
+              onSetOperationalMode={applyOperationalPreset}
+              onPrimePrompt={primePrompt}
+              onOpenTab={openSurface}
+              onOpenMemory={() => setMemoryOpen(true)}
+              onOpenScheduler={() => setSchedulerOpen(true)}
+            />
+          </div>
         ) : null}
       </div>
     </PageTransition>

@@ -674,13 +674,13 @@ export function parseMediaEscapeFileName(
         ? "book"
         : fallbackKind;
   const basename = rawName.split(/[\\/]/).pop() ?? rawName;
-  const withoutExtension = extension
-    ? basename.replace(new RegExp(`\\.${extension}$`, "i"), "")
-    : basename;
+  const suffix = extension ? `.${extension}` : "";
+  const withoutExtension =
+    suffix && basename.toLowerCase().endsWith(suffix)
+      ? basename.slice(0, -suffix.length)
+      : basename;
   const suggestedPath =
-    /[\\/]/.test(rawName) || /^[a-zA-Z]:/.test(rawName)
-      ? rawName
-      : undefined;
+    /[\\/]/.test(rawName) || /^[a-zA-Z]:/.test(rawName) ? rawName : undefined;
   const yearMatch = withoutExtension.match(/\b(19\d{2}|20\d{2})\b/);
   const suggestedYear = yearMatch?.[1];
   const cleaned = withoutExtension

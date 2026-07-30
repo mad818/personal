@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { performSweepBundle } from "@/lib/assimilation/sweep";
 import { saveGeoDeltaSnapshot } from "@/lib/assimilation/storage";
+import { requireMasterSessionForAction } from "@/lib/security/masterSession";
+import {
+  applyRateLimitHeaders,
+  checkRateLimit,
+} from "@/lib/security/rateLimit";
 import type { GeoDeltaSnapshot, SweepTheater } from "@/lib/assimilation/types";
 
 export const dynamic = "force-dynamic";
+
+const SWEEPS_RATE_LIMIT = {
+  bucket: "api-sweeps",
+  windowMs: 60_000,
+  maxAttempts: 12,
+} as const;
 
 function normalizeTheater(value: string | null): SweepTheater {
   const fallback: SweepTheater = "markets";
@@ -21,13 +32,58 @@ function normalizeTheater(value: string | null): SweepTheater {
 }
 
 export async function GET(req: NextRequest) {
+  const masterRequired = await requireMasterSessionForAction(req, {
+    action: "tools_networked",
+    capability: "networked",
+  });
+  if (masterRequired) return masterRequired;
+
+  const rateLimit = checkRateLimit(req, SWEEPS_RATE_LIMIT);
+  if (!rateLimit.ok) {
+    const res = NextResponse.json(
+      { error: "Sweep rate limit exceeded. Try again shortly." },
+      { status: 429 },
+    );
+    applyRateLimitHeaders(res, SWEEPS_RATE_LIMIT, rateLimit.retryAfterSec);
+    return res;
+  }
+
   const theater = normalizeTheater(req.nextUrl.searchParams.get("theater"));
   const sweep = await performSweepBundle(req.url, theater);
-  return NextResponse.json({ sweep });
+  const res = NextResponse.json({ sweep });
+  applyRateLimitHeaders(res, SWEEPS_RATE_LIMIT);
+  return res;
 }
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as { theater?: string; persistSnapshot?: boolean };
+  const masterRequired = await requireMasterSessionForAction(req, {
+    action: "tools_networked",
+    capability: "networked",
+  });
+  if (masterRequired) return masterRequired;
+
+  const rateLimit = checkRateLimit(req, SWEEPS_RATE_LIMIT);
+  if (!rateLimit.ok) {
+    const res = NextResponse.json(
+      { error: "Sweep rate limit exceeded. Try again shortly." },
+      { status: 429 },
+    );
+    applyRateLimitHeaders(res, SWEEPS_RATE_LIMIT, rateLimit.retryAfterSec);
+    return res;
+  }
+
+  const body = (await req.json()) as {
+    theater?: string;
+    persistSnapshot?: boolean;
+  };
+  if (body.persistSnapshot) {
+    const masterRequired = await requireMasterSessionForAction(req, {
+      action: "tools_mutate_exec",
+      capability: "mutate",
+    });
+    if (masterRequired) return masterRequired;
+  }
+
   const theater = normalizeTheater(body.theater ?? null);
   const sweep = await performSweepBundle(req.url, theater);
 
@@ -57,5 +113,7 @@ export async function POST(req: NextRequest) {
     await saveGeoDeltaSnapshot(snapshot);
   }
 
-  return NextResponse.json({ sweep });
+  const res = NextResponse.json({ sweep });
+  applyRateLimitHeaders(res, SWEEPS_RATE_LIMIT);
+  return res;
 }

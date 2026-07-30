@@ -1,0 +1,6 @@
+Use docs/ideas/source-parity/warpdotdev-warp.json as the source decision ledger.
+Keep command discovery inside the existing reachable CommandBar.
+Register only fixed local Nexus routes; never execute query text.
+Preserve deterministic ranking, keyboard access, preview, focus return, and accessibility.
+Do not copy Warp code, UI, assets, styles, or product text.
+Respect the current mixed AGPL-3.0/MIT upstream boundary.

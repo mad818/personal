@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "penpot-penpot",
   "name": "Penpot",
-  "status": "in_progress",
+  "status": "complete",
   "source": {
     "url": "https://github.com/penpot/penpot",
-    "version": "main-2026-06-21",
-    "reviewedAt": "2026-06-21",
+    "version": "develop-2026-07-27",
+    "reviewedAt": "2026-07-27",
     "license": "MPL-2.0",
     "primaryEvidence": [
       "https://github.com/penpot/penpot",
@@ -26,15 +26,25 @@
       "id": "svg-native-format",
       "title": "SVG-native file format: design files are valid SVG, readable without proprietary software",
       "sourceEvidence": "Penpot: all assets stored as plain SVG with custom extensions",
-      "disposition": "pending",
-      "reason": "Nexus uses SVG for assets; Penpot's SVG-native storage and open format approach is a reference for Nexus asset pipeline decisions."
+      "disposition": "adapted",
+      "reason": "Nexus keeps its primary product icon and supporting vector assets as readable SVG files and validates the SVG root instead of converting them to an opaque proprietary design format.",
+      "proof": [
+        "public/icon.svg",
+        "scripts/validate-document-design-source-closure.mjs"
+      ]
     },
     {
       "id": "design-token-export",
       "title": "Design token export: colors, typography, spacing as structured JSON",
       "sourceEvidence": "Penpot design tokens: CSS variables and JSON export",
-      "disposition": "pending",
-      "reason": "Nexus theming could adopt a design token export format; reference for the theme system (aegis-cosmos, citadel, etc.)."
+      "disposition": "implemented",
+      "reason": "A deterministic exporter now reads the canonical generated runtime CSS, categorizes at least 100 variables, and writes a versioned JSON manifest to the ignored local exports lane on explicit command.",
+      "proof": [
+        "scripts/export-design-tokens.mjs",
+        "app/design-md.generated.css",
+        "specs/features/document-design-source-closure.md",
+        "npm run design:tokens:check"
+      ]
     },
     {
       "id": "clojurescript-canvas-renderer",

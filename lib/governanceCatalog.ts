@@ -9,6 +9,7 @@ export type GovernanceContinuationMode =
 export type AssistantCapabilityId =
   | "conversation-general"
   | "guided-learning"
+  | "prompt-optimization"
   | "memory-palace"
   | "product-navigation"
   | "repo-engineering"
@@ -233,153 +234,173 @@ const WORKFLOW_PACK_GOVERNANCE: Record<WorkflowPackId, GovernanceProfile> = {
   },
 };
 
-const ASSISTANT_CAPABILITY_GOVERNANCE: Record<AssistantCapabilityId, GovernanceProfile> =
-  {
-    "conversation-general": {
-      riskTier: "tier0",
-      approvalRequired: false,
-      domainTags: ["conversation", "assistant-first"],
-      operatorOnly: false,
-      automationEligible: true,
-      exactSessionTarget: "hq-chronicle",
-      surfaceIds: ["hq"],
-      nextMove:
-        "Answer directly and keep route changes optional unless the user explicitly wants a workspace.",
-      continuationMode: "read_only_jump",
-    },
-    "guided-learning": {
-      riskTier: "tier0",
-      approvalRequired: false,
-      domainTags: ["learning", "study", "memory"],
-      operatorOnly: false,
-      automationEligible: false,
-      exactSessionTarget: "skills-brain",
-      surfaceIds: ["skills", "vault", "hq"],
-      nextMove:
-        "Teach first, then offer one compact checkpoint or study continuation only if it helps.",
-      continuationMode: "read_only_jump",
-    },
-    "memory-palace": {
-      riskTier: "tier1",
-      approvalRequired: false,
-      domainTags: ["memory", "archive", "continuity"],
-      operatorOnly: false,
-      automationEligible: false,
-      exactSessionTarget: "vault-memory-conversation",
-      surfaceIds: ["vault", "command", "hq"],
-      nextMove:
-        "Use bounded recall and reopen the best-fit archive lane instead of widening into ambient context injection.",
-      continuationMode: "reviewed_action",
-    },
-    "product-navigation": {
-      riskTier: "tier0",
-      approvalRequired: false,
-      domainTags: ["product", "navigation", "help"],
-      operatorOnly: false,
-      automationEligible: true,
-      exactSessionTarget: "hq-strategium",
-      surfaceIds: ["hq", "resources"],
-      nextMove:
-        "Keep navigation help read-only and stage only one strongest exact workspace when the operator wants it.",
-      continuationMode: "read_only_jump",
-    },
-    "repo-engineering": {
-      riskTier: "tier2",
-      approvalRequired: true,
-      domainTags: ["repo", "engineering", "blast-radius", "review"],
-      operatorOnly: true,
-      automationEligible: false,
-      exactSessionTarget: "hq-console-shell",
-      surfaceIds: ["hq", "command", "resources"],
-      nextMove:
-        "Stay assistant-first, attach bounded execution context, and keep write-capable follow-through explicitly reviewed.",
-      continuationMode: "human_gated_workflow",
-    },
-    "live-markets": {
-      riskTier: "tier1",
-      approvalRequired: false,
-      domainTags: ["markets", "prices", "analysis"],
-      operatorOnly: false,
-      automationEligible: true,
-      exactSessionTarget: "alpha-prices",
-      surfaceIds: ["alpha", "hq", "command"],
-      nextMove:
-        "Jump into the ALPHA tape read-only and keep the assistant anchored to verified freshness before widening analysis.",
-      continuationMode: "read_only_jump",
-    },
-    "live-news": {
-      riskTier: "tier1",
-      approvalRequired: false,
-      domainTags: ["news", "intel", "verification"],
-      operatorOnly: false,
-      automationEligible: true,
-      exactSessionTarget: "intel-news",
-      surfaceIds: ["intel", "hq", "command"],
-      nextMove:
-        "Prefer one verified INTEL lane at a time and keep the assistant explicit about freshness and uncertainty.",
-      continuationMode: "read_only_jump",
-    },
-    "live-cyber": {
-      riskTier: "tier2",
-      approvalRequired: true,
-      domainTags: ["cyber", "triage", "evidence", "threats"],
-      operatorOnly: true,
-      automationEligible: false,
-      exactSessionTarget: "cyber-triage",
-      surfaceIds: ["cyber", "recon", "vault", "hq"],
-      nextMove:
-        "Stage CYBER triage explicitly, then move into reviewed RECON or VAULT evidence follow-through only after operator approval.",
-      continuationMode: "human_gated_workflow",
-    },
-    "archive-continuity": {
-      riskTier: "tier1",
-      approvalRequired: false,
-      domainTags: ["archive", "continuity", "memory"],
-      operatorOnly: false,
-      automationEligible: false,
-      exactSessionTarget: "vault-memory-spine",
-      surfaceIds: ["vault", "command", "hq"],
-      nextMove:
-        "Reopen the strongest continuity lane first and keep new archive actions compact and deliberate.",
-      continuationMode: "reviewed_action",
-    },
-    "reverse-engineering": {
-      riskTier: "tier2",
-      approvalRequired: true,
-      domainTags: ["reverse-engineering", "binary", "ioc", "evidence"],
-      operatorOnly: true,
-      automationEligible: false,
-      exactSessionTarget: "recon-binary",
-      surfaceIds: ["recon", "vault", "hq"],
-      nextMove:
-        "Keep reverse-engineering assistant-first, then stage binary or OPSEC continuations clearly instead of widening silently.",
-      continuationMode: "human_gated_workflow",
-    },
-    "second-brain": {
-      riskTier: "tier1",
-      approvalRequired: false,
-      domainTags: ["memory", "export", "archive"],
-      operatorOnly: false,
-      automationEligible: false,
-      exactSessionTarget: "vault-export-second-brain",
-      surfaceIds: ["vault", "resources", "hq"],
-      nextMove:
-        "Use the export or archive lane only when the operator wants durable shaping, not as ambient background work.",
-      continuationMode: "reviewed_action",
-    },
-    "scheduler-governance": {
-      riskTier: "tier1",
-      approvalRequired: true,
-      domainTags: ["scheduler", "automation", "governance", "ops"],
-      operatorOnly: true,
-      automationEligible: true,
-      exactSessionTarget: "hq-scheduler-governance",
-      surfaceIds: ["hq", "command", "skills", "resources"],
-      nextMove:
-        "Stage recurring-work continuations clearly and require explicit operator approval before risky automation or write follow-through.",
-      continuationMode: "reviewed_action",
-    },
-  };
+const ASSISTANT_CAPABILITY_GOVERNANCE: Record<
+  AssistantCapabilityId,
+  GovernanceProfile
+> = {
+  "conversation-general": {
+    riskTier: "tier0",
+    approvalRequired: false,
+    domainTags: ["conversation", "assistant-first"],
+    operatorOnly: false,
+    automationEligible: true,
+    exactSessionTarget: "hq-chronicle",
+    surfaceIds: ["hq"],
+    nextMove:
+      "Answer directly and keep route changes optional unless the user explicitly wants a workspace.",
+    continuationMode: "read_only_jump",
+  },
+  "guided-learning": {
+    riskTier: "tier0",
+    approvalRequired: false,
+    domainTags: ["learning", "study", "memory"],
+    operatorOnly: false,
+    automationEligible: false,
+    exactSessionTarget: "skills-brain",
+    surfaceIds: ["skills", "vault", "hq"],
+    nextMove:
+      "Teach first, then offer one compact checkpoint or study continuation only if it helps.",
+    continuationMode: "read_only_jump",
+  },
+  "prompt-optimization": {
+    riskTier: "tier0",
+    approvalRequired: false,
+    domainTags: [
+      "prompts",
+      "writing",
+      "skills",
+      "transformation",
+      "session-only",
+    ],
+    operatorOnly: false,
+    automationEligible: false,
+    exactSessionTarget: "skills-prompt-forge",
+    surfaceIds: ["skills", "hq"],
+    nextMove:
+      "Open the Human Editor or LYRA workbench and keep source text transient, copy-only, and separate from execution.",
+    continuationMode: "read_only_jump",
+  },
+  "memory-palace": {
+    riskTier: "tier1",
+    approvalRequired: false,
+    domainTags: ["memory", "archive", "continuity"],
+    operatorOnly: false,
+    automationEligible: false,
+    exactSessionTarget: "vault-memory-conversation",
+    surfaceIds: ["vault", "command", "hq"],
+    nextMove:
+      "Use bounded recall and reopen the best-fit archive lane instead of widening into ambient context injection.",
+    continuationMode: "reviewed_action",
+  },
+  "product-navigation": {
+    riskTier: "tier0",
+    approvalRequired: false,
+    domainTags: ["product", "navigation", "help"],
+    operatorOnly: false,
+    automationEligible: true,
+    exactSessionTarget: "hq-strategium",
+    surfaceIds: ["hq", "resources"],
+    nextMove:
+      "Keep navigation help read-only and stage only one strongest exact workspace when the operator wants it.",
+    continuationMode: "read_only_jump",
+  },
+  "repo-engineering": {
+    riskTier: "tier2",
+    approvalRequired: true,
+    domainTags: ["repo", "engineering", "blast-radius", "review"],
+    operatorOnly: true,
+    automationEligible: false,
+    exactSessionTarget: "hq-console-shell",
+    surfaceIds: ["hq", "command", "resources"],
+    nextMove:
+      "Stay assistant-first, attach bounded execution context, and keep write-capable follow-through explicitly reviewed.",
+    continuationMode: "human_gated_workflow",
+  },
+  "live-markets": {
+    riskTier: "tier1",
+    approvalRequired: false,
+    domainTags: ["markets", "prices", "analysis"],
+    operatorOnly: false,
+    automationEligible: true,
+    exactSessionTarget: "alpha-prices",
+    surfaceIds: ["alpha", "hq", "command"],
+    nextMove:
+      "Jump into the ALPHA tape read-only and keep the assistant anchored to verified freshness before widening analysis.",
+    continuationMode: "read_only_jump",
+  },
+  "live-news": {
+    riskTier: "tier1",
+    approvalRequired: false,
+    domainTags: ["news", "intel", "verification"],
+    operatorOnly: false,
+    automationEligible: true,
+    exactSessionTarget: "intel-news",
+    surfaceIds: ["intel", "hq", "command"],
+    nextMove:
+      "Prefer one verified INTEL lane at a time and keep the assistant explicit about freshness and uncertainty.",
+    continuationMode: "read_only_jump",
+  },
+  "live-cyber": {
+    riskTier: "tier2",
+    approvalRequired: true,
+    domainTags: ["cyber", "triage", "evidence", "threats"],
+    operatorOnly: true,
+    automationEligible: false,
+    exactSessionTarget: "cyber-triage",
+    surfaceIds: ["cyber", "recon", "vault", "hq"],
+    nextMove:
+      "Stage CYBER triage explicitly, then move into reviewed RECON or VAULT evidence follow-through only after operator approval.",
+    continuationMode: "human_gated_workflow",
+  },
+  "archive-continuity": {
+    riskTier: "tier1",
+    approvalRequired: false,
+    domainTags: ["archive", "continuity", "memory"],
+    operatorOnly: false,
+    automationEligible: false,
+    exactSessionTarget: "vault-memory-spine",
+    surfaceIds: ["vault", "command", "hq"],
+    nextMove:
+      "Reopen the strongest continuity lane first and keep new archive actions compact and deliberate.",
+    continuationMode: "reviewed_action",
+  },
+  "reverse-engineering": {
+    riskTier: "tier2",
+    approvalRequired: true,
+    domainTags: ["reverse-engineering", "binary", "ioc", "evidence"],
+    operatorOnly: true,
+    automationEligible: false,
+    exactSessionTarget: "recon-binary",
+    surfaceIds: ["recon", "vault", "hq"],
+    nextMove:
+      "Keep reverse-engineering assistant-first, then stage binary or OPSEC continuations clearly instead of widening silently.",
+    continuationMode: "human_gated_workflow",
+  },
+  "second-brain": {
+    riskTier: "tier1",
+    approvalRequired: false,
+    domainTags: ["memory", "export", "archive"],
+    operatorOnly: false,
+    automationEligible: false,
+    exactSessionTarget: "vault-export-second-brain",
+    surfaceIds: ["vault", "resources", "hq"],
+    nextMove:
+      "Use the export or archive lane only when the operator wants durable shaping, not as ambient background work.",
+    continuationMode: "reviewed_action",
+  },
+  "scheduler-governance": {
+    riskTier: "tier1",
+    approvalRequired: true,
+    domainTags: ["scheduler", "automation", "governance", "ops"],
+    operatorOnly: true,
+    automationEligible: true,
+    exactSessionTarget: "hq-scheduler-governance",
+    surfaceIds: ["hq", "command", "skills", "resources"],
+    nextMove:
+      "Stage recurring-work continuations clearly and require explicit operator approval before risky automation or write follow-through.",
+    continuationMode: "reviewed_action",
+  },
+};
 
 const EXACT_SESSION_GOVERNANCE: Record<string, GovernanceProfile> = {
   "cyber-triage": {
@@ -478,6 +499,18 @@ const EXACT_SESSION_GOVERNANCE: Record<string, GovernanceProfile> = {
       "Keep market-review work decision-support only and reopen the strongest prior thesis note before adding another durable page.",
     continuationMode: "reviewed_action",
   },
+  "skills-prompt-forge": {
+    riskTier: "tier0",
+    approvalRequired: false,
+    domainTags: ["skills", "prompts", "session-only", "transformation"],
+    operatorOnly: false,
+    automationEligible: false,
+    exactSessionTarget: "skills-prompt-forge",
+    surfaceIds: ["skills", "hq"],
+    nextMove:
+      "Optimize and copy the prompt without saving or automatically executing it.",
+    continuationMode: "read_only_jump",
+  },
   "hq-scheduler-governance": {
     riskTier: "tier1",
     approvalRequired: true,
@@ -520,11 +553,15 @@ export function getWorkflowPackGovernanceProfile(id: WorkflowPackId) {
   return WORKFLOW_PACK_GOVERNANCE[id];
 }
 
-export function getAssistantCapabilityGovernanceProfile(id: AssistantCapabilityId) {
+export function getAssistantCapabilityGovernanceProfile(
+  id: AssistantCapabilityId,
+) {
   return ASSISTANT_CAPABILITY_GOVERNANCE[id];
 }
 
-export function getExactSessionGovernanceProfile(id: string | null | undefined) {
+export function getExactSessionGovernanceProfile(
+  id: string | null | undefined,
+) {
   if (!id) return null;
   return EXACT_SESSION_GOVERNANCE[id] ?? null;
 }
@@ -563,9 +600,11 @@ export function summarizeGovernanceInventory(): GovernanceInventorySummary {
 
   return {
     totalProfiles: profiles.length,
-    approvalRequiredCount: profiles.filter((profile) => profile.approvalRequired)
+    approvalRequiredCount: profiles.filter(
+      (profile) => profile.approvalRequired,
+    ).length,
+    operatorOnlyCount: profiles.filter((profile) => profile.operatorOnly)
       .length,
-    operatorOnlyCount: profiles.filter((profile) => profile.operatorOnly).length,
     automationEligibleCount: profiles.filter(
       (profile) => profile.automationEligible,
     ).length,
@@ -586,5 +625,7 @@ export function summarizeGovernanceInventory(): GovernanceInventorySummary {
 }
 
 export function isGovernanceAutoStageSafe(profile: GovernanceProfile) {
-  return !profile.approvalRequired && profile.continuationMode === "read_only_jump";
+  return (
+    !profile.approvalRequired && profile.continuationMode === "read_only_jump"
+  );
 }

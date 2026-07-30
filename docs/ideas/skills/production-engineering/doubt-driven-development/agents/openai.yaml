@@ -1,0 +1,4 @@
+interface:
+  display_name: "Doubt Driven Development"
+  short_description: "Challenge high-risk implementation claims with evidence."
+  default_prompt: "Use $doubt-driven-development to test the risky assumptions in this proposed Nexus change."

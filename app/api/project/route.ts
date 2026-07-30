@@ -37,6 +37,8 @@ import {
 } from "@/lib/contextSpine";
 import { getProjectImpact } from "@/lib/projectImpact";
 import {
+  explainProjectGraphFile,
+  findProjectGraphPath,
   getProjectGraph,
   getProjectHotspots,
   getProjectOwnership,
@@ -73,7 +75,9 @@ function extractUncheckedTasks(md: string): string[] {
 // Recursively list files up to `maxDepth` levels, skipping noise directories.
 // Returns an array of relative paths.
 function listTree(dir: string, maxDepth = 3, depth = 0): string[] {
-  return filterLocalDataTreeEntries(listSafeLocalTree(dir, ROOT, maxDepth, depth));
+  return filterLocalDataTreeEntries(
+    listSafeLocalTree(dir, ROOT, maxDepth, depth),
+  );
 }
 
 // Count .tsx/.ts files in a directory (non-recursive)
@@ -90,7 +94,8 @@ function countFiles(rel: string, ext = ".tsx"): number {
 
 function readContextBundle() {
   const agentsMd = safeRead("AGENTS.md") || safeRead("CLAUDE.md");
-  const standardsMd = safeRead("docs/STANDARDS.md") || safeRead("tasks/lessons.md");
+  const standardsMd =
+    safeRead("docs/STANDARDS.md") || safeRead("tasks/lessons.md");
   const stateMd = safeRead("docs/SYSTEM_STATE.md") || safeRead("tasks/todo.md");
   const bibleMd = safeRead("docs/PROJECT_BIBLE.md");
 
@@ -189,7 +194,36 @@ export async function GET(req: NextRequest) {
 
   if (section === "graph") {
     const file = req.nextUrl.searchParams.get("file");
-    return protectedJson({ graph: getProjectGraph(ROOT, file) });
+    const from = req.nextUrl.searchParams.get("from");
+    const to = req.nextUrl.searchParams.get("to");
+    if ((from && !to) || (!from && to)) {
+      return protectedJson(
+        { error: "Graph path queries require both from and to file paths." },
+        { status: 400 },
+      );
+    }
+    const explanation = file ? explainProjectGraphFile(ROOT, file) : null;
+    const path = from && to ? findProjectGraphPath(ROOT, from, to) : null;
+    if (file && !explanation) {
+      return protectedJson(
+        {
+          error:
+            "The graph file could not be resolved inside local source roots.",
+        },
+        { status: 404 },
+      );
+    }
+    if (from && to && !path) {
+      return protectedJson(
+        { error: "One or both graph path endpoints could not be resolved." },
+        { status: 404 },
+      );
+    }
+    return protectedJson({
+      graph: getProjectGraph(ROOT, file),
+      explanation,
+      path,
+    });
   }
 
   if (section === "ownership") {

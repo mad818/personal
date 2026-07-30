@@ -34,7 +34,10 @@ export interface SurfaceCapability {
   jumpActions: SurfaceCapabilityAction[];
 }
 
-export const SURFACE_CAPABILITY_CATEGORY_LABELS: Record<SurfaceCapabilityCategory, string> = {
+export const SURFACE_CAPABILITY_CATEGORY_LABELS: Record<
+  SurfaceCapabilityCategory,
+  string
+> = {
   core: "Core route",
   support: "Support workbench",
   internal: "Internal lab",
@@ -60,10 +63,28 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Monitoring current operator posture while moving between surfaces.",
     ],
     subsections: [
-      { label: "Mission rail", detail: "Intent-first launch actions that route into the right working lane.", href: "/hq?focus=hq-strategium" },
-      { label: "Prelude posture", detail: "Mission and system posture summary before you start typing.", href: "/hq?focus=hq-strategium" },
-      { label: "Chronicle", detail: "Agent exchange and continuation actions back into the rest of the app.", href: "/hq?focus=hq-chronicle" },
-      { label: "Scheduler drawer", detail: "Human-gated recurring work without leaving the shell.", href: "/hq?focus=hq-scheduler-governance" },
+      {
+        label: "Mission rail",
+        detail:
+          "Intent-first launch actions that route into the right working lane.",
+        href: "/hq?focus=hq-strategium",
+      },
+      {
+        label: "Prelude posture",
+        detail: "Mission and system posture summary before you start typing.",
+        href: "/hq?focus=hq-strategium",
+      },
+      {
+        label: "Chronicle",
+        detail:
+          "Agent exchange and continuation actions back into the rest of the app.",
+        href: "/hq?focus=hq-chronicle",
+      },
+      {
+        label: "Scheduler drawer",
+        detail: "Human-gated recurring work without leaving the shell.",
+        href: "/hq?focus=hq-scheduler-governance",
+      },
     ],
     costPosture:
       "Local-first by default. Optional paid providers remain opt-in and should never become the assumed path.",
@@ -75,15 +96,47 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Continue reducing always-visible copy in the chronicle shell now that continuation actions are stronger.",
     ],
     upgradeActions: [
-      { label: "Open safe refactor", href: "/resources?view=playbooks&playbook=safe-refactor", detail: "Use the existing HQ-safe split workflow before widening shell changes." },
-      { label: "Open HQ chronicle", href: "/hq?focus=hq-chronicle", detail: "Keep the live chronicle block visible while checking HQ continuity and text density." },
-      { label: "Open HQ impact", href: "/resources?view=impact&file=components/home/office/OfficeCommandCenter.tsx", detail: "Inspect the current blast radius around the HQ shell before reshaping it." },
+      {
+        label: "Open safe refactor",
+        href: "/resources?view=playbooks&playbook=safe-refactor",
+        detail:
+          "Use the existing HQ-safe split workflow before widening shell changes.",
+      },
+      {
+        label: "Open HQ chronicle",
+        href: "/hq?focus=hq-chronicle",
+        detail:
+          "Keep the live chronicle block visible while checking HQ continuity and text density.",
+      },
+      {
+        label: "Open HQ impact",
+        href: "/resources?view=impact&file=components/home/office/OfficeCommandCenter.tsx",
+        detail:
+          "Inspect the current blast radius around the HQ shell before reshaping it.",
+      },
     ],
     jumpActions: [
-      { label: "Open HQ", href: "/hq", detail: "Start the task in the main mission shell." },
-      { label: "Open chronicle", href: "/hq?focus=hq-chronicle", detail: "Jump directly into the live chronicle when the route is already known." },
-      { label: "Open system map", href: "/resources?view=system&system=hq-mission-flow", detail: "Review HQ ownership, guardrails, and failure modes first." },
-      { label: "Open impact seed", href: "/resources?view=impact&file=components/home/office/OfficeCommandCenter.tsx", detail: "Inspect the current blast radius around the HQ shell." },
+      {
+        label: "Open HQ",
+        href: "/hq",
+        detail: "Start the task in the main mission shell.",
+      },
+      {
+        label: "Open chronicle",
+        href: "/hq?focus=hq-chronicle",
+        detail:
+          "Jump directly into the live chronicle when the route is already known.",
+      },
+      {
+        label: "Open system map",
+        href: "/resources?view=system&system=hq-mission-flow",
+        detail: "Review HQ ownership, guardrails, and failure modes first.",
+      },
+      {
+        label: "Open impact seed",
+        href: "/resources?view=impact&file=components/home/office/OfficeCommandCenter.tsx",
+        detail: "Inspect the current blast radius around the HQ shell.",
+      },
     ],
   },
   {
@@ -105,11 +158,32 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Reviewing prompt waste, verification drift, and agent/tool posture.",
     ],
     subsections: [
-      { label: "Vector snapshot", detail: "KPI stack and readiness ring for the live shell.", href: "/command" },
-      { label: "AI briefing", detail: "Narrative synthesis and decision support.", href: "/command" },
-      { label: "Runtime efficiency", detail: "Prompt size, tool-pack posture, and waste guidance.", href: "/command?focus=runtime-efficiency" },
-      { label: "Agent health", detail: "Runtime regressions, verification posture, and failure signals.", href: "/command?focus=agent-health" },
-      { label: "Memory spine", detail: "Local memory readiness and sync posture.", href: "/command?focus=memory-spine" },
+      {
+        label: "Vector snapshot",
+        detail: "KPI stack and readiness ring for the live shell.",
+        href: "/command",
+      },
+      {
+        label: "AI briefing",
+        detail: "Narrative synthesis and decision support.",
+        href: "/command",
+      },
+      {
+        label: "Runtime efficiency",
+        detail: "Prompt size, tool-pack posture, and waste guidance.",
+        href: "/command?focus=runtime-efficiency",
+      },
+      {
+        label: "Agent health",
+        detail:
+          "Runtime regressions, verification posture, and failure signals.",
+        href: "/command?focus=agent-health",
+      },
+      {
+        label: "Memory spine",
+        detail: "Local memory readiness and sync posture.",
+        href: "/command?focus=memory-spine",
+      },
     ],
     costPosture:
       "Free-first public feeds stay primary, with explicit freshness and last-known-local posture instead of silently assuming remote freshness.",
@@ -121,14 +195,41 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Continue trimming repeated explanatory copy now that badges and focus strips communicate posture more clearly.",
     ],
     upgradeActions: [
-      { label: "Open runtime focus", href: "/command?focus=runtime-efficiency", detail: "Start on the panel that best shows runtime waste, tool-pack drift, and verification posture." },
-      { label: "Open agent health", href: "/command?focus=agent-health", detail: "Jump directly into the panel that catches COMMAND regressions fastest." },
-      { label: "Open finalize loop", href: "/resources?view=playbooks&playbook=runtime-finalize-loop", detail: "Use the browser/runtime proof lane before calling visual or shell changes done." },
+      {
+        label: "Open runtime focus",
+        href: "/command?focus=runtime-efficiency",
+        detail:
+          "Start on the panel that best shows runtime waste, tool-pack drift, and verification posture.",
+      },
+      {
+        label: "Open agent health",
+        href: "/command?focus=agent-health",
+        detail:
+          "Jump directly into the panel that catches COMMAND regressions fastest.",
+      },
+      {
+        label: "Open finalize loop",
+        href: "/resources?view=playbooks&playbook=runtime-finalize-loop",
+        detail:
+          "Use the browser/runtime proof lane before calling visual or shell changes done.",
+      },
     ],
     jumpActions: [
-      { label: "Open COMMAND", href: "/command", detail: "Land on the main decision-support board." },
-      { label: "Open runtime focus", href: "/command?focus=runtime-efficiency", detail: "Start with prompt/tool efficiency and drift posture." },
-      { label: "Open finalize loop", href: "/resources?view=playbooks&playbook=runtime-finalize-loop", detail: "Run the update proof loop before trusting the live shell." },
+      {
+        label: "Open COMMAND",
+        href: "/command",
+        detail: "Land on the main decision-support board.",
+      },
+      {
+        label: "Open runtime focus",
+        href: "/command?focus=runtime-efficiency",
+        detail: "Start with prompt/tool efficiency and drift posture.",
+      },
+      {
+        label: "Open finalize loop",
+        href: "/resources?view=playbooks&playbook=runtime-finalize-loop",
+        detail: "Run the update proof loop before trusting the live shell.",
+      },
     ],
   },
   {
@@ -150,10 +251,26 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Launching evidence-oriented sweep workflows.",
     ],
     subsections: [
-      { label: "News", detail: "Topic clustering and conflict-source monitoring.", href: "/intel?view=news&focus=intel-news" },
-      { label: "World", detail: "Global posture, conflict impact, ops map, and macro context.", href: "/intel?view=world&focus=intel-world" },
-      { label: "Markets", detail: "Prediction markets plus supporting rate context.", href: "/intel?view=markets&focus=intel-markets" },
-      { label: "Sweeps", detail: "Structured bundle runs and before/after evidence review.", href: "/intel?view=sweeps&focus=intel-sweeps" },
+      {
+        label: "News",
+        detail: "Topic clustering and conflict-source monitoring.",
+        href: "/intel?view=news&focus=intel-news",
+      },
+      {
+        label: "World",
+        detail: "Global posture, conflict impact, ops map, and macro context.",
+        href: "/intel?view=world&focus=intel-world",
+      },
+      {
+        label: "Markets",
+        detail: "Prediction markets plus supporting rate context.",
+        href: "/intel?view=markets&focus=intel-markets",
+      },
+      {
+        label: "Sweeps",
+        detail: "Structured bundle runs and before/after evidence review.",
+        href: "/intel?view=sweeps&focus=intel-sweeps",
+      },
     ],
     costPosture:
       "Free/open feeds remain the baseline, with richer synthesis coming from route composition rather than hidden paid dependencies.",
@@ -165,14 +282,41 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Continue standardizing retained-data language so stale remote panels never feel fresh by accident.",
     ],
     upgradeActions: [
-      { label: "Open sweeps", href: "/intel?view=sweeps&focus=intel-sweeps", detail: "Start on the structured evidence-run lane instead of the broad route top." },
-      { label: "Open world focus", href: "/intel?view=world&focus=intel-world", detail: "Go straight to the geopolitical posture panel when tuning INTEL density or continuity." },
-      { label: "Open INTEL impact", href: "/resources?view=impact&file=app/intel/page.tsx", detail: "Inspect the route shell and adjacent mode logic before reshaping the lane." },
+      {
+        label: "Open sweeps",
+        href: "/intel?view=sweeps&focus=intel-sweeps",
+        detail:
+          "Start on the structured evidence-run lane instead of the broad route top.",
+      },
+      {
+        label: "Open world focus",
+        href: "/intel?view=world&focus=intel-world",
+        detail:
+          "Go straight to the geopolitical posture panel when tuning INTEL density or continuity.",
+      },
+      {
+        label: "Open INTEL impact",
+        href: "/resources?view=impact&file=app/intel/page.tsx",
+        detail:
+          "Inspect the route shell and adjacent mode logic before reshaping the lane.",
+      },
     ],
     jumpActions: [
-      { label: "Open INTEL", href: "/intel", detail: "Land on the default narrative monitoring route." },
-      { label: "Open sweeps", href: "/intel?view=sweeps&focus=intel-sweeps", detail: "Go straight to evidence-oriented sweep work." },
-      { label: "Open impact seed", href: "/resources?view=impact&file=app/intel/page.tsx", detail: "Inspect the route shell and likely touched files." },
+      {
+        label: "Open INTEL",
+        href: "/intel",
+        detail: "Land on the default narrative monitoring route.",
+      },
+      {
+        label: "Open sweeps",
+        href: "/intel?view=sweeps&focus=intel-sweeps",
+        detail: "Go straight to evidence-oriented sweep work.",
+      },
+      {
+        label: "Open impact seed",
+        href: "/resources?view=impact&file=app/intel/page.tsx",
+        detail: "Inspect the route shell and likely touched files.",
+      },
     ],
   },
   {
@@ -194,12 +338,36 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Getting public-market context without leaving Nexus.",
     ],
     subsections: [
-      { label: "Watchlist", detail: "Tracked assets plus compact 7-day motion context.", href: "/alpha?view=watchlist&focus=alpha-watchlist" },
-      { label: "Signals", detail: "Buy / sell signal board for quick directional posture.", href: "/alpha?view=signals&focus=alpha-signals" },
-      { label: "Scanner", detail: "Momentum and setup detection.", href: "/alpha?view=scanner&focus=alpha-scanner" },
-      { label: "Sizer", detail: "Risk-aware position sizing.", href: "/alpha?view=sizer&focus=alpha-sizer" },
-      { label: "Prices", detail: "Fast market overview grid.", href: "/alpha?view=prices&focus=alpha-prices" },
-      { label: "Charts", detail: "Legacy chart embeds for visual follow-through.", href: "/alpha?view=charts&focus=alpha-charts" },
+      {
+        label: "Watchlist",
+        detail: "Tracked assets plus compact 7-day motion context.",
+        href: "/alpha?view=watchlist&focus=alpha-watchlist",
+      },
+      {
+        label: "Signals",
+        detail: "Buy / sell signal board for quick directional posture.",
+        href: "/alpha?view=signals&focus=alpha-signals",
+      },
+      {
+        label: "Scanner",
+        detail: "Momentum and setup detection.",
+        href: "/alpha?view=scanner&focus=alpha-scanner",
+      },
+      {
+        label: "Sizer",
+        detail: "Risk-aware position sizing.",
+        href: "/alpha?view=sizer&focus=alpha-sizer",
+      },
+      {
+        label: "Prices",
+        detail: "Fast market overview grid.",
+        href: "/alpha?view=prices&focus=alpha-prices",
+      },
+      {
+        label: "Charts",
+        detail: "Legacy chart embeds for visual follow-through.",
+        href: "/alpha?view=charts&focus=alpha-charts",
+      },
     ],
     costPosture:
       "Public price data stays primary, with the route positioned as execution support instead of a premium terminal clone.",
@@ -211,14 +379,41 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Add more explicit retained-data cues on the heavier market panels.",
     ],
     upgradeActions: [
-      { label: "Open scanner", href: "/alpha?view=scanner&focus=alpha-scanner", detail: "Use the most action-oriented ALPHA lane when tightening execution support flow." },
-      { label: "Open signals", href: "/alpha?view=signals&focus=alpha-signals", detail: "Check the compact trade-signal surface when refining density and recommendation posture." },
-      { label: "Open prices", href: "/alpha?view=prices&focus=alpha-prices", detail: "Review retained-data cues on the broader market grid directly." },
+      {
+        label: "Open scanner",
+        href: "/alpha?view=scanner&focus=alpha-scanner",
+        detail:
+          "Use the most action-oriented ALPHA lane when tightening execution support flow.",
+      },
+      {
+        label: "Open signals",
+        href: "/alpha?view=signals&focus=alpha-signals",
+        detail:
+          "Check the compact trade-signal surface when refining density and recommendation posture.",
+      },
+      {
+        label: "Open prices",
+        href: "/alpha?view=prices&focus=alpha-prices",
+        detail:
+          "Review retained-data cues on the broader market grid directly.",
+      },
     ],
     jumpActions: [
-      { label: "Open ALPHA", href: "/alpha", detail: "Land on the market execution lattice." },
-      { label: "Open scanner", href: "/alpha?view=scanner&focus=alpha-scanner", detail: "Go directly to setup and momentum triage." },
-      { label: "Open impact seed", href: "/resources?view=impact&file=app/alpha/page.tsx", detail: "Inspect the route shell and adjacent market components." },
+      {
+        label: "Open ALPHA",
+        href: "/alpha",
+        detail: "Land on the market execution lattice.",
+      },
+      {
+        label: "Open scanner",
+        href: "/alpha?view=scanner&focus=alpha-scanner",
+        detail: "Go directly to setup and momentum triage.",
+      },
+      {
+        label: "Open impact seed",
+        href: "/resources?view=impact&file=app/alpha/page.tsx",
+        detail: "Inspect the route shell and adjacent market components.",
+      },
     ],
   },
   {
@@ -241,12 +436,36 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Running drone compliance review without mixing it into flight operations.",
     ],
     subsections: [
-      { label: "Triage", detail: "Priority queue plus correlated cyber signal posture.", href: "/cyber?view=triage&focus=cyber-triage" },
-      { label: "Matrix", detail: "Severity correlation across CVE and OTX.", href: "/cyber?view=matrix&focus=cyber-matrix" },
-      { label: "CVEs", detail: "Raw NVD-style feed access.", href: "/cyber?view=cves&focus=cyber-cves" },
-      { label: "OTX", detail: "AlienVault pulse monitoring.", href: "/cyber?view=otx&focus=cyber-otx" },
-      { label: "CISA KEV", detail: "Known exploited vulnerability tracking.", href: "/cyber?view=cisa&focus=cyber-cisa" },
-      { label: "Drone ops", detail: "FAA/state/local compliance review for later aircraft work.", href: "/cyber?view=drone&focus=cyber-drone" },
+      {
+        label: "Triage",
+        detail: "Priority queue plus correlated cyber signal posture.",
+        href: "/cyber?view=triage&focus=cyber-triage",
+      },
+      {
+        label: "Matrix",
+        detail: "Severity correlation across CVE and OTX.",
+        href: "/cyber?view=matrix&focus=cyber-matrix",
+      },
+      {
+        label: "CVEs",
+        detail: "Raw NVD-style feed access.",
+        href: "/cyber?view=cves&focus=cyber-cves",
+      },
+      {
+        label: "OTX",
+        detail: "AlienVault pulse monitoring.",
+        href: "/cyber?view=otx&focus=cyber-otx",
+      },
+      {
+        label: "CISA KEV",
+        detail: "Known exploited vulnerability tracking.",
+        href: "/cyber?view=cisa&focus=cyber-cisa",
+      },
+      {
+        label: "Drone ops",
+        detail: "FAA/state/local compliance review for later aircraft work.",
+        href: "/cyber?view=drone&focus=cyber-drone",
+      },
     ],
     costPosture:
       "Free-first feed posture is explicit, with public sources and retained local state favored over hidden premium coupling.",
@@ -258,14 +477,41 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Keep raw feed views visually secondary to the triage-first path so the route stays action-oriented.",
     ],
     upgradeActions: [
-      { label: "Open triage", href: "/cyber?view=triage&focus=cyber-triage", detail: "Work from the highest-signal action lane when improving cyber flow." },
-      { label: "Open drone compliance", href: "/cyber?view=drone&focus=cyber-drone", detail: "Tune the paired drone review lane without mixing it into flight operations." },
-      { label: "Open RECON OPSEC", href: "/recon?view=opsec&focus=recon-opsec", detail: "Carry cross-surface cyber findings into boundary-aware recon validation." },
+      {
+        label: "Open triage",
+        href: "/cyber?view=triage&focus=cyber-triage",
+        detail:
+          "Work from the highest-signal action lane when improving cyber flow.",
+      },
+      {
+        label: "Open drone compliance",
+        href: "/cyber?view=drone&focus=cyber-drone",
+        detail:
+          "Tune the paired drone review lane without mixing it into flight operations.",
+      },
+      {
+        label: "Open RECON OPSEC",
+        href: "/recon?view=opsec&focus=recon-opsec",
+        detail:
+          "Carry cross-surface cyber findings into boundary-aware recon validation.",
+      },
     ],
     jumpActions: [
-      { label: "Open CYBER", href: "/cyber", detail: "Land on the triage-first cyber lane." },
-      { label: "Open drone compliance", href: "/cyber?view=drone&focus=cyber-drone", detail: "Go straight to compliance review for future aircraft work." },
-      { label: "Open impact seed", href: "/resources?view=impact&file=app/cyber/page.tsx", detail: "Inspect the route shell and likely touched panels." },
+      {
+        label: "Open CYBER",
+        href: "/cyber",
+        detail: "Land on the triage-first cyber lane.",
+      },
+      {
+        label: "Open drone compliance",
+        href: "/cyber?view=drone&focus=cyber-drone",
+        detail: "Go straight to compliance review for future aircraft work.",
+      },
+      {
+        label: "Open impact seed",
+        href: "/resources?view=impact&file=app/cyber/page.tsx",
+        detail: "Inspect the route shell and likely touched panels.",
+      },
     ],
   },
   {
@@ -289,12 +535,38 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Headers and metadata review with retained good-state behavior.",
     ],
     subsections: [
-      { label: "OSINT lookup", detail: "Target-led domain, IP, email, username, and hash lookup.", href: "/recon?view=osint&focus=recon-lookup" },
-      { label: "Passive DNS", detail: "Historical and reverse-IP context.", href: "/recon?view=pdns" },
-      { label: "Headers audit", detail: "Security header posture with retained results on rerun failure.", href: "/recon?view=headers&focus=recon-headers" },
-      { label: "Metadata", detail: "Local extraction-only path.", href: "/recon?view=metadata" },
-      { label: "Binary triage", detail: "Local-only hashes, entropy, strings, IOC hints, and reverse-engineering prep.", href: "/recon?view=binary&focus=recon-binary" },
-      { label: "OPSEC", detail: "Tor, exposure, and trust-boundary checks.", href: "/recon?view=opsec&focus=recon-opsec" },
+      {
+        label: "OSINT lookup",
+        detail: "Target-led domain, IP, email, username, and hash lookup.",
+        href: "/recon?view=osint&focus=recon-lookup",
+      },
+      {
+        label: "Passive DNS",
+        detail: "Historical and reverse-IP context.",
+        href: "/recon?view=pdns",
+      },
+      {
+        label: "Headers audit",
+        detail:
+          "Security header posture with retained results on rerun failure.",
+        href: "/recon?view=headers&focus=recon-headers",
+      },
+      {
+        label: "Metadata",
+        detail: "Local extraction-only path.",
+        href: "/recon?view=metadata",
+      },
+      {
+        label: "Binary triage",
+        detail:
+          "Local-only hashes, entropy, strings, IOC hints, and reverse-engineering prep.",
+        href: "/recon?view=binary&focus=recon-binary",
+      },
+      {
+        label: "OPSEC",
+        detail: "Tor, exposure, and trust-boundary checks.",
+        href: "/recon?view=opsec&focus=recon-opsec",
+      },
     ],
     costPosture:
       "Free-by-default reconnaissance is the baseline, with BYOK lookups remaining optional and explicitly bounded.",
@@ -306,16 +578,52 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Improve grouped result summarization so large lookup outputs stay readable on smaller screens.",
     ],
     upgradeActions: [
-      { label: "Open OPSEC focus", href: "/recon?view=opsec&focus=recon-opsec", detail: "Start with trust-boundary posture when tightening degraded and availability semantics." },
-      { label: "Open lookup lane", href: "/recon?view=osint&focus=recon-lookup", detail: "Use the target-led surface directly when refining lookup flow or summarization." },
-      { label: "Open binary triage", href: "/recon?view=binary&focus=recon-binary", detail: "Strengthen local reverse-engineering prep without breaking the free-first boundary." },
-      { label: "Open security audit", href: "/resources?view=playbooks&playbook=security-boundary-audit", detail: "Run the shared browser/server boundary workflow before connector changes." },
+      {
+        label: "Open OPSEC focus",
+        href: "/recon?view=opsec&focus=recon-opsec",
+        detail:
+          "Start with trust-boundary posture when tightening degraded and availability semantics.",
+      },
+      {
+        label: "Open lookup lane",
+        href: "/recon?view=osint&focus=recon-lookup",
+        detail:
+          "Use the target-led surface directly when refining lookup flow or summarization.",
+      },
+      {
+        label: "Open binary triage",
+        href: "/recon?view=binary&focus=recon-binary",
+        detail:
+          "Strengthen local reverse-engineering prep without breaking the free-first boundary.",
+      },
+      {
+        label: "Open security audit",
+        href: "/resources?view=playbooks&playbook=security-boundary-audit",
+        detail:
+          "Run the shared browser/server boundary workflow before connector changes.",
+      },
     ],
     jumpActions: [
-      { label: "Open RECON", href: "/recon", detail: "Land on the recon shell." },
-      { label: "Open binary triage", href: "/recon?view=binary&focus=recon-binary", detail: "Go directly to the local suspicious-file triage lane." },
-      { label: "Open OPSEC focus", href: "/recon?view=opsec&focus=recon-opsec", detail: "Go directly to exposure and trust-boundary checks." },
-      { label: "Open system map", href: "/resources?view=system&system=recon-boundary", detail: "Review the browser/server boundary before deeper changes." },
+      {
+        label: "Open RECON",
+        href: "/recon",
+        detail: "Land on the recon shell.",
+      },
+      {
+        label: "Open binary triage",
+        href: "/recon?view=binary&focus=recon-binary",
+        detail: "Go directly to the local suspicious-file triage lane.",
+      },
+      {
+        label: "Open OPSEC focus",
+        href: "/recon?view=opsec&focus=recon-opsec",
+        detail: "Go directly to exposure and trust-boundary checks.",
+      },
+      {
+        label: "Open system map",
+        href: "/resources?view=system&system=recon-boundary",
+        detail: "Review the browser/server boundary before deeper changes.",
+      },
     ],
   },
   {
@@ -337,12 +645,38 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Inspecting relationships between saved articles and compiled pages.",
     ],
     subsections: [
-      { label: "Memory spine", detail: "Local durable-memory posture and related navigation.", href: "/vault?focus=vault-memory-spine" },
-      { label: "Stewardship", detail: "Archive health, orphan posture, tag coverage, and route continuity.", href: "/vault?focus=vault-stewardship" },
-      { label: "Compiled pages", detail: "Durable compiled memory and research artifacts.", href: "/vault?focus=vault-compiled-pages" },
-      { label: "Graph mode", detail: "Knowledge graph with filtered topology and focused drill-down.", href: "/vault?focus=vault-graph-focus" },
-      { label: "Document intake", detail: "Local-only filing for future OCR-ready document work.", href: "/vault" },
-      { label: "Export and kits", detail: "Archive handoff and reusable bundle paths.", href: "/vault" },
+      {
+        label: "Memory spine",
+        detail: "Local durable-memory posture and related navigation.",
+        href: "/vault?focus=vault-memory-spine",
+      },
+      {
+        label: "Stewardship",
+        detail:
+          "Archive health, orphan posture, tag coverage, and route continuity.",
+        href: "/vault?focus=vault-stewardship",
+      },
+      {
+        label: "Compiled pages",
+        detail: "Durable compiled memory and research artifacts.",
+        href: "/vault?focus=vault-compiled-pages",
+      },
+      {
+        label: "Graph mode",
+        detail:
+          "Knowledge graph with filtered topology and focused drill-down.",
+        href: "/vault?focus=vault-graph-focus",
+      },
+      {
+        label: "Document intake",
+        detail: "Local-only filing for future OCR-ready document work.",
+        href: "/vault",
+      },
+      {
+        label: "Export and kits",
+        detail: "Archive handoff and reusable bundle paths.",
+        href: "/vault",
+      },
     ],
     costPosture:
       "Pure local-first archive behavior by default, with durable artifacts kept inside Nexus unless the operator explicitly exports them.",
@@ -354,17 +688,58 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Strengthen exact panel focus links inside graph and compiled-page flows.",
     ],
     upgradeActions: [
-      { label: "Open stewardship", href: "/vault?focus=vault-stewardship", detail: "Start with archive health before widening into browsing or graph review." },
-      { label: "Repair route-less pages", href: "/vault?focus=vault-compiled-pages&compiledFilter=route-less", detail: "Open the exact compiled-page repair session for missing route continuity." },
-      { label: "Recover orphans", href: "/vault?focus=vault-graph-focus&graphAudit=orphans", detail: "Jump straight into graph-mode orphan recovery instead of a broad archive sweep." },
+      {
+        label: "Open stewardship",
+        href: "/vault?focus=vault-stewardship",
+        detail:
+          "Start with archive health before widening into browsing or graph review.",
+      },
+      {
+        label: "Repair route-less pages",
+        href: "/vault?focus=vault-compiled-pages&compiledFilter=route-less",
+        detail:
+          "Open the exact compiled-page repair session for missing route continuity.",
+      },
+      {
+        label: "Recover orphans",
+        href: "/vault?focus=vault-graph-focus&graphAudit=orphans",
+        detail:
+          "Jump straight into graph-mode orphan recovery instead of a broad archive sweep.",
+      },
     ],
     jumpActions: [
-      { label: "Open VAULT", href: "/vault", detail: "Land on the main archive route." },
-      { label: "Open stewardship", href: "/vault?focus=vault-stewardship", detail: "Start with archive health before browsing the wider vault." },
-      { label: "Repair route-less pages", href: "/vault?focus=vault-compiled-pages&compiledFilter=route-less", detail: "Jump directly into compiled pages that still need route continuity." },
-      { label: "Open graph focus", href: "/vault?focus=vault-graph-focus", detail: "Go straight to graph-mode drill-down." },
-      { label: "Recover orphans", href: "/vault?focus=vault-graph-focus&graphAudit=orphans", detail: "Open graph mode with orphan recovery in focus." },
-      { label: "Open system map", href: "/resources?view=system&system=memory-spine", detail: "Review the memory/compiled-page boundary before deeper changes." },
+      {
+        label: "Open VAULT",
+        href: "/vault",
+        detail: "Land on the main archive route.",
+      },
+      {
+        label: "Open stewardship",
+        href: "/vault?focus=vault-stewardship",
+        detail: "Start with archive health before browsing the wider vault.",
+      },
+      {
+        label: "Repair route-less pages",
+        href: "/vault?focus=vault-compiled-pages&compiledFilter=route-less",
+        detail:
+          "Jump directly into compiled pages that still need route continuity.",
+      },
+      {
+        label: "Open graph focus",
+        href: "/vault?focus=vault-graph-focus",
+        detail: "Go straight to graph-mode drill-down.",
+      },
+      {
+        label: "Recover orphans",
+        href: "/vault?focus=vault-graph-focus&graphAudit=orphans",
+        detail: "Open graph mode with orphan recovery in focus.",
+      },
+      {
+        label: "Open system map",
+        href: "/resources?view=system&system=memory-spine",
+        detail:
+          "Review the memory/compiled-page boundary before deeper changes.",
+      },
     ],
   },
   {
@@ -386,11 +761,33 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Packaging session summaries, imported bundles, and render briefs into VAULT.",
     ],
     subsections: [
-      { label: "Connector onboarding", detail: "Future Pixhawk / ArduPilot profile and bring-up prep.", href: "/vehicle?focus=vehicle-connector-onboarding" },
-      { label: "Bench checklist", detail: "Persistent props-off validation path.", href: "/vehicle?focus=vehicle-bench-checklist" },
-      { label: "Bridge status", detail: "Passive telemetry bridge posture without making Nexus flight-critical.", href: "/vehicle?focus=vehicle-bridge-status" },
-      { label: "Launchpad", detail: "Bench -> bridge -> compliance -> archive workflow.", href: "/vehicle" },
-      { label: "Artifacts", detail: "Session bundles, render briefs, and future hardware prep artifacts.", href: "/vehicle?focus=vehicle-artifact-convention" },
+      {
+        label: "Connector onboarding",
+        detail: "Future Pixhawk / ArduPilot profile and bring-up prep.",
+        href: "/vehicle?focus=vehicle-connector-onboarding",
+      },
+      {
+        label: "Bench checklist",
+        detail: "Persistent props-off validation path.",
+        href: "/vehicle?focus=vehicle-bench-checklist",
+      },
+      {
+        label: "Bridge status",
+        detail:
+          "Passive telemetry bridge posture without making Nexus flight-critical.",
+        href: "/vehicle?focus=vehicle-bridge-status",
+      },
+      {
+        label: "Launchpad",
+        detail: "Bench -> bridge -> compliance -> archive workflow.",
+        href: "/vehicle",
+      },
+      {
+        label: "Artifacts",
+        detail:
+          "Session bundles, render briefs, and future hardware prep artifacts.",
+        href: "/vehicle?focus=vehicle-artifact-convention",
+      },
     ],
     costPosture:
       "Local-first and simulation-first. No hardware or paid flight tooling is required for the current readiness lane to be useful.",
@@ -402,14 +799,40 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Strengthen vehicle artifact filtering and continuity once more future hardware prep artifacts accumulate.",
     ],
     upgradeActions: [
-      { label: "Open onboarding", href: "/vehicle?focus=vehicle-connector-onboarding", detail: "Jump directly into future Pixhawk / ArduPilot prep." },
-      { label: "Open artifacts", href: "/vehicle?focus=vehicle-artifact-convention", detail: "Go straight to bundles, render briefs, and archive continuity." },
-      { label: "Open compliance", href: "/cyber?view=drone&focus=cyber-drone", detail: "Keep the paired FAA and operational review lane close to readiness work." },
+      {
+        label: "Open onboarding",
+        href: "/vehicle?focus=vehicle-connector-onboarding",
+        detail: "Jump directly into future Pixhawk / ArduPilot prep.",
+      },
+      {
+        label: "Open artifacts",
+        href: "/vehicle?focus=vehicle-artifact-convention",
+        detail:
+          "Go straight to bundles, render briefs, and archive continuity.",
+      },
+      {
+        label: "Open compliance",
+        href: "/cyber?view=drone&focus=cyber-drone",
+        detail:
+          "Keep the paired FAA and operational review lane close to readiness work.",
+      },
     ],
     jumpActions: [
-      { label: "Open VEHICLE", href: "/vehicle", detail: "Land on the future hardware readiness route." },
-      { label: "Open compliance", href: "/cyber?view=drone&focus=cyber-drone", detail: "Jump to the paired drone compliance lane." },
-      { label: "Open system map", href: "/resources?view=system&system=vehicle-bridge", detail: "Review the passive-bridge and readiness boundary first." },
+      {
+        label: "Open VEHICLE",
+        href: "/vehicle",
+        detail: "Land on the future hardware readiness route.",
+      },
+      {
+        label: "Open compliance",
+        href: "/cyber?view=drone&focus=cyber-drone",
+        detail: "Jump to the paired drone compliance lane.",
+      },
+      {
+        label: "Open system map",
+        href: "/resources?view=system&system=vehicle-bridge",
+        detail: "Review the passive-bridge and readiness boundary first.",
+      },
     ],
   },
   {
@@ -431,10 +854,26 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Staging future camera/perimeter integrations without widening response authority.",
     ],
     subsections: [
-      { label: "MQTT posture", detail: "Broker availability and adapter readiness.", href: "/iot?focus=iot-mqtt" },
-      { label: "Sensor grid", detail: "Temperature, motion, weather, and status telemetry.", href: "/iot?focus=iot-sensors" },
-      { label: "Device matrix", detail: "Local device registry and health posture.", href: "/iot?focus=iot-devices" },
-      { label: "Automation review", detail: "Rules stay visible and operator-owned.", href: "/iot?focus=iot-automation" },
+      {
+        label: "MQTT posture",
+        detail: "Broker availability and adapter readiness.",
+        href: "/iot?focus=iot-mqtt",
+      },
+      {
+        label: "Sensor grid",
+        detail: "Temperature, motion, weather, and status telemetry.",
+        href: "/iot?focus=iot-sensors",
+      },
+      {
+        label: "Device matrix",
+        detail: "Local device registry and health posture.",
+        href: "/iot?focus=iot-devices",
+      },
+      {
+        label: "Automation review",
+        detail: "Rules stay visible and operator-owned.",
+        href: "/iot?focus=iot-automation",
+      },
     ],
     costPosture:
       "Internal and local-first. No paid device cloud or remote service is required for the current workbench.",
@@ -446,14 +885,38 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Keep physical-world automation review-gated and visible.",
     ],
     upgradeActions: [
-      { label: "Open MQTT", href: "/iot?focus=iot-mqtt", detail: "Start with broker and adapter posture before device work." },
-      { label: "Open device matrix", href: "/iot?focus=iot-devices", detail: "Review local device health and registry state." },
-      { label: "Open automation", href: "/iot?focus=iot-automation", detail: "Check rule posture before enabling or expanding automations." },
+      {
+        label: "Open MQTT",
+        href: "/iot?focus=iot-mqtt",
+        detail: "Start with broker and adapter posture before device work.",
+      },
+      {
+        label: "Open device matrix",
+        href: "/iot?focus=iot-devices",
+        detail: "Review local device health and registry state.",
+      },
+      {
+        label: "Open automation",
+        href: "/iot?focus=iot-automation",
+        detail: "Check rule posture before enabling or expanding automations.",
+      },
     ],
     jumpActions: [
-      { label: "Open IOT", href: "/iot", detail: "Land on the internal sensor operations workbench." },
-      { label: "Open device matrix", href: "/iot?focus=iot-devices", detail: "Go directly to the device registry posture." },
-      { label: "Open automation review", href: "/iot?focus=iot-automation", detail: "Go directly to local automation review." },
+      {
+        label: "Open IOT",
+        href: "/iot",
+        detail: "Land on the internal sensor operations workbench.",
+      },
+      {
+        label: "Open device matrix",
+        href: "/iot?focus=iot-devices",
+        detail: "Go directly to the device registry posture.",
+      },
+      {
+        label: "Open automation review",
+        href: "/iot?focus=iot-automation",
+        detail: "Go directly to local automation review.",
+      },
     ],
   },
   {
@@ -478,16 +941,62 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Auditing what the app can do without reverse-engineering every route.",
     ],
     subsections: [
-      { label: "Finder", detail: "Fast local search across exact sessions, specs, playbooks, systems, and surfaces.", href: "/resources?view=finder" },
-      { label: "Field manual", detail: "Curated external references and study material.", href: "/resources?view=manual" },
-      { label: "Source intelligence", detail: "Govern external repos, posts, and tooling ideas before promotion.", href: "/resources?view=sources" },
-      { label: "Surfaces", detail: "Cross-tab capability and upgrade audit for the live product.", href: "/resources?view=surfaces" },
-      { label: "Playbooks", detail: "Repeatable engineering workflows with jump-offs, including the runtime finalize loop.", href: "/resources?view=playbooks" },
-      { label: "Specs", detail: "Spec-first starters with problem, constraints, acceptance, and verification.", href: "/resources?view=specs" },
-      { label: "System design", detail: "Subsystem maps, boundaries, and guardrails.", href: "/resources?view=system" },
-      { label: "Impact", detail: "Local-only blast radius, graph, hotspots, ownership, and security workbench.", href: "/resources?view=impact" },
-      { label: "Voice Lab", detail: "Local-first voice profiles, dictation, and audio briefing projects.", href: "/resources?view=voice-lab" },
-      { label: "Registry and kits", detail: "Reusable tools, prompts, bundles, and operator kits.", href: "/resources?view=registry" },
+      {
+        label: "Finder",
+        detail:
+          "Fast local search across exact sessions, specs, playbooks, systems, and surfaces.",
+        href: "/resources?view=finder",
+      },
+      {
+        label: "Field manual",
+        detail: "Curated external references and study material.",
+        href: "/resources?view=manual",
+      },
+      {
+        label: "Source intelligence",
+        detail:
+          "Govern external repos, posts, and tooling ideas before promotion.",
+        href: "/resources?view=sources",
+      },
+      {
+        label: "Surfaces",
+        detail: "Cross-tab capability and upgrade audit for the live product.",
+        href: "/resources?view=surfaces",
+      },
+      {
+        label: "Playbooks",
+        detail:
+          "Repeatable engineering workflows with jump-offs, including the runtime finalize loop.",
+        href: "/resources?view=playbooks",
+      },
+      {
+        label: "Specs",
+        detail:
+          "Spec-first starters with problem, constraints, acceptance, and verification.",
+        href: "/resources?view=specs",
+      },
+      {
+        label: "System design",
+        detail: "Subsystem maps, boundaries, and guardrails.",
+        href: "/resources?view=system",
+      },
+      {
+        label: "Impact",
+        detail:
+          "Local-only blast radius, graph, hotspots, ownership, and security workbench.",
+        href: "/resources?view=impact",
+      },
+      {
+        label: "Voice Lab",
+        detail:
+          "Local-first voice profiles, dictation, and audio briefing projects.",
+        href: "/resources?view=voice-lab",
+      },
+      {
+        label: "Registry and kits",
+        detail: "Reusable tools, prompts, bundles, and operator kits.",
+        href: "/resources?view=registry",
+      },
     ],
     costPosture:
       "Mostly local and reference-oriented, with explicit external-link posture in the field-manual lane instead of hidden outbound behavior.",
@@ -502,23 +1011,91 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Keep source intelligence native to Resources so outside ideas are mapped before they become dependencies.",
     ],
     upgradeActions: [
-      { label: "Open finder", href: "/resources?view=finder", detail: "Jump straight into fast exact-session lookup when you already know the shape of the work." },
-      { label: "Open source intelligence", href: "/resources?view=sources", detail: "Map outside repos, posts, and tooling ideas into guarded local work before implementation." },
-      { label: "Open specs lane", href: "/resources?view=specs", detail: "Start risky work from a reusable spec starter before opening broad code surfaces." },
-      { label: "Open surfaces audit", href: "/resources?view=surfaces", detail: "Start from the cross-tab capability map when deciding what to improve next." },
-      { label: "Open playbooks", href: "/resources?view=playbooks", detail: "Use the workflow lane when a diagnosis should become a repeatable session." },
-      { label: "Open finalize loop", href: "/resources?view=playbooks&playbook=runtime-finalize-loop", detail: "Use the bug-check route before pushing, transferring, or calling a visual pass done." },
-      { label: "Open system design", href: "/resources?view=system", detail: "Anchor improvements in subsystem ownership and failure modes before editing." },
-      { label: "Open Voice Lab", href: "/resources?view=voice-lab", detail: "Stage local dictation, profiles, and audio projects in one lane." },
+      {
+        label: "Open finder",
+        href: "/resources?view=finder",
+        detail:
+          "Jump straight into fast exact-session lookup when you already know the shape of the work.",
+      },
+      {
+        label: "Open source intelligence",
+        href: "/resources?view=sources",
+        detail:
+          "Map outside repos, posts, and tooling ideas into guarded local work before implementation.",
+      },
+      {
+        label: "Open specs lane",
+        href: "/resources?view=specs",
+        detail:
+          "Start risky work from a reusable spec starter before opening broad code surfaces.",
+      },
+      {
+        label: "Open surfaces audit",
+        href: "/resources?view=surfaces",
+        detail:
+          "Start from the cross-tab capability map when deciding what to improve next.",
+      },
+      {
+        label: "Open playbooks",
+        href: "/resources?view=playbooks",
+        detail:
+          "Use the workflow lane when a diagnosis should become a repeatable session.",
+      },
+      {
+        label: "Open finalize loop",
+        href: "/resources?view=playbooks&playbook=runtime-finalize-loop",
+        detail:
+          "Use the bug-check route before pushing, transferring, or calling a visual pass done.",
+      },
+      {
+        label: "Open system design",
+        href: "/resources?view=system",
+        detail:
+          "Anchor improvements in subsystem ownership and failure modes before editing.",
+      },
+      {
+        label: "Open Voice Lab",
+        href: "/resources?view=voice-lab",
+        detail:
+          "Stage local dictation, profiles, and audio projects in one lane.",
+      },
     ],
     jumpActions: [
-      { label: "Open Resources", href: "/resources", detail: "Land on the workbench route." },
-      { label: "Open Finder", href: "/resources?view=finder", detail: "Go directly to the fast local session finder." },
-      { label: "Open Source Intelligence", href: "/resources?view=sources", detail: "Go directly to the governed external-idea intake lane." },
-      { label: "Open Specs", href: "/resources?view=specs", detail: "Go directly to the spec-first starters." },
-      { label: "Open surfaces audit", href: "/resources?view=surfaces", detail: "Go directly to the cross-tab capability map." },
-      { label: "Open finalize loop", href: "/resources?view=playbooks&playbook=runtime-finalize-loop", detail: "Start the proven type/verify/build/route/browser-probe loop." },
-      { label: "Open Voice Lab", href: "/resources?view=voice-lab", detail: "Go directly to the local voice workflow lane." },
+      {
+        label: "Open Resources",
+        href: "/resources",
+        detail: "Land on the workbench route.",
+      },
+      {
+        label: "Open Finder",
+        href: "/resources?view=finder",
+        detail: "Go directly to the fast local session finder.",
+      },
+      {
+        label: "Open Source Intelligence",
+        href: "/resources?view=sources",
+        detail: "Go directly to the governed external-idea intake lane.",
+      },
+      {
+        label: "Open Specs",
+        href: "/resources?view=specs",
+        detail: "Go directly to the spec-first starters.",
+      },
+      {
+        label: "Open surfaces audit",
+        href: "/resources?view=surfaces",
+        detail: "Go directly to the cross-tab capability map.",
+      },
+      {
+        label: "Open finalize loop",
+        href: "/resources?view=playbooks&playbook=runtime-finalize-loop",
+        detail: "Start the proven type/verify/build/route/browser-probe loop.",
+      },
+      {
+        label: "Open Voice Lab",
+        href: "/resources?view=voice-lab",
+        detail: "Go directly to the local voice workflow lane.",
+      },
     ],
   },
   {
@@ -540,9 +1117,22 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Physical monitoring context that should stay distinct from cyber triage.",
     ],
     subsections: [
-      { label: "Controls", detail: "Route, auth, input, config, and AI-surface coverage.", href: "/security?view=doctrine&focus=security-doctrine" },
-      { label: "AI surface", detail: "Prompt, tool, retrieval, and persistence risk framing.", href: "/security?view=ai&focus=security-ai-surface" },
-      { label: "Physical ops", detail: "Camera, perimeter, alerts, and drone-adjacent physical monitoring.", href: "/security?view=physical&focus=security-physical" },
+      {
+        label: "Controls",
+        detail: "Route, auth, input, config, and AI-surface coverage.",
+        href: "/security?view=doctrine&focus=security-doctrine",
+      },
+      {
+        label: "AI surface",
+        detail: "Prompt, tool, retrieval, and persistence risk framing.",
+        href: "/security?view=ai&focus=security-ai-surface",
+      },
+      {
+        label: "Physical ops",
+        detail:
+          "Camera, perimeter, alerts, and drone-adjacent physical monitoring.",
+        href: "/security?view=physical&focus=security-physical",
+      },
     ],
     costPosture:
       "Mostly local controls and local monitoring posture. This route is about review and framing more than expensive connector dependence.",
@@ -554,14 +1144,40 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Add more explicit deep links for AI-surface review work.",
     ],
     upgradeActions: [
-      { label: "Open controls", href: "/security?view=doctrine&focus=security-doctrine", detail: "Start with boundary and protected-action review before broader governance edits." },
-      { label: "Open AI surface", href: "/security?view=ai&focus=security-ai-surface", detail: "Jump directly into prompt/tool/retrieval risk framing." },
-      { label: "Open security audit", href: "/resources?view=playbooks&playbook=security-boundary-audit", detail: "Use the shared security workflow when the controls lane needs implementation follow-through." },
+      {
+        label: "Open controls",
+        href: "/security?view=doctrine&focus=security-doctrine",
+        detail:
+          "Start with boundary and protected-action review before broader governance edits.",
+      },
+      {
+        label: "Open AI surface",
+        href: "/security?view=ai&focus=security-ai-surface",
+        detail: "Jump directly into prompt/tool/retrieval risk framing.",
+      },
+      {
+        label: "Open security audit",
+        href: "/resources?view=playbooks&playbook=security-boundary-audit",
+        detail:
+          "Use the shared security workflow when the controls lane needs implementation follow-through.",
+      },
     ],
     jumpActions: [
-      { label: "Open SECURITY", href: "/security", detail: "Land on the security controls route." },
-      { label: "Open AI surface", href: "/security?view=ai&focus=security-ai-surface", detail: "Go directly to AI-specific risk framing." },
-      { label: "Open playbook", href: "/resources?view=playbooks&playbook=security-boundary-audit", detail: "Start the security boundary audit workflow." },
+      {
+        label: "Open SECURITY",
+        href: "/security",
+        detail: "Land on the security controls route.",
+      },
+      {
+        label: "Open AI surface",
+        href: "/security?view=ai&focus=security-ai-surface",
+        detail: "Go directly to AI-specific risk framing.",
+      },
+      {
+        label: "Open playbook",
+        href: "/resources?view=playbooks&playbook=security-boundary-audit",
+        detail: "Start the security boundary audit workflow.",
+      },
     ],
   },
   {
@@ -583,10 +1199,28 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Reviewing capability growth and reusable knowledge assets.",
     ],
     subsections: [
-      { label: "Workflow Forge", detail: "Workflow graphing and operator process shaping.", href: "/skills?view=forge&focus=skills-forge" },
-      { label: "Blacksite Lab", detail: "Operator-only lab for adversarial tournaments and isolated testing.", href: "/skills?view=blacksite&focus=skills-blacksite" },
-      { label: "System Brain", detail: "Skill metrics, knowledge graph, and improvement queue.", href: "/skills?view=brain&focus=skills-brain" },
-      { label: "Skill Library", detail: "Reusable capability catalog plus learning log and knowledge base.", href: "/skills?view=library&focus=skills-library" },
+      {
+        label: "Workflow Forge",
+        detail: "Workflow graphing and operator process shaping.",
+        href: "/skills?view=forge&focus=skills-forge",
+      },
+      {
+        label: "Blacksite Lab",
+        detail:
+          "Operator-only lab for adversarial tournaments and isolated testing.",
+        href: "/skills?view=blacksite&focus=skills-blacksite",
+      },
+      {
+        label: "System Brain",
+        detail: "Skill metrics, knowledge graph, and improvement queue.",
+        href: "/skills?view=brain&focus=skills-brain",
+      },
+      {
+        label: "Skill Library",
+        detail:
+          "Reusable capability catalog plus learning log and knowledge base.",
+        href: "/skills?view=library&focus=skills-library",
+      },
     ],
     costPosture:
       "Internal and local-first. This route is about shaping workflows and learning assets rather than introducing paid dependencies.",
@@ -598,19 +1232,50 @@ export const SURFACE_CAPABILITIES: SurfaceCapability[] = [
       "Add stronger continuity from experimentation back into real operator surfaces.",
     ],
     upgradeActions: [
-      { label: "Open Workflow Forge", href: "/skills?view=forge&focus=skills-forge", detail: "Start on the process-shaping lane when tightening internal workflow continuity." },
-      { label: "Open Blacksite", href: "/skills?view=blacksite&focus=skills-blacksite", detail: "Use the isolated lab when experimentation needs a clearer home." },
-      { label: "Open library", href: "/skills?view=library&focus=skills-library", detail: "Review reusable capability assets directly when reducing route sprawl or drift." },
+      {
+        label: "Open Workflow Forge",
+        href: "/skills?view=forge&focus=skills-forge",
+        detail:
+          "Start on the process-shaping lane when tightening internal workflow continuity.",
+      },
+      {
+        label: "Open Blacksite",
+        href: "/skills?view=blacksite&focus=skills-blacksite",
+        detail:
+          "Use the isolated lab when experimentation needs a clearer home.",
+      },
+      {
+        label: "Open library",
+        href: "/skills?view=library&focus=skills-library",
+        detail:
+          "Review reusable capability assets directly when reducing route sprawl or drift.",
+      },
     ],
     jumpActions: [
-      { label: "Open SKILLS", href: "/skills", detail: "Land on the internal workflow and learning surface." },
-      { label: "Open Workflow Forge", href: "/skills?view=forge&focus=skills-forge", detail: "Go directly to workflow shaping." },
-      { label: "Open Blacksite Lab", href: "/skills?view=blacksite&focus=skills-blacksite", detail: "Go directly to the isolated adversarial lab." },
+      {
+        label: "Open SKILLS",
+        href: "/skills",
+        detail: "Land on the internal workflow and learning surface.",
+      },
+      {
+        label: "Open Workflow Forge",
+        href: "/skills?view=forge&focus=skills-forge",
+        detail: "Go directly to workflow shaping.",
+      },
+      {
+        label: "Open Blacksite Lab",
+        href: "/skills?view=blacksite&focus=skills-blacksite",
+        detail: "Go directly to the isolated adversarial lab.",
+      },
     ],
   },
 ];
 
 export function getSurfaceCapability(id: string | null | undefined) {
-  const resolvedId = resolveSurfaceCapabilityId(id) ?? DEFAULT_SURFACE_CAPABILITY_ID;
-  return SURFACE_CAPABILITIES.find((entry) => entry.id === resolvedId) ?? SURFACE_CAPABILITIES[0];
+  const resolvedId =
+    resolveSurfaceCapabilityId(id) ?? DEFAULT_SURFACE_CAPABILITY_ID;
+  return (
+    SURFACE_CAPABILITIES.find((entry) => entry.id === resolvedId) ??
+    SURFACE_CAPABILITIES[0]
+  );
 }

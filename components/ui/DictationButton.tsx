@@ -8,7 +8,11 @@ type SpeechRecognitionCtor = new () => {
   continuous: boolean;
   start: () => void;
   stop: () => void;
-  onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onresult:
+    | ((event: {
+        results: ArrayLike<ArrayLike<{ transcript: string }>>;
+      }) => void)
+    | null;
   onerror: (() => void) | null;
   onend: (() => void) | null;
 };
@@ -16,14 +20,18 @@ type SpeechRecognitionCtor = new () => {
 function getRecognitionCtor(): SpeechRecognitionCtor | null {
   if (typeof window === "undefined") return null;
   const candidate =
-    (window as typeof window & {
-      SpeechRecognition?: SpeechRecognitionCtor;
-      webkitSpeechRecognition?: SpeechRecognitionCtor;
-    }).SpeechRecognition ??
-    (window as typeof window & {
-      SpeechRecognition?: SpeechRecognitionCtor;
-      webkitSpeechRecognition?: SpeechRecognitionCtor;
-    }).webkitSpeechRecognition;
+    (
+      window as typeof window & {
+        SpeechRecognition?: SpeechRecognitionCtor;
+        webkitSpeechRecognition?: SpeechRecognitionCtor;
+      }
+    ).SpeechRecognition ??
+    (
+      window as typeof window & {
+        SpeechRecognition?: SpeechRecognitionCtor;
+        webkitSpeechRecognition?: SpeechRecognitionCtor;
+      }
+    ).webkitSpeechRecognition;
   return candidate ?? null;
 }
 
@@ -34,7 +42,9 @@ export default function DictationButton({
   onTranscript: (text: string) => void;
   title?: string;
 }) {
-  const recognitionRef = useRef<InstanceType<NonNullable<ReturnType<typeof getRecognitionCtor>>> | null>(null);
+  const recognitionRef = useRef<InstanceType<
+    NonNullable<ReturnType<typeof getRecognitionCtor>>
+  > | null>(null);
   const [listening, setListening] = useState(false);
   const [supported, setSupported] = useState(false);
 
@@ -98,7 +108,9 @@ export default function DictationButton({
         height: 28,
         borderRadius: "999px",
         border: "1px solid var(--border)",
-        background: listening ? "rgba(200, 80, 80, 0.2)" : "rgba(10, 15, 30, 0.58)",
+        background: listening
+          ? "rgba(200, 80, 80, 0.2)"
+          : "rgba(10, 15, 30, 0.58)",
         color: "var(--text)",
         cursor: "pointer",
       }}

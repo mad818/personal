@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "id": "vercel-labs-agent-browser",
+  "name": "agent-browser",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/vercel-labs/agent-browser",
+    "version": "main reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "Apache-2.0",
+    "primaryEvidence": [
+      "https://github.com/vercel-labs/agent-browser",
+      "https://github.com/vercel-labs/agent-browser/blob/main/README.md",
+      "https://github.com/vercel-labs/agent-browser/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "semantic-snapshot-interaction",
+      "title": "Accessibility-tree snapshots, stable refs, and semantic locators",
+      "sourceEvidence": "README quickstart, snapshot, and semantic locator commands",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/browser-testing-with-devtools/SKILL.md"
+      ]
+    },
+    {
+      "id": "console-network-error-trace",
+      "title": "Console, page errors, failed network, screenshots, and trace evidence",
+      "sourceEvidence": "README debug, network, screenshot, and trace commands",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/browser-testing-with-devtools/SKILL.md"
+      ]
+    },
+    {
+      "id": "accessibility-vitals-react-evidence",
+      "title": "Accessibility audits, Web Vitals, and measured React render evidence",
+      "sourceEvidence": "README accessibility and React/Web Vitals sections",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/production-engineering/browser-testing-with-devtools/SKILL.md"
+      ],
+      "adaptationNotes": "Claims are allowed only when the selected existing browser tool measures them directly."
+    },
+    {
+      "id": "browser-runtime-and-mcp-install",
+      "title": "Rust daemon, browser download, global/project package, and MCP server",
+      "sourceEvidence": "README installation, doctor, browser install, and MCP commands",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus already has Browser and Playwright paths; a second browser runtime and downloaded Chrome are unnecessary."
+    },
+    {
+      "id": "auth-state-eval-network-mutation",
+      "title": "Saved authentication state, arbitrary JavaScript, file upload, and network routing",
+      "sourceEvidence": "README state, eval, upload, and route commands",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "These actions cross credential, code-execution, filesystem, and network boundaries and require separate task-specific authority."
+    }
+  ]
+}

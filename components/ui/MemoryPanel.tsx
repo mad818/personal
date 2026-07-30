@@ -4,7 +4,7 @@
 // Slide-in panel for browsing, searching, and deleting agent memories
 // stored in IndexedDB via lib/memoryStore.ts.
 //
-// Access: toggle button in AgentOffice zone header.
+// Access: toggle button in the OfficeCommandCenter header.
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -16,6 +16,8 @@ import {
   exportMemories,
 } from "@/lib/memoryStore";
 import ClientStyleMount from "@/components/ui/ClientStyleMount";
+import { requestTextDownload } from "@/components/ui/downloadFeedback";
+import { toast } from "@/components/ui/Toast";
 
 // ── Read all memories (not exported from memoryStore — inline here) ─────────
 async function listAllMemories(): Promise<Memory[]> {
@@ -300,14 +302,22 @@ export default function MemoryPanel({ open, onClose }: MemoryPanelProps) {
   }, [load]);
 
   const handleExport = useCallback(async () => {
-    const json = await exportMemories();
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `nexus-memories-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const json = await exportMemories();
+      requestTextDownload({
+        filename: `nexus-memories-${new Date().toISOString().slice(0, 10)}.json`,
+        content: json,
+        label: "Memory export",
+        mimeType: "application/json",
+      });
+    } catch {
+      toast({
+        title: "Memory export not prepared",
+        message:
+          "IndexedDB could not prepare the export. Keep Memory open and retry.",
+        severity: "medium",
+      });
+    }
   }, []);
 
   // Filter memories
@@ -402,6 +412,7 @@ export default function MemoryPanel({ open, onClose }: MemoryPanelProps) {
 
           <button
             onClick={onClose}
+            aria-label="Close memory panel"
             style={{
               background: "none",
               border: "1px solid #1A2040",
@@ -466,6 +477,7 @@ export default function MemoryPanel({ open, onClose }: MemoryPanelProps) {
         {/* Search */}
         <div style={{ padding: "8px 12px", flexShrink: 0 }}>
           <input
+            aria-label="Search memories"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search memories…"

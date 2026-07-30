@@ -1,6 +1,9 @@
 "use client";
 
-import { SurfaceCallout, SurfaceSkeletonRows } from "@/components/ui/surfacePrimitives";
+import {
+  SurfaceCallout,
+  SurfaceSkeletonRows,
+} from "@/components/ui/surfacePrimitives";
 import { ShellBadge } from "@/components/ui/shell";
 import { useBrowserOpsReadiness } from "@/hooks/useBrowserOpsReadiness";
 
@@ -32,7 +35,9 @@ export default function BrowserOpsReadinessCard() {
       </div>
 
       <div className="mt-3 flex flex-col gap-3">
-        {loading && !snapshot ? <SurfaceSkeletonRows rows={2} height={18} /> : null}
+        {loading && !snapshot ? (
+          <SurfaceSkeletonRows rows={2} height={18} />
+        ) : null}
 
         {snapshot ? (
           <SurfaceCallout
@@ -50,6 +55,7 @@ export default function BrowserOpsReadinessCard() {
 
         {loadError ? (
           <SurfaceCallout
+            role="alert"
             tone="warning"
             compact
             icon="↺"
@@ -64,7 +70,9 @@ export default function BrowserOpsReadinessCard() {
               <div className="rounded-md border border-[var(--border)] bg-[var(--surf)] px-2 py-1.5">
                 <div className="text-[var(--text3)]">Execution lane</div>
                 <div className="mt-1 font-mono text-[var(--text)]">
-                  {snapshot.mode === "lightpanda_companion" ? "Companion" : "Protected"}
+                  {snapshot.mode === "lightpanda_companion"
+                    ? "Companion"
+                    : "Protected"}
                 </div>
               </div>
               <div className="rounded-md border border-[var(--border)] bg-[var(--surf)] px-2 py-1.5">
@@ -88,16 +96,24 @@ export default function BrowserOpsReadinessCard() {
             </div>
 
             <div className="flex flex-wrap gap-1.5">
-              <ShellBadge tone={snapshot.guardedRoutes.lookup ? "success" : "muted"}>
+              <ShellBadge
+                tone={snapshot.guardedRoutes.lookup ? "success" : "muted"}
+              >
                 Lookup
               </ShellBadge>
-              <ShellBadge tone={snapshot.guardedRoutes.passiveDns ? "success" : "muted"}>
+              <ShellBadge
+                tone={snapshot.guardedRoutes.passiveDns ? "success" : "muted"}
+              >
                 Passive DNS
               </ShellBadge>
-              <ShellBadge tone={snapshot.guardedRoutes.torCheck ? "success" : "muted"}>
+              <ShellBadge
+                tone={snapshot.guardedRoutes.torCheck ? "success" : "muted"}
+              >
                 OPSEC
               </ShellBadge>
-              <ShellBadge tone={snapshot.guardedRoutes.sweeps ? "success" : "muted"}>
+              <ShellBadge
+                tone={snapshot.guardedRoutes.sweeps ? "success" : "muted"}
+              >
                 Sweeps
               </ShellBadge>
               {snapshot.endpointLabel ? (

@@ -13,7 +13,9 @@ export interface MissionContinuationTarget {
   tab: string;
 }
 
-export function coerceMissionIntent(value: string | null | undefined): MissionIntent | null {
+export function coerceMissionIntent(
+  value: string | null | undefined,
+): MissionIntent | null {
   switch ((value ?? "").toLowerCase()) {
     case "observe":
     case "investigate":
@@ -25,7 +27,9 @@ export function coerceMissionIntent(value: string | null | undefined): MissionIn
   }
 }
 
-export function coerceMissionOrigin(value: string | null | undefined): MissionOrigin | null {
+export function coerceMissionOrigin(
+  value: string | null | undefined,
+): MissionOrigin | null {
   return (value ?? "").toLowerCase() === "hq" ? "hq" : null;
 }
 
@@ -54,7 +58,8 @@ export function buildMissionHref(
   const hash = hashIndex >= 0 ? baseHref.slice(hashIndex) : "";
   const withoutHash = hashIndex >= 0 ? baseHref.slice(0, hashIndex) : baseHref;
   const queryIndex = withoutHash.indexOf("?");
-  const pathname = queryIndex >= 0 ? withoutHash.slice(0, queryIndex) : withoutHash;
+  const pathname =
+    queryIndex >= 0 ? withoutHash.slice(0, queryIndex) : withoutHash;
   const query = queryIndex >= 0 ? withoutHash.slice(queryIndex + 1) : "";
   const params = new URLSearchParams(query);
 
@@ -119,13 +124,17 @@ export function resolveMissionContinuationTarget(
       };
     case "/labs/signals":
       return {
-        href: buildMissionHref("/intel?view=news", "investigate", { source: "intel" }),
+        href: buildMissionHref("/intel?view=news", "investigate", {
+          source: "intel",
+        }),
         label: "Continue in INTEL",
         tab: "intel",
       };
     case "/labs/ops":
       return {
-        href: buildMissionHref("/intel?view=world", "investigate", { source: "intel" }),
+        href: buildMissionHref("/intel?view=world", "investigate", {
+          source: "intel",
+        }),
         label: "Continue in INTEL",
         tab: "intel",
       };

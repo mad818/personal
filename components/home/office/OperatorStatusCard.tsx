@@ -53,7 +53,8 @@ export default function OperatorStatusCard({
         </ShellBadge>
         <ShellBadge
           tone={
-            operatorStatus?.mode === "blocked" || operatorStatus?.mode === "failed"
+            operatorStatus?.mode === "blocked" ||
+            operatorStatus?.mode === "failed"
               ? "accent"
               : "muted"
           }

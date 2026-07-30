@@ -73,9 +73,7 @@ function uniqueSourceRefs(sourceRefs: ResearchSourceRef[]) {
 }
 
 function extractUrls(value: string) {
-  return Array.from(
-    new Set(value.match(/https?:\/\/[^\s)\]}>"']+/g) ?? []),
-  );
+  return Array.from(new Set(value.match(/https?:\/\/[^\s)\]}>"']+/g) ?? []));
 }
 
 function describeCitation(url: string) {
@@ -162,10 +160,7 @@ export interface XR1SourcePageLike extends XR1WorkflowPageLike {
 }
 
 export function buildCompiledPageHref(
-  page:
-    | Pick<XR1SourcePageLike, "id" | "workflowId">
-    | null
-    | undefined,
+  page: Pick<XR1SourcePageLike, "id" | "workflowId"> | null | undefined,
 ) {
   if (!page?.id) return "/vault?focus=vault-compiled-pages";
   const params = new URLSearchParams();
@@ -192,7 +187,10 @@ export function buildMarketReviewMarkdown(draft: MarketReviewDraft) {
   ];
 
   return sections
-    .map(([heading, value]) => `## ${heading}\n${value.trim() || "Pending input."}`)
+    .map(
+      ([heading, value]) =>
+        `## ${heading}\n${value.trim() || "Pending input."}`,
+    )
     .join("\n\n");
 }
 
@@ -206,7 +204,9 @@ export function buildMarketReviewSummary(draft: MarketReviewDraft) {
     [
       draft.thesis || "No thesis recorded yet.",
       draft.result ? `Result: ${draft.result}` : "",
-      draft.emotionalPosture ? `Emotional posture: ${draft.emotionalPosture}` : "",
+      draft.emotionalPosture
+        ? `Emotional posture: ${draft.emotionalPosture}`
+        : "",
       draft.nextRule ? `Next rule: ${draft.nextRule}` : "",
     ]
       .filter(Boolean)
@@ -249,7 +249,10 @@ export function buildMarketReviewCoachSuggestions(
   strongestPrior?: Pick<XR1SourcePageLike, "content"> | null,
 ): MarketReviewCoachSuggestions {
   const priorDraft = parseMarketReviewMarkdown(strongestPrior?.content ?? "");
-  const assetLabel = cleanInline(draft.asset || priorDraft.asset || "this market", 48);
+  const assetLabel = cleanInline(
+    draft.asset || priorDraft.asset || "this market",
+    48,
+  );
   const setupValue = normalizeDraftValue(draft.setup) || priorDraft.setup;
   const invalidationValue =
     normalizeDraftValue(draft.invalidation) || priorDraft.invalidation;
@@ -271,7 +274,7 @@ export function buildMarketReviewCoachSuggestions(
       : resultValue
         ? `Avoid repeating the same path that led to ${cleanInline(resultValue, 104)}.`
         : priorDraft.whatToAvoid ||
-            "Avoid changing size or thesis before the invalidation is written down.",
+          "Avoid changing size or thesis before the invalidation is written down.",
     160,
   );
 
@@ -281,7 +284,7 @@ export function buildMarketReviewCoachSuggestions(
       : invalidationValue
         ? `Honor ${cleanInline(invalidationValue, 104)} before changing size, thesis, or timeframe.`
         : priorDraft.nextRule ||
-            `Write the invalidation and exit rule before taking the next ${assetLabel} setup.`,
+          `Write the invalidation and exit rule before taking the next ${assetLabel} setup.`,
     160,
   );
 
@@ -304,7 +307,9 @@ export function seedMarketReviewCoachFields(
   };
 }
 
-export function buildWorkflowSourceRefs(page: XR1SourcePageLike | null | undefined) {
+export function buildWorkflowSourceRefs(
+  page: XR1SourcePageLike | null | undefined,
+) {
   if (!page) return [];
   return uniqueSourceRefs([
     {
@@ -336,7 +341,8 @@ export function rankMarketReviewPages<T extends XR1WorkflowPageLike>(
     )
       ? 1
       : 0;
-    if (leftAssetMatch !== rightAssetMatch) return rightAssetMatch - leftAssetMatch;
+    if (leftAssetMatch !== rightAssetMatch)
+      return rightAssetMatch - leftAssetMatch;
 
     const leftContinuityMatch =
       continuityId && left.continuity?.continuityId === continuityId ? 1 : 0;
@@ -373,7 +379,10 @@ export function buildOsintCasefileMarkdown(draft: OsintCasefileDraft) {
   ];
 
   return sections
-    .map(([heading, value]) => `## ${heading}\n${value.trim() || "Pending input."}`)
+    .map(
+      ([heading, value]) =>
+        `## ${heading}\n${value.trim() || "Pending input."}`,
+    )
     .join("\n\n");
 }
 
@@ -393,11 +402,16 @@ export function buildOsintCasefileTags(draft: OsintCasefileDraft) {
   return [
     "osint-casefile",
     subjectSlug ? `subject:${subjectSlug}` : null,
-    ...draft.pivots.map((pivot) => slugify(pivot)).filter(Boolean).map((pivot) => `pivot:${pivot}`),
+    ...draft.pivots
+      .map((pivot) => slugify(pivot))
+      .filter(Boolean)
+      .map((pivot) => `pivot:${pivot}`),
   ].filter((tag): tag is string => Boolean(tag));
 }
 
-export function parseOsintCasefileMarkdown(content: string): OsintCasefileDraft {
+export function parseOsintCasefileMarkdown(
+  content: string,
+): OsintCasefileDraft {
   const sections = parseMarkdownSections(content);
   return {
     subject: sections.get("subject") ?? "",
@@ -431,7 +445,9 @@ export function buildCitationSourceRefs(values: string[]) {
   );
 }
 
-export function mergeSourceRefs(...groups: Array<ResearchSourceRef[] | null | undefined>) {
+export function mergeSourceRefs(
+  ...groups: Array<ResearchSourceRef[] | null | undefined>
+) {
   return uniqueSourceRefs(groups.flatMap((group) => group ?? []));
 }
 
@@ -441,7 +457,9 @@ export function buildOsintCasefileEvidenceStrength(
   return inferEvidenceStrength({
     sourceType: "vault-artifact",
     sourceCount: sourceRefs.length,
-    citationCount: sourceRefs.filter((sourceRef) => sourceRef.sourceType === "citation").length,
+    citationCount: sourceRefs.filter(
+      (sourceRef) => sourceRef.sourceType === "citation",
+    ).length,
   });
 }
 

@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "vercel-labs-skills",
+  "name": "skills CLI",
+  "status": "complete",
+  "source": {
+    "url": "https://github.com/vercel-labs/skills",
+    "version": "main reviewed 2026-07-27",
+    "reviewedAt": "2026-07-27",
+    "license": "MIT",
+    "primaryEvidence": [
+      "https://github.com/vercel-labs/skills",
+      "https://github.com/vercel-labs/skills/blob/main/README.md",
+      "https://github.com/vercel-labs/skills/blob/main/LICENSE"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "multi-source-skill-discovery",
+      "title": "Discover skills from GitHub, GitLab, git URLs, and local paths",
+      "sourceEvidence": "README source formats, list, and find commands",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/review-external-agent-skill/SKILL.md"
+      ],
+      "adaptationNotes": "Nexus normalizes and reviews sources before any distribution action."
+    },
+    {
+      "id": "cross-host-skill-translation",
+      "title": "Portable skill format across Codex, Claude, Cursor, and other hosts",
+      "sourceEvidence": "README supported-agent and Agent Skills format sections",
+      "disposition": "adapted",
+      "proof": [
+        "docs/ideas/skills/review-external-agent-skill/SKILL.md"
+      ]
+    },
+    {
+      "id": "project-and-global-install",
+      "title": "Copy or symlink skills into project and global agent directories",
+      "sourceEvidence": "README add, scope, and installation-method sections",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Source review does not authorize filesystem mutation across agent hosts; a reviewed install remains a separate operator action."
+    },
+    {
+      "id": "update-and-remove",
+      "title": "Bulk update and removal of installed skills",
+      "sourceEvidence": "README update and remove commands",
+      "disposition": "excluded",
+      "conflict": "security",
+      "reason": "Bulk mutation can replace or delete project/global instructions and must not run implicitly."
+    },
+    {
+      "id": "temporary-agent-launch",
+      "title": "Materialize a skill temporarily and launch another coding agent",
+      "sourceEvidence": "README skills use command",
+      "disposition": "excluded",
+      "conflict": "product_purpose",
+      "reason": "Nexus skill review does not grant automatic process or agent launch authority."
+    }
+  ]
+}

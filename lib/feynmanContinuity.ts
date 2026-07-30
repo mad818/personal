@@ -4,6 +4,7 @@ import type {
   FeynmanResearchResult,
   FeynmanWorkflowId,
 } from "./feynmanResearch.ts";
+import { trimRepeatedEdgeCharacter } from "./security/textSafety.ts";
 
 export type FeynmanContinuityStatus = "running" | "complete" | "degraded";
 export type FeynmanNotebookStage = "workflow" | FeynmanAgentStage;
@@ -52,14 +53,11 @@ const SAFE_SESSION_ID_RE =
   /^\d{8}T\d{6}-[a-z0-9](?:[a-z0-9-]{0,86}[a-z0-9])?-[a-f0-9]{8}$/;
 
 function slugify(value: string, max = 48) {
-  return (
-    value
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, max)
-      .replace(/-+$/g, "") || "research"
-  );
+  const normalized = trimRepeatedEdgeCharacter(
+    value.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    "-",
+  ).slice(0, max);
+  return trimRepeatedEdgeCharacter(normalized, "-") || "research";
 }
 
 function utcCompact(now: number) {
@@ -75,7 +73,10 @@ export function createFeynmanSessionId(
   now = Date.now(),
   nonce: string = randomUUID(),
 ) {
-  const suffix = nonce.replace(/[^a-f0-9]/gi, "").toLowerCase().slice(0, 8);
+  const suffix = nonce
+    .replace(/[^a-f0-9]/gi, "")
+    .toLowerCase()
+    .slice(0, 8);
   return `${utcCompact(now)}-${slugify(workflow, 18)}-${slugify(topic)}-${suffix.padEnd(8, "0")}`;
 }
 
@@ -101,7 +102,12 @@ export function isFeynmanContinuityArtifactKind(
 
 function normalizedTokens(value: string) {
   return Array.from(
-    new Set(value.toLowerCase().split(/[^a-z0-9]+/).filter((token) => token.length > 1)),
+    new Set(
+      value
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter((token) => token.length > 1),
+    ),
   );
 }
 
@@ -148,7 +154,10 @@ export function rankFeynmanSessions(
     .map((entry) => entry.session);
 }
 
-function artifactUrl(sessionId: string, artifact: FeynmanContinuityArtifactKind) {
+function artifactUrl(
+  sessionId: string,
+  artifact: FeynmanContinuityArtifactKind,
+) {
   return `/api/feynman/artifacts?sessionId=${encodeURIComponent(sessionId)}&artifact=${artifact}`;
 }
 
@@ -277,9 +286,15 @@ export function buildFeynmanPdf(title: string, report: string) {
       pageId,
       `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${fontObjectId} 0 R >> >> /Contents ${contentId} 0 R >>`,
     );
-    objects.set(contentId, `<< /Length ${Buffer.byteLength(stream, "ascii")} >>\nstream\n${stream}\nendstream`);
+    objects.set(
+      contentId,
+      `<< /Length ${Buffer.byteLength(stream, "ascii")} >>\nstream\n${stream}\nendstream`,
+    );
   });
-  objects.set(fontObjectId, "<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>");
+  objects.set(
+    fontObjectId,
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>",
+  );
 
   let output = "%PDF-1.4\n";
   const offsets = [0];

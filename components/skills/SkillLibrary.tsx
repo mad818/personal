@@ -576,6 +576,7 @@ function RouteTaskSearch({
       </div>
       <div style={{ position: "relative" }}>
         <input
+          aria-label="Describe task to route to skills"
           value={query}
           onChange={(e) => handleChange(e.target.value)}
           placeholder="Describe a task to find matching skills…"
@@ -602,6 +603,7 @@ function RouteTaskSearch({
         {query && (
           <button
             onClick={handleClear}
+            aria-label="Clear skill search"
             style={{
               position: "absolute",
               right: "8px",

@@ -12,10 +12,11 @@ import {
   type GovernanceContinuationMode,
   type GovernanceProfile,
 } from "@/lib/governanceCatalog";
-import {
-  normalizeCanonicalRoutePath,
-} from "@/lib/assistantCanonicalRegistry";
-import type { HQAssistantIntent, HQAnswerStyle } from "@/components/home/office/types";
+import { normalizeCanonicalRoutePath } from "@/lib/assistantCanonicalRegistry";
+import type {
+  HQAssistantIntent,
+  HQAnswerStyle,
+} from "@/components/home/office/types";
 
 export {
   CANONICAL_ROUTE_ALIASES,
@@ -89,7 +90,8 @@ const ASSISTANT_CAPABILITY_SEEDS: AssistantCapabilitySeed[] = [
   {
     id: "conversation-general",
     title: "General conversation",
-    summary: "Answer directly, stay natural, and avoid dragging in internal scaffolding unless it clearly helps.",
+    summary:
+      "Answer directly, stay natural, and avoid dragging in internal scaffolding unless it clearly helps.",
     intents: ["conversation", "memory_recall"],
     answerStyles: ["conversational"],
     route: "/hq",
@@ -102,7 +104,8 @@ const ASSISTANT_CAPABILITY_SEEDS: AssistantCapabilitySeed[] = [
   {
     id: "guided-learning",
     title: "Guided learning",
-    summary: "Use assistant-first tutoring, compact checkpoints, and one strongest study continuation without adding a separate classroom UI.",
+    summary:
+      "Use assistant-first tutoring, compact checkpoints, and one strongest study continuation without adding a separate classroom UI.",
     intents: ["learning", "memory_recall", "product_help"],
     answerStyles: ["learning", "conversational", "product_help"],
     route: "/skills",
@@ -125,9 +128,39 @@ const ASSISTANT_CAPABILITY_SEEDS: AssistantCapabilitySeed[] = [
     ],
   },
   {
+    id: "prompt-optimization",
+    title: "LYRA prompt optimization",
+    summary:
+      "Transform a rough request in the session-only Prompt Forge without saving or automatically executing the result.",
+    intents: [
+      "conversation",
+      "product_help",
+      "workspace_action",
+      "repo_work",
+      "workflow",
+    ],
+    answerStyles: ["conversational", "product_help", "repo_work", "workflow"],
+    route: "/skills",
+    defaultExactHref: "/skills?view=prompts&focus=skills-prompt-forge",
+    surfaceId: "skills",
+    risk: "low",
+    keywords: [
+      "lyra",
+      "prompt optimizer",
+      "prompt optimization",
+      "optimize prompt",
+      "optimize this prompt",
+      "improve prompt",
+      "improve my prompt",
+      "rewrite prompt",
+      "prompt forge",
+    ],
+  },
+  {
     id: "memory-palace",
     title: "Memory palace",
-    summary: "Use local-first mined memory compartments and durable artifacts quietly when prior work should shape the answer.",
+    summary:
+      "Use local-first mined memory compartments and durable artifacts quietly when prior work should shape the answer.",
     intents: ["memory_recall", "archive_continuity", "learning"],
     answerStyles: ["conversational", "learning", "workflow"],
     route: "/vault",
@@ -152,7 +185,8 @@ const ASSISTANT_CAPABILITY_SEEDS: AssistantCapabilitySeed[] = [
   {
     id: "product-navigation",
     title: "Product guidance",
-    summary: "Explain Nexus routes, panels, and next steps without forcing the user to browse Resources manually.",
+    summary:
+      "Explain Nexus routes, panels, and next steps without forcing the user to browse Resources manually.",
     intents: ["product_help", "workspace_action"],
     answerStyles: ["product_help", "workflow"],
     route: "/hq",
@@ -178,7 +212,8 @@ const ASSISTANT_CAPABILITY_SEEDS: AssistantCapabilitySeed[] = [
   {
     id: "repo-engineering",
     title: "Repo engineering",
-    summary: "Attach the safest engineering context: blast radius, system ownership, read-first files, and spec/playbook anchors.",
+    summary:
+      "Attach the safest engineering context: blast radius, system ownership, read-first files, and spec/playbook anchors.",
     intents: ["repo_work", "research"],
     answerStyles: ["repo_work", "workflow"],
     route: "/hq",
@@ -203,12 +238,20 @@ const ASSISTANT_CAPABILITY_SEEDS: AssistantCapabilitySeed[] = [
       "typescript",
       "next.js",
     ],
-    filePathHints: ["app/", "components/", "lib/", "store/", "hooks/", "tests/"],
+    filePathHints: [
+      "app/",
+      "components/",
+      "lib/",
+      "store/",
+      "hooks/",
+      "tests/",
+    ],
   },
   {
     id: "live-markets",
     title: "Live markets",
-    summary: "Use verified ALPHA-first market context and treat freshness as non-optional.",
+    summary:
+      "Use verified ALPHA-first market context and treat freshness as non-optional.",
     intents: ["live_current", "research"],
     answerStyles: ["live_current"],
     route: "/alpha",
@@ -235,7 +278,8 @@ const ASSISTANT_CAPABILITY_SEEDS: AssistantCapabilitySeed[] = [
   {
     id: "live-news",
     title: "Live external context",
-    summary: "Use verified INTEL-first news and world context for latest/current questions.",
+    summary:
+      "Use verified INTEL-first news and world context for latest/current questions.",
     intents: ["live_current", "research"],
     answerStyles: ["live_current", "workflow"],
     route: "/intel",
@@ -261,7 +305,8 @@ const ASSISTANT_CAPABILITY_SEEDS: AssistantCapabilitySeed[] = [
   {
     id: "live-cyber",
     title: "Live cyber posture",
-    summary: "Use verified CYBER-first triage and CVE posture for current threat or vulnerability questions.",
+    summary:
+      "Use verified CYBER-first triage and CVE posture for current threat or vulnerability questions.",
     intents: ["live_current", "research"],
     answerStyles: ["live_current", "workflow"],
     route: "/cyber",
@@ -288,7 +333,8 @@ const ASSISTANT_CAPABILITY_SEEDS: AssistantCapabilitySeed[] = [
   {
     id: "archive-continuity",
     title: "Archive continuity",
-    summary: "Use VAULT continuity and memory posture quietly when the user is trying to save, recall, or repair durable work.",
+    summary:
+      "Use VAULT continuity and memory posture quietly when the user is trying to save, recall, or repair durable work.",
     intents: ["archive_continuity", "memory_recall"],
     answerStyles: ["conversational", "workflow", "repo_work"],
     route: "/vault",
@@ -313,7 +359,8 @@ const ASSISTANT_CAPABILITY_SEEDS: AssistantCapabilitySeed[] = [
   {
     id: "reverse-engineering",
     title: "Reverse engineering",
-    summary: "Treat RECON triage, RE briefs, and maintenance as one continuous loop instead of one-off panel work.",
+    summary:
+      "Treat RECON triage, RE briefs, and maintenance as one continuous loop instead of one-off panel work.",
     intents: ["research", "archive_continuity", "workspace_action"],
     answerStyles: ["repo_work", "workflow", "conversational"],
     route: "/recon",
@@ -338,7 +385,8 @@ const ASSISTANT_CAPABILITY_SEEDS: AssistantCapabilitySeed[] = [
   {
     id: "second-brain",
     title: "Second brain",
-    summary: "Keep Obsidian export, heartbeat, and note-shaping behavior in the background until the user needs it.",
+    summary:
+      "Keep Obsidian export, heartbeat, and note-shaping behavior in the background until the user needs it.",
     intents: ["archive_continuity", "product_help", "workspace_action"],
     answerStyles: ["conversational", "product_help", "workflow"],
     route: "/vault",
@@ -362,7 +410,8 @@ const ASSISTANT_CAPABILITY_SEEDS: AssistantCapabilitySeed[] = [
   {
     id: "scheduler-governance",
     title: "Scheduler governance",
-    summary: "Keep automation and recurring-work posture behind the assistant instead of forcing a separate operations mode.",
+    summary:
+      "Keep automation and recurring-work posture behind the assistant instead of forcing a separate operations mode.",
     intents: ["workflow", "workspace_action", "product_help"],
     answerStyles: ["workflow", "product_help"],
     route: "/hq",
@@ -387,7 +436,9 @@ function normalizePrompt(input: string) {
 }
 
 function countKeywordHits(input: string, keywords: readonly string[]) {
-  const matched = keywords.filter((keyword) => input.includes(keyword.toLowerCase()));
+  const matched = keywords.filter((keyword) =>
+    input.includes(keyword.toLowerCase()),
+  );
   return {
     matched,
     score: matched.length * 9,
@@ -399,13 +450,17 @@ export function resolveAssistantCapabilityId(
 ): AssistantCapabilityId | null {
   if (!value) return null;
   const normalized = CAPABILITY_ALIASES[value] ?? value;
-  return ASSISTANT_CAPABILITIES.some((capability) => capability.id === normalized)
+  return ASSISTANT_CAPABILITIES.some(
+    (capability) => capability.id === normalized,
+  )
     ? (normalized as AssistantCapabilityId)
     : null;
 }
 
 export function getAssistantCapability(id: AssistantCapabilityId) {
-  const match = ASSISTANT_CAPABILITIES.find((capability) => capability.id === id);
+  const match = ASSISTANT_CAPABILITIES.find(
+    (capability) => capability.id === id,
+  );
   return match ?? ASSISTANT_CAPABILITIES[0];
 }
 
@@ -415,7 +470,7 @@ export function detectAssistantCapability(opts: {
   answerStyle: HQAnswerStyle;
   routeHint?: string | null;
   filePath?: string | null;
-}) : AssistantCapabilityMatch {
+}): AssistantCapabilityMatch {
   const normalizedInput = normalizePrompt(opts.input);
   const routePath = normalizeRoutePath(opts.routeHint);
 
@@ -425,17 +480,21 @@ export function detectAssistantCapability(opts: {
     let score = 0;
     if (capability.intents.includes(opts.intent)) score += 34;
     if (capability.answerStyles.includes(opts.answerStyle)) score += 20;
-    if (routePath && normalizeRoutePath(capability.route) === routePath) score += 18;
+    if (routePath && normalizeRoutePath(capability.route) === routePath)
+      score += 18;
     if (
       opts.filePath &&
-      capability.filePathHints?.some((hint) => opts.filePath?.replace(/\\/g, "/").startsWith(hint))
+      capability.filePathHints?.some((hint) =>
+        opts.filePath?.replace(/\\/g, "/").startsWith(hint),
+      )
     ) {
       score += 18;
     }
     const keywordHits = countKeywordHits(normalizedInput, capability.keywords);
     score += keywordHits.score;
 
-    if (opts.answerStyle === "live_current" && capability.liveDomain) score += 10;
+    if (opts.answerStyle === "live_current" && capability.liveDomain)
+      score += 10;
 
     if (!best || score > best.confidence) {
       best = {
@@ -451,14 +510,16 @@ export function detectAssistantCapability(opts: {
     }
   }
 
-  return best ?? {
-    capability: ASSISTANT_CAPABILITIES[0],
-    governance: ASSISTANT_CAPABILITIES[0].governance,
-    continuationAutoStageSafe: isGovernanceAutoStageSafe(
-      ASSISTANT_CAPABILITIES[0].governance,
-    ),
-    nextMoveMode: ASSISTANT_CAPABILITIES[0].governance.continuationMode,
-    confidence: 0,
-    matchedKeywords: [],
-  };
+  return (
+    best ?? {
+      capability: ASSISTANT_CAPABILITIES[0],
+      governance: ASSISTANT_CAPABILITIES[0].governance,
+      continuationAutoStageSafe: isGovernanceAutoStageSafe(
+        ASSISTANT_CAPABILITIES[0].governance,
+      ),
+      nextMoveMode: ASSISTANT_CAPABILITIES[0].governance.continuationMode,
+      confidence: 0,
+      matchedKeywords: [],
+    }
+  );
 }

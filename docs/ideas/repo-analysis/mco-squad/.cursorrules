@@ -1,0 +1,5 @@
+Use this folder only as scoped reference material for mco-org/squad.
+Do not install or copy the upstream Rust CLI, SQLite database, slash commands, or terminal launcher.
+Adapt useful orchestration contracts into the existing Nexus TypeScript runtime.
+MAX remains the sole operator-facing orchestrator; workers are bounded and advisory.
+Keep docs/ideas/source-parity/mco-squad.json aligned with implementation proof.

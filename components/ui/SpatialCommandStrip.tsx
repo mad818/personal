@@ -65,10 +65,15 @@ export default function SpatialCommandStrip({
       aria-label={`${surface} spatial command strip`}
     >
       <div className="nexus-spatial-strip__meta">
-        <span className="nexus-spatial-strip__eyebrow">{definition.kicker}</span>
+        <span className="nexus-spatial-strip__eyebrow">
+          {definition.kicker}
+        </span>
         <span className="nexus-spatial-strip__note">{definition.note}</span>
       </div>
-      <div className="nexus-spatial-strip__anchors" aria-label={`${surface} anchors`}>
+      <div
+        className="nexus-spatial-strip__anchors"
+        aria-label={`${surface} anchors`}
+      >
         {definition.anchors.map((anchor) => {
           const isCurrent = currentAnchor?.id === anchor.id;
           const state =
@@ -93,11 +98,17 @@ export default function SpatialCommandStrip({
               onFocus={() => setPreviewId(anchor.id)}
               onBlur={() => setPreviewId(null)}
               onClick={() =>
-                setFocusedId((current) => (current === anchor.id ? null : anchor.id))
+                setFocusedId((current) =>
+                  current === anchor.id ? null : anchor.id,
+                )
               }
             >
-              <span className="nexus-spatial-strip__anchorLabel">{anchor.label}</span>
-              <span className="nexus-spatial-strip__anchorStatus">{anchor.status}</span>
+              <span className="nexus-spatial-strip__anchorLabel">
+                {anchor.label}
+              </span>
+              <span className="nexus-spatial-strip__anchorStatus">
+                {anchor.status}
+              </span>
             </button>
           );
         })}
@@ -116,7 +127,9 @@ function SpatialCommandDock({ anchor }: { anchor: SpatialAnchorDefinition }) {
       </div>
       <div className="nexus-spatial-strip__dockSignal">
         <span className="nexus-spatial-strip__dockLabel">Next move</span>
-        <span className="nexus-spatial-strip__dockValue">{anchor.nextAction}</span>
+        <span className="nexus-spatial-strip__dockValue">
+          {anchor.nextAction}
+        </span>
       </div>
       <details className="nexus-spatial-strip__dockDisclosure">
         <summary>Why this lane</summary>

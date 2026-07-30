@@ -497,7 +497,10 @@ export function rankFeynmanPapers(
 }
 
 function escapeTableCell(value: string) {
-  return value.replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\|/g, "\\|")
+    .replace(/\r?\n/g, " ");
 }
 
 function formatCandidateLink(candidate: FeynmanPaperRankCandidate) {

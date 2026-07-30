@@ -235,6 +235,32 @@ function providerAllowedByPolicy(providerName: string, localOnlyMode: boolean) {
   return FREE_DEFAULT_PROVIDERS.has(providerName);
 }
 
+function resolveProviderRequestUrl(
+  providerName: string,
+  provider: Provider,
+  optionsUrl: string | undefined,
+  azureChatCompletionsUrl: string | undefined,
+) {
+  if (providerName === "ollama") {
+    return new URL(normalizeOllamaEndpoint(optionsUrl ?? provider.url));
+  }
+  if (providerName === "turboquant") {
+    return validateLocalAccelerationEndpoint(
+      optionsUrl ?? provider.url,
+      readLocalAccelerationConfig().allowTailnet,
+    );
+  }
+  if (providerName === "azure") {
+    if (!azureChatCompletionsUrl) {
+      throw new Error("Azure OpenAI endpoint is not configured.");
+    }
+    return new URL(azureChatCompletionsUrl);
+  }
+  // Cloud providers use only their fixed server-side registry URL. A request
+  // body can never override these destinations.
+  return new URL(provider.url);
+}
+
 // ── Call a single provider ────────────────────────────────────────────────────
 async function callProvider(
   providerName: string,
@@ -296,19 +322,17 @@ async function callProvider(
   }
 
   try {
-    const requestUrl =
-      providerName === "turboquant"
-        ? validateLocalAccelerationEndpoint(
-            options?.url ?? p.url,
-            readLocalAccelerationConfig().allowTailnet,
-          ).toString()
-        : providerName === "azure"
-          ? (azureConfig?.chatCompletionsUrl ?? "")
-          : (options?.url ?? p.url);
+    const requestUrl = resolveProviderRequestUrl(
+      providerName,
+      p,
+      options?.url,
+      azureConfig?.chatCompletionsUrl,
+    );
     const r = await fetch(requestUrl, {
       method: "POST",
       headers: p.headers(key),
       body: JSON.stringify(body),
+      redirect: "error",
       // @ts-expect-error — Node 18 fetch supports duplex for streaming
       duplex: "half",
     });

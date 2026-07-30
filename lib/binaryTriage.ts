@@ -1,3 +1,5 @@
+import { trimRepeatedEdgeCharacter } from "./security/textSafety.ts";
+
 export interface BinaryFormatMatch {
   id:
     | "pe"
@@ -97,11 +99,10 @@ export interface BinaryTriageBriefSource {
 }
 
 function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 48);
+  return trimRepeatedEdgeCharacter(
+    value.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    "-",
+  ).slice(0, 48);
 }
 
 const MACH_O_MAGICS = new Set([

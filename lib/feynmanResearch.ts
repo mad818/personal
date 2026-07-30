@@ -639,6 +639,13 @@ function fallbackReview(
   return findings;
 }
 
+function escapeMarkdownTableCell(value: string) {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\|/g, "\\|")
+    .replace(/\r?\n/g, " ");
+}
+
 function formatEvidenceLedger(sources: FeynmanSource[]) {
   if (sources.length === 0) return "- No direct source URLs were available.";
   return [
@@ -646,7 +653,7 @@ function formatEvidenceLedger(sources: FeynmanSource[]) {
     "|---|---|---|---|---|---|",
     ...sources.map(
       (source) =>
-        `| ${source.id} | [${source.title}](${source.url}) | ${source.kind} | ${source.accepted ? "yes" : "no"} | ${source.confidence} | ${source.keyClaim.replace(/\|/g, "\\|")} |`,
+        `| ${source.id} | [${source.title}](${source.url}) | ${source.kind} | ${source.accepted ? "yes" : "no"} | ${source.confidence} | ${escapeMarkdownTableCell(source.keyClaim)} |`,
     ),
   ].join("\n");
 }

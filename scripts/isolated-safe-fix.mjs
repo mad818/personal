@@ -375,7 +375,7 @@ function runSafeGit(repoRoot, args, options = {}) {
 function runNpmScript(repoRoot, scriptName) {
   if (process.platform === "win32") {
     return runProcess(
-      process.env.ComSpec || "cmd.exe",
+      "cmd.exe",
       ["/d", "/s", "/c", `npm.cmd run ${scriptName}`],
       { cwd: repoRoot },
     );

@@ -21,6 +21,10 @@ const jsonResponse = (body, status = 200) =>
     headers: { "Content-Type": "application/json" },
   });
 
+function readRequestUrl(input) {
+  return new URL(String(input));
+}
+
 const fxPayload = {
   rates: {
     EUR: 0.91,
@@ -106,10 +110,11 @@ const partialEnergy = await executeCommodityRates({
   env: { FRED_KEY: fredKey },
   previousMetalPrices: {},
   fetchImpl: async (input) => {
-    const url = String(input);
+    const url = readRequestUrl(input);
     partialCalls.push(url);
-    if (url.includes("metals.live")) return jsonResponse(metalsPayload);
-    if (url.includes("DCOILWTICO")) return jsonResponse(fredPayload);
+    if (url.hostname === "api.metals.live") return jsonResponse(metalsPayload);
+    if (url.searchParams.get("series_id") === "DCOILWTICO")
+      return jsonResponse(fredPayload);
     return new Response("unavailable", { status: 503 });
   },
 });
@@ -121,7 +126,7 @@ assert.deepEqual(partialEnergy.body.sources, {
 });
 assert.equal(partialEnergy.body.quotes.length, 5);
 assert.equal(
-  partialCalls.filter((url) => url.includes("api.stlouisfed.org")).length,
+  partialCalls.filter((url) => url.hostname === "api.stlouisfed.org").length,
   3,
 );
 assert.equal(JSON.stringify(partialEnergy).includes(fredKey), false);
@@ -130,7 +135,7 @@ const energyOnly = await executeCommodityRates({
   env: { FRED_KEY: fredKey },
   previousMetalPrices: {},
   fetchImpl: async (input) =>
-    String(input).includes("metals.live")
+    readRequestUrl(input).hostname === "api.metals.live"
       ? new Response("unavailable", { status: 503 })
       : jsonResponse(fredPayload),
 });

@@ -64,6 +64,13 @@ function readNonce(policy) {
   return match[0].slice("'nonce-".length, -1);
 }
 
+function policyTokens(policy) {
+  return policy
+    .split(";")
+    .flatMap((directive) => directive.trim().split(/\s+/))
+    .filter(Boolean);
+}
+
 function assertDefaultPolicy(policy) {
   for (const host of [
     "https://s3.tradingview.com",
@@ -71,15 +78,15 @@ function assertDefaultPolicy(policy) {
     "https://s.tradingview.com",
     "https://*.tradingview-widget.com",
   ]) {
-    assert.equal(policy.includes(host), false, host);
+    assert.equal(policyTokens(policy).includes(host), false, host);
   }
   assert.equal(policy.includes("sandbox "), false);
   assert.equal(policy.includes("frame-ancestors"), false);
 }
 
 function assertTradingViewPolicy(policy) {
-  assert.ok(policy.includes("https://s3.tradingview.com"));
-  assert.ok(policy.includes("https://*.tradingview-widget.com"));
+  assert.ok(policyTokens(policy).includes("https://s3.tradingview.com"));
+  assert.ok(policyTokens(policy).includes("https://*.tradingview-widget.com"));
   assert.ok(
     policy.includes(
       "sandbox allow-scripts allow-popups allow-popups-to-escape-sandbox",

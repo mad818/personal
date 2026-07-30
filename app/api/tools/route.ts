@@ -74,8 +74,13 @@ import {
 } from "@/lib/repoAssimilation";
 import {
   assertSafeExternalUrl,
+  fetchSafePublicUrl,
   readResponseTextWithLimit,
 } from "@/lib/security/networkGuards";
+import {
+  htmlToPlainText,
+  splitOnStandaloneVs,
+} from "@/lib/security/textSafety";
 import { isSensitiveLocalDataPath } from "@/lib/security/localDataPolicy";
 import {
   applyRateLimitHeaders,
@@ -194,15 +199,7 @@ async function webSearch(query: string): Promise<string> {
   const trimmedQuery = query.trim();
 
   function stripHtml(value: string) {
-    return value
-      .replace(/<[^>]+>/g, " ")
-      .replace(/&amp;/g, "&")
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/\s+/g, " ")
-      .trim();
+    return htmlToPlainText(value).replace(/\s+/g, " ").trim();
   }
 
   function decodeDuckDuckGoHref(value: string) {
@@ -243,15 +240,15 @@ async function webSearch(query: string): Promise<string> {
 
     for (const candidate of buildOpenWebQueries(value)) {
       try {
-        const response = await fetch(
-          `https://html.duckduckgo.com/html/?q=${encodeURIComponent(candidate)}`,
-          {
-            headers: {
-              "User-Agent": `Mozilla/5.0 (compatible; ${TOOL_USER_AGENT})`,
-            },
-            signal: AbortSignal.timeout(8000),
+        const searchUrl = new URL("https://html.duckduckgo.com/html/");
+        searchUrl.search = new URLSearchParams({ q: candidate }).toString();
+        const response = await fetch(searchUrl, {
+          headers: {
+            "User-Agent": `Mozilla/5.0 (compatible; ${TOOL_USER_AGENT})`,
           },
-        );
+          signal: AbortSignal.timeout(8000),
+          redirect: "error",
+        });
         if (!response.ok) continue;
         const html = await response.text();
         const matches = Array.from(
@@ -289,8 +286,12 @@ async function webSearch(query: string): Promise<string> {
   // ── Brave Search (preferred, much better quality) ──────────────────────────
   if (braveKey) {
     try {
-      const q = encodeURIComponent(trimmedQuery);
-      const url = `https://api.search.brave.com/res/v1/web/search?q=${q}&count=8&text_decorations=0`;
+      const url = new URL("https://api.search.brave.com/res/v1/web/search");
+      url.search = new URLSearchParams({
+        q: trimmedQuery,
+        count: "8",
+        text_decorations: "0",
+      }).toString();
       const r = await fetch(url, {
         headers: {
           Accept: "application/json",
@@ -298,6 +299,7 @@ async function webSearch(query: string): Promise<string> {
           "X-Subscription-Token": braveKey,
         },
         signal: AbortSignal.timeout(8000),
+        redirect: "error",
       });
       const d = await r.json();
       const results = (d.web?.results ?? []) as {
@@ -325,9 +327,17 @@ async function webSearch(query: string): Promise<string> {
 
   // ── GDELT fallback (no key required) ───────────────────────────────────────
   try {
-    const q = encodeURIComponent(trimmedQuery);
-    const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${q}&mode=artlist&maxrecords=10&format=json`;
-    const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const url = new URL("https://api.gdeltproject.org/api/v2/doc/doc");
+    url.search = new URLSearchParams({
+      query: trimmedQuery,
+      mode: "artlist",
+      maxrecords: "10",
+      format: "json",
+    }).toString();
+    const r = await fetch(url, {
+      signal: AbortSignal.timeout(8000),
+      redirect: "error",
+    });
     const d = await r.json();
     const articles = (d.articles ?? []) as {
       title: string;
@@ -351,18 +361,14 @@ async function webSearch(query: string): Promise<string> {
 async function fetchUrl(url: string): Promise<string> {
   try {
     const safeUrl = assertSafeExternalUrl(url);
-    const r = await fetch(safeUrl, {
+    const r = await fetchSafePublicUrl(safeUrl.toString(), {
       headers: { "User-Agent": `Mozilla/5.0 (compatible; ${TOOL_USER_AGENT})` },
       signal: AbortSignal.timeout(10000),
     });
     if (!r.ok) return `Could not fetch that URL (HTTP ${r.status}).`;
     const html = await readResponseTextWithLimit(r, 24_000);
-    // Strip tags, collapse whitespace
-    const text = html
-      .replace(/<script[\s\S]*?<\/script>/gi, "")
-      .replace(/<style[\s\S]*?<\/style>/gi, "")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s{2,}/g, " ")
+    const text = htmlToPlainText(html)
+      .replace(/\s+/g, " ")
       .trim()
       .slice(0, 4000);
     return text || "Page returned no readable text.";
@@ -2021,10 +2027,7 @@ export async function POST(req: NextRequest) {
                 (value): value is string => typeof value === "string",
               )
             : typeof rawRepoRefs === "string"
-              ? rawRepoRefs
-                  .split(/\s+\bvs\b\s+/i)
-                  .map((value) => value.trim())
-                  .filter(Boolean)
+              ? splitOnStandaloneVs(rawRepoRefs)
               : [];
           const toolResult = await compareRepos(
             parsedRepoRefs,

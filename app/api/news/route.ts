@@ -2,6 +2,7 @@
 // News aggregation API: multi-source news with sentiment and bias filtering.
 
 import { NextResponse } from "next/server";
+import { decodeBasicHtmlEntities } from "@/lib/security/textSafety";
 // Pulls from crypto, tech, finance, and world news for broad OSINT coverage.
 
 interface NewsItem {
@@ -20,14 +21,9 @@ interface NewsFetchResult {
 
 /** Strip CDATA wrappers and decode basic HTML entities */
 function clean(s: string): string {
-  return s
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .trim();
+  return decodeBasicHtmlEntities(
+    s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1"),
+  ).trim();
 }
 
 async function fetchRSS(

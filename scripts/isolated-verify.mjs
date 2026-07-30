@@ -167,11 +167,9 @@ function runSafeGit(repoRoot, args, options = {}) {
 
 function runCanonicalVerify(worktreePath) {
   if (process.platform === "win32") {
-    return runProcess(
-      process.env.ComSpec || "cmd.exe",
-      ["/d", "/s", "/c", "npm.cmd run verify"],
-      { cwd: worktreePath },
-    );
+    return runProcess("cmd.exe", ["/d", "/s", "/c", "npm.cmd run verify"], {
+      cwd: worktreePath,
+    });
   }
   return runProcess("npm", ["run", "verify"], { cwd: worktreePath });
 }

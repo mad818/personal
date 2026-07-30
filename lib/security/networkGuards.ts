@@ -110,6 +110,21 @@ export function assertSafeExternalUrl(rawUrl: string) {
   });
 }
 
+export async function fetchSafePublicUrl(
+  rawUrl: string,
+  init: RequestInit = {},
+  opts: SafePublicUrlOptions = {},
+) {
+  const target = assertSafePublicUrl(rawUrl, opts);
+  await assertPublicResolvableHost(target.hostname);
+  return fetch(target, {
+    ...init,
+    // Redirects are deliberately exposed to the caller instead of followed;
+    // following them would bypass the validated destination boundary.
+    redirect: "manual",
+  });
+}
+
 export async function readResponseTextWithLimit(
   response: Response,
   maxChars = 16000,
@@ -117,3 +132,4 @@ export async function readResponseTextWithLimit(
   const text = await response.text();
   return text.slice(0, maxChars);
 }
+import { assertPublicResolvableHost } from "@/lib/security/privateNetwork";

@@ -4,6 +4,7 @@ import type {
   FeynmanResearchResult,
   FeynmanWorkflowId,
 } from "./feynmanResearch.ts";
+import { trimRepeatedEdgeCharacter } from "./security/textSafety.ts";
 
 export type FeynmanContinuityStatus = "running" | "complete" | "degraded";
 export type FeynmanNotebookStage = "workflow" | FeynmanAgentStage;
@@ -52,14 +53,11 @@ const SAFE_SESSION_ID_RE =
   /^\d{8}T\d{6}-[a-z0-9](?:[a-z0-9-]{0,86}[a-z0-9])?-[a-f0-9]{8}$/;
 
 function slugify(value: string, max = 48) {
-  return (
-    value
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, max)
-      .replace(/-+$/g, "") || "research"
-  );
+  const normalized = trimRepeatedEdgeCharacter(
+    value.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    "-",
+  ).slice(0, max);
+  return trimRepeatedEdgeCharacter(normalized, "-") || "research";
 }
 
 function utcCompact(now: number) {

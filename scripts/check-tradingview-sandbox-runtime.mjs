@@ -20,6 +20,13 @@ function readDirective(policy, name) {
   return directive.split(/\s+/);
 }
 
+function policyTokens(policy) {
+  return policy
+    .split(";")
+    .flatMap((directive) => directive.trim().split(/\s+/))
+    .filter(Boolean);
+}
+
 assert.deepEqual(TRADING_VIEW_EMBED_KINDS, ["ticker", "chart"]);
 assert.equal(parseTradingViewEmbedKind("ticker"), "ticker");
 assert.equal(parseTradingViewEmbedKind("chart"), "chart");
@@ -68,7 +75,7 @@ for (const host of [
   "https://s.tradingview.com",
   "https://*.tradingview-widget.com",
 ]) {
-  assert.equal(defaultPolicy.includes(host), false, host);
+  assert.equal(policyTokens(defaultPolicy).includes(host), false, host);
 }
 assert.equal(defaultPolicy.includes("sandbox "), false);
 assert.equal(defaultPolicy.includes("frame-ancestors"), false);
@@ -110,7 +117,10 @@ const developmentPolicy = buildContentSecurityPolicy(nonce, {
 assert.ok(
   readDirective(developmentPolicy, "script-src").includes("'unsafe-eval'"),
 );
-assert.equal(developmentPolicy.includes("s3.tradingview.com"), false);
+assert.equal(
+  policyTokens(developmentPolicy).includes("https://s3.tradingview.com"),
+  false,
+);
 
 console.log(
   "ok tradingview-sandbox-runtime (fixed widgets, escaped nonce HTML, default host removal, route-scoped hosts, and opaque sandbox policy)",

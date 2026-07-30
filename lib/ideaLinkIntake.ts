@@ -20,31 +20,44 @@ export interface IdeaLinkIntakeQueue {
 }
 
 const URL_RE = /https?:\/\/[^\s<>"')\]]+/gi;
+const CODE_HOSTS = new Set(["github.com", "www.github.com", "gitlab.com"]);
+const SOCIAL_HOSTS = new Set([
+  "x.com",
+  "www.x.com",
+  "twitter.com",
+  "www.twitter.com",
+]);
 
 export function classifyIdeaLink(url: string): IdeaLinkKind {
-  const lower = url.toLowerCase();
-  if (lower.includes("github.com") || lower.includes("gitlab.com")) {
-    return "github";
-  }
-  if (lower.includes("x.com/") || lower.includes("twitter.com/")) {
-    return "x";
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    if (CODE_HOSTS.has(hostname)) return "github";
+    if (SOCIAL_HOSTS.has(hostname)) return "x";
+  } catch {
+    return "other";
   }
   return "other";
 }
 
 export function slugifyIdeaLinkId(url: string): string {
   const kind = classifyIdeaLink(url);
-  if (kind === "github") {
-    const match = url.match(/github\.com\/([^/\s]+)\/([^/\s#?]+)/i);
-    if (match) {
-      return `${match[1]}-${match[2]}`
+  try {
+    const parsed = new URL(url);
+    const segments = parsed.pathname.split("/").filter(Boolean);
+    if (kind === "github" && segments.length >= 2) {
+      return `${segments[0]}-${segments[1]}`
         .toLowerCase()
         .replace(/[^a-z0-9-]+/g, "-");
     }
-  }
-  if (kind === "x") {
-    const match = url.match(/status\/(\d+)/i);
-    if (match) return `x-${match[1]}`;
+    if (kind === "x") {
+      const statusIndex = segments.findIndex(
+        (segment) => segment.toLowerCase() === "status",
+      );
+      const statusId = statusIndex >= 0 ? segments[statusIndex + 1] : "";
+      if (statusId && /^\d+$/.test(statusId)) return `x-${statusId}`;
+    }
+  } catch {
+    // Fall through to the stable local hash.
   }
   return `link-${hashLinkFallback(url)}`;
 }
@@ -59,9 +72,15 @@ function hashLinkFallback(input: string): string {
 
 export function parseIdeaLinksFromText(text: string): string[] {
   const matches = text.match(URL_RE) ?? [];
-  return [
-    ...new Set(matches.map((url) => url.replace(/[),.;]+$/g, "").trim())),
-  ].filter(Boolean);
+  return [...new Set(matches.map(trimTrailingPunctuation))].filter(Boolean);
+}
+
+function trimTrailingPunctuation(value: string) {
+  let end = value.length;
+  while (end > 0 && [")", ",", ".", ";"].includes(value[end - 1]!)) {
+    end -= 1;
+  }
+  return value.slice(0, end).trim();
 }
 
 export function buildIdeaLinkIntakeItem(url: string): IdeaLinkIntakeItem {

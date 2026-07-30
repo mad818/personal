@@ -5,6 +5,7 @@ import {
   getArticleReasoningSummary,
 } from "@/lib/articleReasoning";
 import { countVaultArchiveBacklinks } from "@/lib/vaultCrossLinker";
+import { trimRepeatedEdgeCharacter } from "@/lib/security/textSafety";
 import type { AgentRunArtifact, Article, ModeBriefing } from "@/store/useStore";
 
 export type MemoryLayer = "raw" | "knowledge" | "output";
@@ -263,16 +264,49 @@ function dedupeTags(tags: string[]) {
   return Array.from(new Set(tags.filter(Boolean)));
 }
 
+const PROTECTED_PATH_SEGMENTS = new Set([
+  ".ssh",
+  "secret",
+  "secrets",
+  "credential",
+  "credentials",
+  "key",
+  "keys",
+  "cert",
+  "certs",
+  "private",
+]);
+
+function containsProtectedPath(value: string) {
+  for (const rawCandidate of value.replaceAll("\\", "/").split(/\s+/)) {
+    const candidate = rawCandidate.toLowerCase();
+    const absoluteUnix = candidate.startsWith("/");
+    const absoluteWindows =
+      candidate.length >= 3 &&
+      /[a-z]/.test(candidate[0]!) &&
+      candidate[1] === ":" &&
+      candidate[2] === "/";
+    if (!absoluteUnix && !absoluteWindows) continue;
+    for (const rawSegment of candidate.split("/")) {
+      const segment = rawSegment.replace(/[^a-z0-9._-]/g, "");
+      if (PROTECTED_PATH_SEGMENTS.has(segment)) return true;
+    }
+  }
+  return false;
+}
+
 function buildMemoryCitationId(
   base: Pick<MemorySpineItem, "id" | "layer" | "kind">,
 ) {
   const layerCode =
     base.layer === "raw" ? "RAW" : base.layer === "knowledge" ? "KNW" : "OUT";
   const kindCode = base.kind.slice(0, 3).toUpperCase();
-  const slug = base.id
-    .replace(/^[^:]+:/, "")
-    .replace(/[^a-z0-9]+/gi, "-")
-    .replace(/^-+|-+$/g, "")
+  const colonIndex = base.id.indexOf(":");
+  const unscopedId = colonIndex >= 0 ? base.id.slice(colonIndex + 1) : base.id;
+  const slug = trimRepeatedEdgeCharacter(
+    unscopedId.replace(/[^a-z0-9]+/gi, "-"),
+    "-",
+  )
     .toUpperCase()
     .slice(-16);
   return `NX-${layerCode}-${kindCode}-${slug || "ITEM"}`;
@@ -288,11 +322,7 @@ function deriveSensitivityTags(combined: string, visibility: MemoryVisibility) {
     ) {
       tags.push("credential-like");
     }
-    if (
-      /(?:[A-Za-z]:\\|\/)(?:[^\\/\s]+[\\/])*(?:\.ssh|secrets?|credentials?|keys?|certs?|private)(?:[\\/]|$)/i.test(
-        combined,
-      )
-    ) {
+    if (containsProtectedPath(combined)) {
       tags.push("protected-path");
     }
   }

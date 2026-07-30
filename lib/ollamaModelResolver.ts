@@ -3,7 +3,10 @@ import {
   TASK_MODELS,
   type AITask,
 } from "@/lib/aiModelRouting";
-import { normalizeOllamaEndpoint } from "@/lib/localInferencePosture";
+import {
+  normalizeOllamaEndpoint,
+  validateOllamaEndpoint,
+} from "@/lib/localInferencePosture";
 
 export interface OllamaRuntimeModel {
   name: string;
@@ -150,10 +153,15 @@ async function fetchOllamaModelList(
   apiKey?: string | null,
 ): Promise<{ reachable: boolean; models: OllamaRuntimeModel[] }> {
   try {
-    const response = await fetch(url, {
+    const target = validateOllamaEndpoint(url);
+    if (target.pathname !== "/api/tags" && target.pathname !== "/api/ps") {
+      return { reachable: false, models: [] };
+    }
+    const response = await fetch(target, {
       method: "GET",
       headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
       signal: AbortSignal.timeout(3_000),
+      redirect: "error",
     });
     if (!response.ok) {
       return { reachable: false, models: [] };

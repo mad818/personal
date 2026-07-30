@@ -8,6 +8,7 @@ import {
   normalizeRepoIntelReference,
   type RepoIntelProfile,
 } from "@/lib/repoIntel";
+import { splitOnStandaloneVs } from "@/lib/security/textSafety";
 import { buildRepoAssimilationSourceRefs } from "@/lib/repoAssimilation";
 
 export const REPO_COMPARE_SECTION_HEADINGS = [
@@ -309,10 +310,7 @@ function parseRawRepoRefs(rawValue: string | string[]) {
   const raw = rawValue.trim();
   if (!raw) return [];
 
-  const versusSplit = raw
-    .split(/\s+\bvs\b\s+/i)
-    .map((value) => value.trim())
-    .filter(Boolean);
+  const versusSplit = splitOnStandaloneVs(raw);
   if (versusSplit.length >= 2) return versusSplit;
 
   const commaSplit = raw

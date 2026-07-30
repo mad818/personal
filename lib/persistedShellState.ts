@@ -46,9 +46,18 @@ const VALID_SCHEDULER_AUDIT_STATUSES = ["all", "ok", "error"] as const;
 const VALID_SCHEDULER_AUDIT_WINDOWS = ["all", "24h", "7d"] as const;
 const SENSITIVE_SETTINGS_KEYS = CLIENT_SENSITIVE_SETTINGS_KEYS;
 
-function buildEnumCheck(values: readonly string[]) {
-  const quoted = values.map((value) => JSON.stringify(value)).join(",");
-  return `function(value){return [${quoted}].indexOf(value) !== -1;}`;
+function serializeScriptValue(value: unknown) {
+  return JSON.stringify(value).replace(
+    /[<>&\u2028\u2029]/g,
+    (character) =>
+      ({
+        "<": "\\u003c",
+        ">": "\\u003e",
+        "&": "\\u0026",
+        "\u2028": "\\u2028",
+        "\u2029": "\\u2029",
+      })[character] ?? character,
+  );
 }
 
 export function buildPersistedShellStateRepairScript() {
@@ -64,47 +73,37 @@ export function buildPersistedShellStateRepairScript() {
         var healed = [];
         var cleared = [];
 
-        var NOTICE_KEY = ${JSON.stringify(PERSISTED_SHELL_STATE_NOTICE_KEY)};
-        var SETTINGS_KEY = ${JSON.stringify(NEXUS_SETTINGS_STORAGE_KEY)};
-        var GRAPH_KEY = ${JSON.stringify(VAULT_GRAPH_FILTERS_STORAGE_KEY)};
-        var AUDIT_FILTERS_KEY = ${JSON.stringify(
+        var NOTICE_KEY = ${serializeScriptValue(PERSISTED_SHELL_STATE_NOTICE_KEY)};
+        var SETTINGS_KEY = ${serializeScriptValue(NEXUS_SETTINGS_STORAGE_KEY)};
+        var GRAPH_KEY = ${serializeScriptValue(VAULT_GRAPH_FILTERS_STORAGE_KEY)};
+        var AUDIT_FILTERS_KEY = ${serializeScriptValue(
           SCHEDULER_AUDIT_FILTER_STORAGE_KEY,
         )};
-        var AUDIT_VIEWS_KEY = ${JSON.stringify(
+        var AUDIT_VIEWS_KEY = ${serializeScriptValue(
           SCHEDULER_AUDIT_VIEWS_STORAGE_KEY,
         )};
-        var SPLIT_LOCK_KEY = ${JSON.stringify(HQ_SPLIT_LOCK_STORAGE_KEY)};
-        var CLICK_DEBUG_KEY = ${JSON.stringify(CLICK_DEBUG_STORAGE_KEY)};
+        var SPLIT_LOCK_KEY = ${serializeScriptValue(HQ_SPLIT_LOCK_STORAGE_KEY)};
+        var CLICK_DEBUG_KEY = ${serializeScriptValue(CLICK_DEBUG_STORAGE_KEY)};
 
-        var isValidOfficeSceneMode = ${buildEnumCheck(VALID_OFFICE_SCENE_MODES)};
-        var isValidOfficeCameraPreset = ${buildEnumCheck(
-          VALID_OFFICE_CAMERA_PRESETS,
-        )};
-        var isValidOfficeOperationalMode = ${buildEnumCheck(
-          VALID_OFFICE_OPERATIONAL_MODES,
-        )};
-        var isValidSurfaceMotionProfile = ${buildEnumCheck(
-          VALID_SURFACE_MOTION_PROFILES,
-        )};
-        var isValidOfficeVfxQuality = ${buildEnumCheck(
-          VALID_OFFICE_VFX_QUALITIES,
-        )};
-        var isValidActivePersona = ${buildEnumCheck(VALID_ACTIVE_PERSONAS)};
-        var isValidGraphSource = ${buildEnumCheck(VALID_GRAPH_SOURCE_FILTERS)};
-        var isValidGraphVisibility = ${buildEnumCheck(
-          VALID_GRAPH_VISIBILITY_FILTERS,
-        )};
-        var isValidAuditLane = ${buildEnumCheck(VALID_SCHEDULER_AUDIT_LANES)};
-        var isValidAuditStatus = ${buildEnumCheck(
-          VALID_SCHEDULER_AUDIT_STATUSES,
-        )};
-        var isValidAuditWindow = ${buildEnumCheck(
-          VALID_SCHEDULER_AUDIT_WINDOWS,
-        )};
-        var SENSITIVE_SETTINGS_KEYS = ${JSON.stringify(SENSITIVE_SETTINGS_KEYS)};
+        var VALID_OFFICE_SCENE_MODES = ${serializeScriptValue(VALID_OFFICE_SCENE_MODES)};
+        var VALID_OFFICE_CAMERA_PRESETS = ${serializeScriptValue(VALID_OFFICE_CAMERA_PRESETS)};
+        var VALID_OFFICE_OPERATIONAL_MODES = ${serializeScriptValue(VALID_OFFICE_OPERATIONAL_MODES)};
+        var VALID_SURFACE_MOTION_PROFILES = ${serializeScriptValue(VALID_SURFACE_MOTION_PROFILES)};
+        var VALID_OFFICE_VFX_QUALITIES = ${serializeScriptValue(VALID_OFFICE_VFX_QUALITIES)};
+        var VALID_ACTIVE_PERSONAS = ${serializeScriptValue(VALID_ACTIVE_PERSONAS)};
+        var VALID_GRAPH_SOURCE_FILTERS = ${serializeScriptValue(VALID_GRAPH_SOURCE_FILTERS)};
+        var VALID_GRAPH_VISIBILITY_FILTERS = ${serializeScriptValue(VALID_GRAPH_VISIBILITY_FILTERS)};
+        var VALID_SCHEDULER_AUDIT_LANES = ${serializeScriptValue(VALID_SCHEDULER_AUDIT_LANES)};
+        var VALID_SCHEDULER_AUDIT_STATUSES = ${serializeScriptValue(VALID_SCHEDULER_AUDIT_STATUSES)};
+        var VALID_SCHEDULER_AUDIT_WINDOWS = ${serializeScriptValue(VALID_SCHEDULER_AUDIT_WINDOWS)};
+        var SENSITIVE_SETTINGS_KEYS = ${serializeScriptValue(SENSITIVE_SETTINGS_KEYS)};
 
         function isObject(value) {
           return !!value && typeof value === "object" && !Array.isArray(value);
+        }
+
+        function isAllowed(value, allowed) {
+          return allowed.indexOf(value) !== -1;
         }
 
         function clampNumber(value, min, max, fallback) {
@@ -133,7 +132,7 @@ export function buildPersistedShellStateRepairScript() {
           ) {
             return normalized;
           }
-          return ${JSON.stringify(normalizeAdvancedDefault)};
+          return ${serializeScriptValue(normalizeAdvancedDefault)};
         }
 
         function writeNotice() {
@@ -201,28 +200,28 @@ export function buildPersistedShellStateRepairScript() {
               changedSettings = true;
             }
 
-            if (!isValidOfficeSceneMode(settings.officeSceneMode)) {
+            if (!isAllowed(settings.officeSceneMode, VALID_OFFICE_SCENE_MODES)) {
               settings.officeSceneMode = "auto";
               changedSettings = true;
             }
-            if (!isValidOfficeCameraPreset(settings.officeCameraPreset)) {
+            if (!isAllowed(settings.officeCameraPreset, VALID_OFFICE_CAMERA_PRESETS)) {
               settings.officeCameraPreset = "cinematic";
               changedSettings = true;
             }
-            if (!isValidOfficeOperationalMode(settings.officeOperationalMode)) {
+            if (!isAllowed(settings.officeOperationalMode, VALID_OFFICE_OPERATIONAL_MODES)) {
               settings.officeOperationalMode = "normal";
               changedSettings = true;
             }
-            if (!isValidSurfaceMotionProfile(settings.surfaceMotionProfile)) {
+            if (!isAllowed(settings.surfaceMotionProfile, VALID_SURFACE_MOTION_PROFILES)) {
               settings.surfaceMotionProfile = "flagship";
               changedSettings = true;
             }
-            if (!isValidOfficeVfxQuality(settings.officeVfxQuality)) {
+            if (!isAllowed(settings.officeVfxQuality, VALID_OFFICE_VFX_QUALITIES)) {
               settings.officeVfxQuality = "low";
               changedSettings = true;
             }
 
-            if (!isValidActivePersona(nextState.activePersona)) {
+            if (!isAllowed(nextState.activePersona, VALID_ACTIVE_PERSONAS)) {
               nextState.activePersona = "formal";
               changedSettings = true;
             }
@@ -245,8 +244,8 @@ export function buildPersistedShellStateRepairScript() {
             var parsedGraphFilters = JSON.parse(rawGraphFilters);
             if (
               !isObject(parsedGraphFilters) ||
-              !isValidGraphSource(parsedGraphFilters.source) ||
-              !isValidGraphVisibility(parsedGraphFilters.visibility)
+              !isAllowed(parsedGraphFilters.source, VALID_GRAPH_SOURCE_FILTERS) ||
+              !isAllowed(parsedGraphFilters.visibility, VALID_GRAPH_VISIBILITY_FILTERS)
             ) {
               throw new Error("invalid graph filters");
             }
@@ -264,13 +263,13 @@ export function buildPersistedShellStateRepairScript() {
               throw new Error("invalid scheduler audit filters");
             }
             var nextAuditFilters = {
-              lane: isValidAuditLane(parsedAuditFilters.lane)
+              lane: isAllowed(parsedAuditFilters.lane, VALID_SCHEDULER_AUDIT_LANES)
                 ? parsedAuditFilters.lane
                 : "all",
-              status: isValidAuditStatus(parsedAuditFilters.status)
+              status: isAllowed(parsedAuditFilters.status, VALID_SCHEDULER_AUDIT_STATUSES)
                 ? parsedAuditFilters.status
                 : "all",
-              window: isValidAuditWindow(parsedAuditFilters.window)
+              window: isAllowed(parsedAuditFilters.window, VALID_SCHEDULER_AUDIT_WINDOWS)
                 ? parsedAuditFilters.window
                 : "all",
             };
@@ -310,9 +309,9 @@ export function buildPersistedShellStateRepairScript() {
                 id: id,
                 name: name,
                 filters: {
-                  lane: isValidAuditLane(filters.lane) ? filters.lane : "all",
-                  status: isValidAuditStatus(filters.status) ? filters.status : "all",
-                  window: isValidAuditWindow(filters.window) ? filters.window : "all",
+                  lane: isAllowed(filters.lane, VALID_SCHEDULER_AUDIT_LANES) ? filters.lane : "all",
+                  status: isAllowed(filters.status, VALID_SCHEDULER_AUDIT_STATUSES) ? filters.status : "all",
+                  window: isAllowed(filters.window, VALID_SCHEDULER_AUDIT_WINDOWS) ? filters.window : "all",
                 },
               });
               if (nextAuditViews.length >= 6) break;

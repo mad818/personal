@@ -77,7 +77,23 @@ async function pathExists(target: string) {
   }
 }
 
-async function copyIfMissing(source: string, destination: string) {
+function resolveContainedPath(rootPath: string, ...segments: string[]) {
+  const root = path.resolve(rootPath);
+  const candidate = path.resolve(root, ...segments);
+  const relative = path.relative(root, candidate);
+  if (
+    relative === ".." ||
+    relative.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relative)
+  ) {
+    throw new Error("Second-brain path escaped its configured root.");
+  }
+  return candidate;
+}
+
+async function copyTrackedFileIfMissing(relativePath: string) {
+  const source = resolveContainedPath(TRACKED_ROOT, relativePath);
+  const destination = resolveContainedPath(LIVE_ROOT, relativePath);
   try {
     await copyFile(source, destination, fsConstants.COPYFILE_EXCL);
   } catch (error) {
@@ -102,15 +118,9 @@ export async function ensureNightShiftVault() {
     ].map((directory) => mkdir(directory, { recursive: true })),
   );
   await Promise.all([
-    copyIfMissing(
-      path.join(TRACKED_ROOT, "house-rules.md"),
-      path.join(LIVE_ROOT, "house-rules.md"),
-    ),
+    copyTrackedFileIfMissing("house-rules.md"),
     ...["scout", "refinery", "editor", "audit"].map((name) =>
-      copyIfMissing(
-        path.join(TRACKED_ROOT, "playbooks", `${name}.md`),
-        path.join(PLAYBOOK_DIR, `${name}.md`),
-      ),
+      copyTrackedFileIfMissing(path.join("playbooks", `${name}.md`)),
     ),
   ]);
 }
@@ -399,11 +409,12 @@ export async function captureNightShiftInput(input: {
     text,
     "",
   ].join("\n");
-  await writeFile(path.join(RAW_DIR, filename), content, {
+  const capturePath = resolveContainedPath(RAW_DIR, filename);
+  await writeFile(capturePath, content, {
     encoding: "utf8",
     flag: "wx",
   });
-  return { id: candidateId("raw", path.join(RAW_DIR, filename)), filename };
+  return { id: candidateId("raw", capturePath), filename };
 }
 
 function assertSafeProposalId(value: unknown) {
@@ -421,7 +432,7 @@ async function currentCandidateMap() {
 }
 
 function proposalFile(id: string) {
-  return path.join(DESK_DIR, `${id}.json`);
+  return resolveContainedPath(DESK_DIR, `${id}.json`);
 }
 
 export async function stageNightShiftProposal(input: {
@@ -633,15 +644,18 @@ export async function approveNightShiftProposal(value: unknown) {
   );
   const createdAt = new Date().toISOString();
   const atomWrites = proposal.atoms.map((atom) => ({
-    path: path.join(ATOM_DIR, `${atom.id}.md`),
+    path: resolveContainedPath(ATOM_DIR, `${atom.id}.md`),
     content: renderAtom(atom, sourcePaths, createdAt),
   }));
   const threadWrites = proposal.threads.map((thread) => ({
-    path: path.join(THREAD_DIR, `${thread.id}--${id}.md`),
+    path: resolveContainedPath(THREAD_DIR, `${thread.id}--${id}.md`),
     content: renderThread(thread, id, createdAt),
   }));
   const briefingWrite = {
-    path: path.join(BRIEFING_DIR, `${createdAt.slice(0, 10)}--${id}.md`),
+    path: resolveContainedPath(
+      BRIEFING_DIR,
+      `${createdAt.slice(0, 10)}--${id}.md`,
+    ),
     content: renderBriefing({ ...envelope, proposal }),
   };
   const writes = [...atomWrites, ...threadWrites, briefingWrite];
@@ -668,7 +682,7 @@ export async function approveNightShiftProposal(value: unknown) {
   await writeState(state);
   await rename(
     proposalFile(id),
-    path.join(DESK_ARCHIVE_DIR, `${id}.approved.json`),
+    resolveContainedPath(DESK_ARCHIVE_DIR, `${id}.approved.json`),
   );
   return {
     proposalId: id,
@@ -685,7 +699,7 @@ export async function rejectNightShiftProposal(value: unknown) {
     throw new Error("Pending proposal was not found.");
   await rename(
     proposalFile(id),
-    path.join(DESK_ARCHIVE_DIR, `${id}.rejected.json`),
+    resolveContainedPath(DESK_ARCHIVE_DIR, `${id}.rejected.json`),
   );
   return { proposalId: id, rejected: true };
 }
@@ -781,7 +795,7 @@ export async function runNightShiftAudit() {
     ]),
   ].join("\n");
   const filename = `audit-${fileStamp(now)}.md`;
-  await writeFile(path.join(BRIEFING_DIR, filename), content, {
+  await writeFile(resolveContainedPath(BRIEFING_DIR, filename), content, {
     encoding: "utf8",
     flag: "wx",
   });

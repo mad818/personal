@@ -11,11 +11,16 @@ export function normalizeTokenCandidate(raw: string): string {
     value = firstNonEmptyLine;
   }
 
-  const assignmentMatch = value.match(
-    /^(?:export\s+)?NEXUS_TOKEN\s*=\s*(.+)$/i,
-  );
-  if (assignmentMatch) {
-    value = assignmentMatch[1].trim();
+  let assignment = value;
+  if (assignment.slice(0, 7).toLowerCase() === "export ") {
+    assignment = assignment.slice(7).trimStart();
+  }
+  const equalsIndex = assignment.indexOf("=");
+  if (
+    equalsIndex >= 0 &&
+    assignment.slice(0, equalsIndex).trim().toLowerCase() === "nexus_token"
+  ) {
+    value = assignment.slice(equalsIndex + 1).trim();
   }
 
   if (

@@ -16,6 +16,7 @@ import {
   isBinaryTriageMemoryArtifact,
   isReverseEngineeringBriefArtifact,
 } from "@/lib/binaryTriage";
+import { trimRepeatedEdgeCharacter } from "@/lib/security/textSafety";
 
 export type ArtifactContinuityClass =
   | "generic"
@@ -89,11 +90,10 @@ export interface RankedArtifactMatch<T extends ArtifactContinuityComparable> {
 }
 
 function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 64);
+  return trimRepeatedEdgeCharacter(
+    value.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    "-",
+  ).slice(0, 64);
 }
 
 function uniqueStrings(values: Array<string | null | undefined>) {

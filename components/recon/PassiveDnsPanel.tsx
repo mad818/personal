@@ -9,7 +9,7 @@ import {
   reconLookupErrorMessage,
   requestReconLookup,
 } from "@/lib/reconLookupContract";
-import { sanitizeHtml } from "@/lib/security/sanitizeHtml";
+import { htmlToPlainText } from "@/lib/security/textSafety";
 
 function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -253,9 +253,14 @@ export default function PassiveDnsPanel() {
                 📜 Historical DNS Records
               </div>
               <div
-                style={{ fontSize: "11px", lineHeight: 1.6 }}
-                dangerouslySetInnerHTML={{ __html: sanitizeHtml(pdns) }}
-              />
+                style={{
+                  fontSize: "11px",
+                  lineHeight: 1.6,
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {htmlToPlainText(pdns)}
+              </div>
             </div>
           )}
           {revIp && (
@@ -271,9 +276,14 @@ export default function PassiveDnsPanel() {
                 🌐 Reverse IP — Co-hosted Domains
               </div>
               <div
-                style={{ fontSize: "11px", lineHeight: 1.6 }}
-                dangerouslySetInnerHTML={{ __html: sanitizeHtml(revIp) }}
-              />
+                style={{
+                  fontSize: "11px",
+                  lineHeight: 1.6,
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {htmlToPlainText(revIp)}
+              </div>
             </div>
           )}
         </div>

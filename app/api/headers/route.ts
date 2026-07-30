@@ -11,10 +11,8 @@ import {
   checkRateLimit,
 } from "@/lib/security/rateLimit";
 import { requireMasterSessionForAction } from "@/lib/security/masterSession";
-import {
-  assertPublicResolvableHost,
-  isPrivateNetworkHost,
-} from "@/lib/security/privateNetwork";
+import { isPrivateNetworkHost } from "@/lib/security/privateNetwork";
+import { fetchSafePublicUrl } from "@/lib/security/networkGuards";
 
 const SECURITY_HEADERS = [
   "content-security-policy",
@@ -81,20 +79,14 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    await assertPublicResolvableHost(parsed.hostname);
-  } catch {
-    return NextResponse.json(
-      { error: "Hostname resolves to a private or loopback address." },
-      { status: 400 },
+    const r = await fetchSafePublicUrl(
+      parsed.href,
+      {
+        method: "HEAD",
+        signal: AbortSignal.timeout(8000),
+      },
+      { allowHttp: true },
     );
-  }
-
-  try {
-    const r = await fetch(parsed.href, {
-      method: "HEAD",
-      redirect: "follow",
-      signal: AbortSignal.timeout(8000),
-    });
 
     const all: Record<string, string> = {};
     r.headers.forEach((val, key) => {

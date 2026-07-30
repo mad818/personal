@@ -10,7 +10,7 @@ import {
   reconLookupErrorMessage,
   requestReconLookup,
 } from "@/lib/reconLookupContract";
-import { sanitizeHtml } from "@/lib/security/sanitizeHtml";
+import { htmlToPlainText } from "@/lib/security/textSafety";
 
 // ── types ─────────────────────────────────────────────────────────────────────
 type TargetType =
@@ -712,7 +712,7 @@ function Panel({
       {loading ? (
         <div style={{ color: "var(--text3)", fontSize: "11px" }}>Scanning…</div>
       ) : content ? (
-        <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
+        <div style={{ whiteSpace: "pre-wrap" }}>{htmlToPlainText(content)}</div>
       ) : (
         <div style={{ color: "var(--text3)", fontSize: "11px" }}>—</div>
       )}

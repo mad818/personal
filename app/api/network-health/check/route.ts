@@ -5,7 +5,10 @@ import {
   checkRateLimit,
 } from "@/lib/security/rateLimit";
 import { fetchTrustedInternal } from "@/lib/internalFetch";
-import { assertSafePublicUrl } from "@/lib/security/networkGuards";
+import {
+  assertSafePublicUrl,
+  fetchSafePublicUrl,
+} from "@/lib/security/networkGuards";
 import { getRoutePolicy, readNetworkMode } from "@/lib/security/routePolicy";
 
 export const dynamic = "force-dynamic";
@@ -76,16 +79,19 @@ async function runExternalCheck(rawUrl: string) {
 
   const parsed = assertSafePublicUrl(rawUrl, { allowHttp: true });
   const start = Date.now();
-  const response = await fetch(parsed.toString(), {
-    method: "GET",
-    headers: {
-      Accept: "text/plain,application/json,*/*",
-      "User-Agent": "Homefront NetworkHealth/1.0",
+  const response = await fetchSafePublicUrl(
+    parsed.toString(),
+    {
+      method: "GET",
+      headers: {
+        Accept: "text/plain,application/json,*/*",
+        "User-Agent": "Homefront NetworkHealth/1.0",
+      },
+      cache: "no-store",
+      signal: AbortSignal.timeout(6_000),
     },
-    cache: "no-store",
-    redirect: "follow",
-    signal: AbortSignal.timeout(6_000),
-  });
+    { allowHttp: true },
+  );
   const ms = Date.now() - start;
   return {
     ok: response.ok,

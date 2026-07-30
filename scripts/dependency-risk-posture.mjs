@@ -36,7 +36,7 @@ function objectKeys(value) {
 }
 
 function packagePathForName(name) {
-  return `node_modules/${name.replace("/", "/")}`;
+  return `node_modules/${name}`;
 }
 
 function packageNameFromPath(packagePath) {

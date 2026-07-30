@@ -16,11 +16,13 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     env:
-      NEXUS_TOKEN: nexus-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
       NEXUS_SHOWCASE_CAPTURE_CONFIRM_PUBLIC_STATE: "1"
       NEXUS_NETWORK_MODE: isolated
       NEXUS_ALLOW_PAID_APIS: "false"
       PLAYWRIGHT_BASE_URL: http://127.0.0.1:3100
+      PORT: "3100"
+      HOSTNAME: 127.0.0.1
+      NEXT_TELEMETRY_DISABLED: "1"
 
     steps:
       - name: Checkout
@@ -37,6 +39,13 @@ jobs:
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+
+      - name: Initialize masked one-run token
+        shell: bash
+        run: |
+          token="$(node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('hex'))")"
+          echo "::add-mask::$token"
+          echo "NEXUS_TOKEN=${token}" >> "$GITHUB_ENV"
 
       - name: Start isolated Nexus runtime
         shell: bash

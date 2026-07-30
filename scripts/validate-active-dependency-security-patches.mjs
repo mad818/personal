@@ -46,12 +46,12 @@ const packages =
 
 if (nextConfig?.images?.unoptimized !== true) {
   fail(
-    "next.config.js must keep the built-in image optimizer disabled while the active Next.js/Sharp image advisories remain unresolved",
+    "next.config.js must keep the built-in image optimizer disabled as defense in depth",
   );
 }
 if (nextConfig?.images?.dangerouslyAllowSVG !== false) {
   fail(
-    "next.config.js must explicitly deny SVG optimization while the active Next.js image advisory remains unresolved",
+    "next.config.js must explicitly deny SVG optimization as defense in depth",
   );
 }
 
@@ -64,32 +64,24 @@ if (packageJson?.overrides?.prismjs !== "1.30.0") {
 if (packageJson?.overrides?.ws !== "8.21.0") {
   fail("package.json must override transitive ws to 8.21.0");
 }
-if (packageJson?.overrides?.["js-yaml"] !== "4.2.0") {
-  fail("package.json must override transitive js-yaml to 4.2.0");
+if (packageJson?.overrides?.["js-yaml"] !== "4.3.0") {
+  fail("package.json must override transitive js-yaml to 4.3.0");
 }
-if (packageJson?.overrides?.["brace-expansion@1.x"] !== "1.1.16") {
-  fail("package.json must override brace-expansion 1.x to 1.1.16");
+if (packageJson?.overrides?.sharp !== "0.35.0") {
+  fail("package.json must override transitive sharp to 0.35.0");
 }
-if (packageJson?.overrides?.["brace-expansion@2.x"] !== "2.1.2") {
-  fail("package.json must override brace-expansion 2.x to 2.1.2");
-}
-if (
-  packageJson?.overrides?.["minimatch@10.2.5"]?.["brace-expansion"] !== "5.0.7"
-) {
-  fail("package.json must override minimatch@10.2.5 brace-expansion to 5.0.7");
+if (packageJson?.overrides?.["brace-expansion"] !== "5.0.8") {
+  fail("package.json must override brace-expansion globally to 5.0.8");
 }
 
 const npmFloors = new Map([
-  ["postcss", "8.5.10"],
+  ["postcss", "8.5.25"],
   ["prismjs", "1.30.0"],
   ["ws", "8.21.0"],
-  ["js-yaml", "4.2.0"],
-]);
-
-const braceExpansionFloors = new Map([
-  ["1", "1.1.16"],
-  ["2", "2.1.2"],
-  ["5", "5.0.7"],
+  ["js-yaml", "4.3.0"],
+  ["next", "15.5.21"],
+  ["sharp", "0.35.0"],
+  ["brace-expansion", "5.0.8"],
 ]);
 
 for (const [path, metadata] of Object.entries(packages)) {
@@ -102,19 +94,6 @@ for (const [path, metadata] of Object.entries(packages)) {
     fail(`${path || "<root>"} uses ${name}@${version}; required floor is ${floor}`);
   }
 
-  if (name === "brace-expansion") {
-    const major = version.split(".")[0];
-    if (major === "3" || major === "4") {
-      fail(`${path} uses unpatched brace-expansion major ${major}; required 5.x floor is 5.0.7`);
-      continue;
-    }
-    const braceFloor = braceExpansionFloors.get(major);
-    if (braceFloor && compareVersions(version, braceFloor) < 0) {
-      fail(
-        `${path} uses brace-expansion@${version}; required ${major}.x floor is ${braceFloor}`,
-      );
-    }
-  }
 }
 
 const cargoLock = readFileSync(
@@ -172,7 +151,7 @@ if (process.exitCode) {
 }
 
 console.log(
-  `ok active-dependency-security (Next image optimizer disabled and SVG optimization denied; postcss>=8.5.10, prismjs>=1.30.0, ws>=8.21.0, js-yaml>=4.2.0, brace-expansion floors 1.x>=1.1.16/2.x>=2.1.2/5.x>=5.0.7 with 3.x/4.x rejected, tauri>=2.11.1, serde_with>=3.21.0${
+  `ok active-dependency-security (Next image optimizer disabled and SVG optimization denied; next>=15.5.21, sharp>=0.35.0, postcss>=8.5.25, prismjs>=1.30.0, ws>=8.21.0, js-yaml>=4.3.0, brace-expansion>=5.0.8 globally, tauri>=2.11.1, serde_with>=3.21.0${
     glib ? `; Linux-only non-release glib=${glib.version}` : ""
   })`,
 );

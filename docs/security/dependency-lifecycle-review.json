@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-07-14",
+  "reviewedAt": "2026-07-30",
   "sources": {
     "packageLock": "https://docs.npmjs.com/cli/v11/configuring-npm/package-lock-json/",
     "lifecycleScripts": "https://docs.npmjs.com/cli/v11/using-npm/scripts/"
@@ -36,21 +36,6 @@
         "allowedInstalledConsumerScripts": ["install"]
       },
       "rationale": "The nested lock entry is optional and Darwin-only even though npm does not mark it dev-only. The exact registry tarball and allowed install hook are pinned for drift detection."
-    },
-    {
-      "packagePath": "node_modules/sharp",
-      "version": "0.34.5",
-      "decision": "reviewed-expected",
-      "dependencyRole": "Optional native image-processing runtime used through Next.js image optimization.",
-      "expected": {
-        "integrity": "sha512-Ou9I5Ft9WNcCbXrU9cMgPBcCK8LiwLqcbywW3t4oDV37n1pzpuNLsYiAV8eODnjbtQlSDwZ2cUEeQz4E54Hltg==",
-        "devOnly": false,
-        "optional": true,
-        "os": [],
-        "lockfileInstallScript": true,
-        "allowedInstalledConsumerScripts": ["install"]
-      },
-      "rationale": "Next.js installs Sharp as an optional runtime dependency. Its install check selects an already pinned platform package or falls back to a native build; any identity or hook drift requires review."
     },
     {
       "packagePath": "node_modules/unrs-resolver",

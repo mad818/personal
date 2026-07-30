@@ -125,6 +125,7 @@
     "auth:regression": "node scripts/auth-regression.mjs",
     "auth:e2e": "playwright test -c playwright.auth.config.ts",
     "hq:e2e": "playwright test -c playwright.auth.config.ts tests/e2e/hq-shell.spec.ts",
+    "readme:showcase:capture": "node scripts/capture-readme-showcase.mjs",
     "route:e2e": "playwright test -c playwright.auth.config.ts tests/e2e/route-contract.spec.ts tests/e2e/landing-public.spec.ts",
     "tabs:e2e": "playwright test -c playwright.auth.config.ts tests/e2e/tab-surfaces.spec.ts",
     "runtime:consistency": "node scripts/runtime-consistency.mjs",

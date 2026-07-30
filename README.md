@@ -1,323 +1,243 @@
 <div align="center">
 
-![Homefront Banner](./public/banner.svg)
+![Nexus Prime command and intelligence workspace](./public/banner.svg)
 
-<br>
+# Nexus Prime
 
-# Homefront
+**A local-first command-and-intelligence workspace for turning live signals into informed action.**
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19-149eca?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-06b6d4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
-[![Codex](https://img.shields.io/badge/Codex-OpenAI-111827?style=for-the-badge)](https://openai.com/codex)
-[![MiniMax](https://img.shields.io/badge/MiniMax-API-1a1a2e?style=for-the-badge)](https://platform.minimax.io)
-[![Ollama](https://img.shields.io/badge/Ollama-Local_AI-10b981?style=for-the-badge)](https://ollama.ai)
 [![Tauri](https://img.shields.io/badge/Tauri-Desktop-24c8d8?style=for-the-badge&logo=tauri&logoColor=white)](desktop/README.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](LICENSE)
 
-<br>
-
-### At a glance
-
-<img src="./public/github-infographic-features.svg" width="100%" alt="Homefront feature infographic: command surfaces, free-first providers, privacy, and self-hosted deployment" />
-
-<img src="./public/github-infographic-stack.svg" width="100%" alt="Homefront stack infographic: Next.js, TypeScript, Zustand, API routes, feeds, and LLM proxy" />
-
-<img src="./public/github-readme-overview.svg" width="100%" alt="Overview: self-hosted dashboard, MIT no in-app charges, BYOK, npm run dev, Field manual at /resources, social preview export hint" />
-
-<p align="center"><sub><a href="#quickstart">Quickstart</a> · <a href="#api-keys">API Keys</a> · <a href="#local-ai-fully-offline">Local AI</a> · <a href="#self-hosting">Self-hosting</a> · <a href="#project-structure">Structure</a> · <a href="#tabs">Tabs</a> · <a href="#ai-agent">AI Agent</a> · <a href="#stack">Stack</a></sub></p>
+[Product tour](#product-tour) · [Quickstart](#quickstart) · [Trust model](#trust-model) · [Architecture](#how-it-works) · [Development](#development)
 
 </div>
 
-**Hybrid layout:** the SVGs above are the visual map; the sections below repeat the same facts in text so you can search, copy commands, and skim without loading images.
+## What Nexus Prime does
 
-## What it is
+Nexus Prime brings markets, world events, cyber intelligence, open-source research, automation, local notes, and AI-assisted analysis into one operator-owned workspace. Instead of switching among disconnected feeds and tools, you can move through one repeatable loop:
 
-**Homefront** is a local-first command-and-intelligence workspace (Next.js 15 / React 19, MIT) with a native **desktop app for Windows and macOS** (Tauri). It is self-hosted, free-first, and does not charge end users in-app: optional providers are bring-your-own, and paid-compatible AI lanes stay hidden unless you explicitly opt in. Markets, geopolitics, cyber, recon, maps, and operator AI all run on your machine with no cloud app backend and no database. Run it in your browser at `localhost:3000`, or as a native desktop window via Tauri. Curated links live at **`/resources`**; secrets stay in **`.env.local`** (gitignored).
+1. **Observe** live signals and source material.
+2. **Understand** them with focused dashboards and five specialist agents.
+3. **Act** through missions, schedules, alerts, and approval-gated tools.
+4. **Retain** useful evidence and decisions in a private local archive.
 
----
+The application runs on your machine in a browser or a native Tauri window. Local AI through Ollama is the default path; optional cloud providers and connectors are bring-your-own-key.
 
-## Tabs
+## Product tour
 
-**Supported release surface for this cycle:** the GA product is the 7-tab nav (`CITADEL`, `VECTOR`, `SPECTRA`, `QUANT`, `BASTION`, `PARALLAX`, `ARCHIVE`) plus `/resources` (`FIELD MANUAL`). Additional repo routes exist as beta/internal surfaces and are not part of the current public support contract unless explicitly promoted.
-
-One unified React app — seven tabs, single nav bar, one URL.
+Nexus Prime ships eight general-availability surfaces. Each one has a distinct job while sharing the same agent, live-context, security, and archive foundations.
 
 <table>
-<tr>
-<td width="50%" valign="top">
-
-### CITADEL
-
-5-agent AI office (JANSKY, ORBIT, NOVA, CIPHER, FLUX). 3D workspace with live briefings and a full ReAct reasoning loop. Streams tool calls live.
-
-### VECTOR
-
-Mission control — KPI cards, Fear & Greed index, live BTC price, AI daily briefing, event radar, threat heatmap, world event map, business intelligence, job risk analyser.
-
-### SPECTRA
-
-Live news (RSS + GDELT fallback; optional Guardian key). Bias tagging, story threads, article clusters. Geopolitical heatmap, conflict feed, Polymarket prediction odds, strategy frameworks.
-
-### QUANT
-
-Momentum scanner with RSI/BB/EMA scoring, Buy Bot signals, 7-day sparklines, position sizing calculator, watchlist manager.
-
-</td>
-<td width="50%" valign="top">
-
-### BASTION
-
-Live CVEs (CRITICAL → LOW), OTX threat intel feed, CISA KEV advisories, attack vector charts, triage view, cyber heatmap.
-
-### PARALLAX
-
-OSINT toolkit: RDAP/WHOIS, DNS records, crt.sh cert transparency, IP geolocation — all free, no key required. HIBP breach check, VirusTotal, Shodan (BYOK, optional). Local WebRTC leak probe, fingerprint entropy analyser, OPSEC score — all client-side only.
-
-### ARCHIVE
-
-Bookmarked articles. Full-text search, folder organisation by category, JSON export. Persisted across sessions.
-
-</td>
-</tr>
+  <tr>
+    <td width="50%">
+      <img src="./public/theme/citadel.svg" alt="CITADEL visual identity" width="100%" />
+      <h3><a href="./app/hq/page.tsx">CITADEL · HQ</a></h3>
+      <p>Your operator home: system posture, agent control, briefings, and the fastest path into active work.</p>
+    </td>
+    <td width="50%">
+      <img src="./public/theme/vector.svg" alt="VECTOR visual identity" width="100%" />
+      <h3><a href="./app/command/page.tsx">VECTOR · COMMAND</a></h3>
+      <p>Mission control for plans, schedules, alerts, runtime efficiency, and approval-gated operations.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="./public/theme/spectra.svg" alt="SPECTRA visual identity" width="100%" />
+      <h3><a href="./app/intel/page.tsx">SPECTRA · INTEL</a></h3>
+      <p>News, world risk, theater sweeps, maps, and strategic intelligence with visible source provenance.</p>
+    </td>
+    <td width="50%">
+      <img src="./public/theme/quant.svg" alt="QUANT visual identity" width="100%" />
+      <h3><a href="./app/alpha/page.tsx">QUANT · ALPHA</a></h3>
+      <p>Markets, scanners, sentiment, rates, and decision support that distinguishes verified data from unavailable data.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="./public/theme/bastion.svg" alt="BASTION visual identity" width="100%" />
+      <h3><a href="./app/cyber/page.tsx">BASTION · CYBER</a></h3>
+      <p>Cyber intelligence, threat monitoring, defensive triage, and security posture in one focused surface.</p>
+    </td>
+    <td width="50%">
+      <img src="./public/theme/parallax.svg" alt="PARALLAX visual identity" width="100%" />
+      <h3><a href="./app/recon/page.tsx">PARALLAX · RECON</a></h3>
+      <p>Open-source research and free-first connectors with server-side boundaries around external requests.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="./public/theme/archive.svg" alt="ARCHIVE visual identity" width="100%" />
+      <h3><a href="./app/vault/page.tsx">ARCHIVE · VAULT</a></h3>
+      <p>A local home for articles, artifacts, research history, and durable context you choose to keep.</p>
+    </td>
+    <td width="50%">
+      <img src="./public/theme/manual.svg" alt="FIELD MANUAL visual identity" width="100%" />
+      <h3><a href="./app/resources/page.tsx">FIELD MANUAL · RESOURCES</a></h3>
+      <p>Curated references and operational guidance for understanding and extending the workspace.</p>
+    </td>
+  </tr>
 </table>
 
----
+### Specialist agents
 
-## AI Agent
+The workspace routes work through five named roles rather than one generic assistant:
 
-The agent runs a full **ReAct (Reason + Act) loop** — it thinks, picks a tool, executes it, reads the result, and repeats until it has an answer.
+| Agent | Focus |
+| --- | --- |
+| **JANSKY** | Strategy, planning, and mission orchestration |
+| **ORBIT** | Engineering and implementation |
+| **NOVA** | Research, news, and evidence gathering |
+| **CIPHER** | Security intelligence and defensive review |
+| **FLUX** | Markets, macroeconomics, and probability-based analysis |
 
-```mermaid
-flowchart LR
-    U([User message]) --> A[Agent\nlib/agent.ts]
-    A --> T{Pick tool}
-    T --> W[web_search]
-    T --> F[fetch_url]
-    T --> R[read_file]
-    T --> C[calculate]
-    W --> O[Tool result]
-    F --> O
-    R --> O
-    C --> O
-    O --> A
-    A -->|Done| S([Stream to UI])
-    style A fill:#151820,stroke:#4f6ef7,color:#dde1f0
-    style T fill:#151820,stroke:#7c3aed,color:#dde1f0
-    style S fill:#151820,stroke:#10b981,color:#dde1f0
-```
+Every provider call goes through the same server-side AI boundary, so local and optional cloud models share one policy, context, and audit path.
 
-Tool calls appear as collapsible badges in the chat UI in real time. The agent works in a free-first posture with local Ollama by default, then optional BYOK providers when operators explicitly configure them.
+## Trust model
 
----
+Nexus Prime is designed for a private, self-hosted workspace:
 
-## Architecture
+- **Free and MIT licensed.** There are no Nexus subscriptions, in-app purchases, or Nexus-side billing.
+- **Local-first storage.** Your runtime state and archive remain under your control.
+- **Local AI first.** Ollama works without a cloud-model account.
+- **Explicit BYOK.** Optional cloud models and external connectors use keys you supply.
+- **Server-side secrets.** Keys belong in `.env.local`; browser code does not receive them.
+- **Controlled networking.** Isolated, free-only, and full network modes make outbound access an operator choice.
+- **Approval-gated actions.** High-risk tools do not silently execute.
+- **No invented data.** Failed external feeds surface as unavailable instead of being replaced with manufactured neutral values.
 
-```mermaid
-flowchart TD
-    subgraph Client
-        NAV["6-Item Nav (2 dropdowns)"] --> TABS["9 Tab Surfaces<br/>app/(tab)/page.tsx"]
-        TABS --> STORE["Zustand Store<br/>store/useStore.ts"]
-        STORE -->|persisted| LS[("localStorage")]
-        TABS --> HOOKS["Data Hooks<br/>usePrices, useArticles, useCVEs"]
-    end
-
-    subgraph Server
-        API_AI["/api/ai<br/>Provider proxy"]
-        API_TOOLS["/api/tools<br/>web_search, fetch_url, calculate"]
-        API_SEARCH["/api/search<br/>GDELT, Guardian"]
-        MIDDLEWARE["middleware.ts<br/>Bearer auth"]
-    end
-
-    subgraph AI
-        OPENAI["OpenAI-compatible<br/>BYOK lane"]
-        BYOK["Other optional<br/>provider lanes"]
-        OLLAMA["Ollama<br/>Local LLM"]
-    end
-
-    subgraph External
-        CG["CoinGecko<br/>crypto"]
-        USGS["USGS<br/>quakes"]
-        GDELT["GDELT<br/>news"]
-        NVD["NVD<br/>CVEs"]
-        OTX["AlienVault OTX<br/>threat intel"]
-        POLY["Polymarket<br/>prediction markets"]
-    end
-
-    HOOKS --> API_SEARCH
-    TABS --> API_AI
-    TABS --> API_TOOLS
-    API_AI --> MIDDLEWARE
-    API_TOOLS --> MIDDLEWARE
-    API_AI --> OPENAI
-    API_AI --> BYOK
-    API_AI --> OLLAMA
-    HOOKS --> CG
-    HOOKS --> USGS
-    HOOKS --> GDELT
-    HOOKS --> NVD
-    HOOKS --> OTX
-    HOOKS --> POLY
-
-    style Client fill:#0f1117,stroke:#1e2233,color:#dde1f0
-    style Server fill:#07080d,stroke:#4f6ef7,color:#dde1f0
-    style AI fill:#07080d,stroke:#d97706,color:#dde1f0
-    style External fill:#07080d,stroke:#1e2233,color:#6875a0
-```
-
----
-
-## Stack
-
-<div align="center">
-
-<img src="./public/github-section-stack-layers.svg" width="100%" alt="Stack table as graphic: Next.js, TypeScript, Zustand, Tailwind Radix, AI providers, Leaflet, Framer Motion, Sonner, D3 sparklines" />
-
-</div>
-
-The graphic is the cheat sheet; in one line: **Next.js 15 App Router + React 19 + TypeScript 5 + Zustand + Tailwind/Radix**, **server `/api/*` routes** for AI and tools (keys never shipped to the browser), **Leaflet** maps, **Framer Motion**, **Sonner**, **D3** sparklines. The pipeline strip under [At a glance](#at-a-glance) shows how data and LLM traffic flow.
-
----
+See the [architecture](./docs/architecture.md), [deployment guidance](./docs/deployment/README.md), and [security documentation](./docs/security/) for the deeper operational model.
 
 ## Quickstart
 
-<div align="center">
+### Requirements
 
-<img src="./public/github-section-quickstart.svg" width="100%" alt="Quickstart: clone your internal repo, npm install, cp .env.example, NEXUS_TOKEN and optional OpenAI-compatible provider key, npm run dev, localhost PWA, npm run verify" />
+- [Node.js 24](https://nodejs.org/) and npm 11
+- Git
+- Optional: [Ollama](https://ollama.com/) for private local AI
 
-</div>
+### Install
 
-1. **Clone & install**
-
-```bash
-git clone <your-internal-repo-url>
-cd <your-project-folder>
+```powershell
+git clone https://github.com/mad818/personal.git
+cd personal
 npm install
+Copy-Item .env.example .env.local
 ```
 
-2. **Environment** — `cp .env.example .env.local`, then set at least:
-
-```env
-NEXUS_TOKEN=your-long-random-secret
-GROQ_API_KEY=your-free-or-byok-provider-key
-```
-
-(Use [Local AI](#local-ai-fully-offline) instead of cloud keys if you want fully offline LLM.)
-
-3. **Run** — on Windows, double-click **`NexusPrime.bat`**. From any
-   supported terminal, use `npm run operational:start`. The launcher validates
-   Node/npm, local dependencies, `.env.local`, the token, and the port; it
-   opens [HQ](http://localhost:3000/hq) only after `/api/health` returns the
-   exact Homefront runtime contract. Use `npm run operational:start -- --check`
-   for a no-start readiness check or `npm run dev` for the raw developer
-   server. Missing optional _data_ keys only quiet their feed.
-
-4. **Verify** (before PRs) — `npm run verify` (typecheck, lint, path safety).
-
-5. **PWA** — `public/manifest.json` + `public/icon.svg`; Chrome/Edge **Install**, or iOS Safari **Add to Home Screen**.
-
----
-
-## API Keys
-
-<div align="center">
-
-<img src="./public/github-section-api-keys.svg" width="100%" alt="API keys infographic: NEXUS_TOKEN gate, AI provider env vars with console URLs, data keys, .env.example canonical" />
-
-</div>
-
-- **`NEXUS_TOKEN`** — Required for the browser to call `/api/*` (Bearer token). Pick any strong random string.
-- **AI providers** — `OPENAI_API_KEY`, `MINIMAX_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`, `GOOGLE_AI_KEY`, `ANTHROPIC_API_KEY`, etc. The server tries configured providers in order and skips missing keys.
-- **Data / intel** — CoinGecko, Finnhub, Guardian, FRED, OTX, NVD, Firecrawl, Brave, AISstream, FIRMS, … all **optional**; the UI degrades gracefully.
-- **Network mode controls** — `NEXUS_NETWORK_MODE=isolated|internal|connected` and `NEXUS_ENABLE_HIGH_RISK_TOOLS=true|false` gate which `/api/*` classes are allowed at runtime (default is safest: `isolated` + high-risk off).
-- **Free-use safeguard** — paid AI providers are blocked by default; set `NEXUS_ALLOW_PAID_APIS=true` only when you explicitly choose to use paid APIs.
-- **Connector policy override** — optional `NEXUS_CONNECTOR_POLICY_JSON` lets operators disable specific connectors (`{"news":true,"flights":false}`) without changing code.
-
-**Canonical list with comments and signup links:** [`.env.example`](./.env.example).
-
----
-
-## Local AI (fully offline)
-
-<div align="center">
-
-<img src="./public/github-section-local-ai.svg" width="100%" alt="Local AI: ollama pull qwen3, serve on 11434, OpenAI-compatible endpoint in Settings, Local provider, aiModelRouting" />
-
-</div>
+On macOS or Linux, replace the last command with:
 
 ```bash
+cp .env.example .env.local
+```
+
+Set a private access token in `.env.local`:
+
+```dotenv
+NEXUS_TOKEN=your-token
+```
+
+Replace `your-token` with a long, unique secret. Do not commit `.env.local`.
+
+### Start
+
+On Windows, double-click `NexusPrime.bat`, or run:
+
+```powershell
+npm run operational:start
+```
+
+`npm run operational:start` opens [HQ](http://localhost:3000/hq) only after `/api/health` confirms that the local runtime is ready.
+
+To check readiness without launching the application:
+
+```powershell
+npm run operational:start -- --check
+```
+
+Enter the `NEXUS_TOKEN` value on the access screen. The session is stored in a secure local cookie.
+
+## Local and optional AI
+
+For an offline-first setup:
+
+```powershell
 ollama pull qwen3:8b
-# ollama serve  (listens on :11434 by default)
+ollama serve
 ```
 
-In the app: **Settings** → **Provider: Local** → endpoint `http://localhost:11434/v1/chat/completions` → model e.g. `qwen3:8b`. Optional per-task model mapping: `lib/aiModelRouting.ts`. Full HF → Ollama guide: [`docs/deployment/ollama-huggingface-local.md`](docs/deployment/ollama-huggingface-local.md). Map/news layers still use the public internet unless you avoid those features.
+Then choose Ollama in Nexus settings. The full local model setup and verification path is documented in [ollama-huggingface-local.md](./docs/deployment/ollama-huggingface-local.md).
 
----
+Optional providers, including Azure OpenAI and OpenAI-compatible endpoints, are configured through `.env.local`. Copy only the variables you need from [.env.example](./.env.example). Paid-compatible lanes remain blocked unless you explicitly enable them.
 
-## Self-hosting
+## How it works
 
-<div align="center">
+Nexus Prime uses **Next.js 15 / React 19** for the application shell, with the **Next.js 15 App Router + React 19** providing the server boundary. TypeScript defines the contracts, Zustand holds client state, Tailwind CSS and Radix UI handle presentation, and Tauri packages the native Windows and macOS app.
 
-<img src="./public/github-section-selfhost.svg" width="100%" alt="Self-hosting: docker build run env-file, Coolify doc path, health route, CSP next.config" />
-
-</div>
-
-- **Coolify / VPS** — Full walkthrough: [`docs/deployment/coolify.md`](docs/deployment/coolify.md) (Git deploy, Dockerfile or Nixpacks, port **3000**, same env vars as local).
-- **Phone while desktop is off** — Use [`docs/deployment/phone-access-coolify.md`](docs/deployment/phone-access-coolify.md): deploy to a VPS, set `NEXUS_NETWORK_MODE=internal`, keep high-risk tools off, add one free/BYOK cloud AI key, then install the HTTPS site as a phone PWA.
-- **Docker smoke test**
-
-```bash
-docker build -t aegis-vector .
-docker run --rm -p 3000:3000 --env-file .env.local aegis-vector
+```mermaid
+flowchart LR
+    A["Live feeds and local sources"] --> B["Next.js server routes"]
+    B --> C["Live context and policy boundary"]
+    C --> D["JANSKY · ORBIT · NOVA · CIPHER · FLUX"]
+    D --> E["Briefings · missions · alerts · approved actions"]
+    E --> F["Private local archive"]
+    F --> C
 ```
 
-- **Health** — `GET /api/health` (public, no Bearer).
-- **Hardening** — Non-dev builds get CSP and related headers from `next.config.js`.
+External APIs are proxied through `app/api/`; AI requests flow through `lib/ai.ts`; live context is assembled in `lib/liveContext.ts`; and the agent/tool loop lives in `lib/agent.ts`.
 
----
+## Desktop app
 
-## Desktop App (Windows & macOS)
+The same workspace can run in a native Tauri shell for Windows and macOS:
 
-Homefront runs as a native desktop app via **Tauri** — no browser tab required, binds to `127.0.0.1` only by default.
-
-```bash
-# Build the Next.js standalone runtime first
+```powershell
 npm run desktop:build-runtime
-
-# Start the local runtime (127.0.0.1:3000)
 npm run desktop:start-runtime
-
-# Open Tauri dev shell
 npm run desktop:tauri:dev
 ```
 
-If `npm run desktop:tauri:dev` fails with `could not determine executable to run`, invoke the CLI explicitly:
+See [desktop/README.md](./desktop/README.md) for prerequisites, security posture, and packaging details.
 
-```bash
-cd desktop/src-tauri
-npx --yes --package @tauri-apps/cli tauri dev
+## Project map
+
+- **`app/`** — Next.js routes, layouts, and protected server API boundaries
+- **`components/`** — shared shell plus route-specific interface components
+- **`lib/`** — agents, AI routing, live context, policies, security, and integrations
+- **`store/`** — typed Zustand application state
+- **`desktop/`** — Tauri native shell and packaged-runtime configuration
+- **`public/`** — product artwork, icons, and static assets
+- **`docs/`** — architecture, deployment, security, operating, and release guidance
+- **`tasks/`** — active work, completed milestones, and lessons from prior corrections
+
+Beta labs and internal hardware/operations routes live outside the eight GA surfaces and are intentionally not presented as finished product areas.
+
+## Development
+
+Start the development server:
+
+```powershell
+npm run dev
 ```
 
-Security profile is controlled by two env vars:
+Run the canonical local verification lane:
 
-```env
-NEXUS_NETWORK_MODE=isolated   # isolated | internal | connected
-NEXUS_ENABLE_HIGH_RISK_TOOLS=false
+```powershell
+npm run verify
 ```
 
-- **Scaffold & config** — `desktop/src-tauri/`
-- **Security checklist** — [`docs/deployment/tauri-security-checklist.md`](docs/deployment/tauri-security-checklist.md)
-- **Runbook** — [`docs/deployment/desktop-secured-runbook.md`](docs/deployment/desktop-secured-runbook.md)
-- **Migration map** — [`docs/plans/desktop-app-secure-migration-map.md`](docs/plans/desktop-app-secure-migration-map.md)
+Useful focused checks:
 
----
+```powershell
+npm run type-check
+npm run build
+npm run hq:e2e
+```
 
-## Project structure
+Repository instructions and current handoff state live in [AGENTS.md](./AGENTS.md) and [docs/AGENT_HANDOFF.md](./docs/AGENT_HANDOFF.md).
 
-<div align="center">
+## License
 
-<img src="./public/github-section-structure.svg" width="100%" alt="Project tree: app routes api, components lib store, docs tasks skills, Dockerfile middleware legacy html" />
-
-</div>
-
-- **`app/`** — App Router routes (`command`, `signals`, `intel`, …) plus **`app/api/*`**
+[MIT](./LICENSE). Nexus Prime is free software; optional third-party services keep their own terms and usage costs.

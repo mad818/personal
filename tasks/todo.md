@@ -95,6 +95,13 @@ Active open-ready queue:
 
 Phone/iPad acceptance is intentionally deferred until Mario has time to focus on it. Do not reopen that lane from this queue.
 
+- [ ] README-PROJECT-SHOWCASE-2026-07-30 — Rebuild the public GitHub README into a concise, truthful showcase of what Nexus Prime does and how an operator can run it.
+  - [x] Reconcile public claims against the current release matrix, product guarantees, architecture, supported startup lane, and shipped provider posture.
+  - [x] Capture a repository-safe product view from the real application when feasible; otherwise use only truthful existing visual assets. Local browser capture was policy-blocked, so the showcase uses the corrected banner and checked-in route artwork without claiming screenshot proof.
+  - [x] Replace the broken, infographic-heavy README with a strong hero, operator outcomes, supported surfaces, trust model, quickstart, architecture, and contributor/developer paths.
+  - [x] Validate links, images, documentation contracts, local-inference/operational copy, publication safety, and the exact staged scope before publishing a draft PR. Proof: 18 local README targets resolved; banner render inspected; documentation stack, local-inference posture, operational-start runtime contract, publication safety, type-check, handoff consistency, and isolated five-file staged-scope verification passed with zero overlaps and successful cleanup.
+  - Guardrail: no credentials, `.env.local`, private vault/device state, local paths, invented hosted demo, phone/PWA acceptance work, application behavior change, unrelated cleanup, or staging from Mario's original dirty worktree.
+
 - [ ] SECURITY-AND-GITHUB-TRIAGE-2026-07-29 — Reconcile Mario's eight-current-alert Dependabot screenshot with the active manifests, lockfiles, installed dependency tree, local security lanes, open GitHub work, and the branch/default-branch publication boundary.
   - [x] Prove which alerts are already patched in the branch lockfiles and which remain actionable.
   - [x] Repair feasible local dependency/security-tooling drift without inventing live GitHub metadata.

@@ -79,14 +79,10 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const r = await fetchSafePublicUrl(
-      parsed.href,
-      {
-        method: "HEAD",
-        signal: AbortSignal.timeout(8000),
-      },
-      { allowHttp: true },
-    );
+    const r = await fetchSafePublicUrl(parsed.href, {
+      method: "HEAD",
+      signal: AbortSignal.timeout(8000),
+    });
 
     const all: Record<string, string> = {};
     r.headers.forEach((val, key) => {

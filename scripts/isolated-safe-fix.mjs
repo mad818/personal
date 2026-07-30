@@ -341,15 +341,21 @@ function runProcess(command, args, options = {}) {
   const encoding = Object.prototype.hasOwnProperty.call(options, "encoding")
     ? options.encoding
     : "utf8";
-  const result = spawnSync(command, args, {
-    cwd: options.cwd,
-    encoding,
-    input: options.input,
-    maxBuffer: MAX_BUFFER_BYTES,
-    shell: false,
-    stdio: "pipe",
-    windowsHide: true,
-  });
+  const previousDirectory = process.cwd();
+  let result;
+  try {
+    if (options.cwd) process.chdir(options.cwd);
+    result = spawnSync(command, args, {
+      encoding,
+      input: options.input,
+      maxBuffer: MAX_BUFFER_BYTES,
+      shell: false,
+      stdio: "pipe",
+      windowsHide: true,
+    });
+  } finally {
+    if (process.cwd() !== previousDirectory) process.chdir(previousDirectory);
+  }
   return {
     status: result.status,
     stdout: result.stdout ?? "",
@@ -364,10 +370,16 @@ function runGit(repoRoot, args, options = {}) {
 }
 
 function runSafeGit(repoRoot, args, options = {}) {
-  const wrapper = path.join(repoRoot, "scripts", "git-with-acl-repair.ps1");
   return runProcess(
     "powershell",
-    ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", wrapper, ...args],
+    [
+      "-NoProfile",
+      "-ExecutionPolicy",
+      "Bypass",
+      "-File",
+      "scripts/git-with-acl-repair.ps1",
+      ...args,
+    ],
     { cwd: repoRoot, ...options },
   );
 }
@@ -670,8 +682,14 @@ async function main() {
       throw new Error("repository-owned Prettier binary is missing");
     }
     const formatterResult = runProcess(
-      process.execPath,
-      [prettierCli, "--write", "--ignore-unknown", "--", ...stagedPaths],
+      "node",
+      [
+        "node_modules/prettier/bin/prettier.cjs",
+        "--write",
+        "--ignore-unknown",
+        "--",
+        ...stagedPaths,
+      ],
       { cwd: worktreePath },
     );
     writeGateSummary(evidencePath, "formatter", formatterResult);

@@ -20,11 +20,13 @@ function readDirective(policy, name) {
   return directive.split(/\s+/);
 }
 
-function policyTokens(policy) {
-  return policy
-    .split(";")
-    .flatMap((directive) => directive.trim().split(/\s+/))
-    .filter(Boolean);
+function policyTokenSet(policy) {
+  return new Set(
+    policy
+      .split(";")
+      .flatMap((directive) => directive.trim().split(/\s+/))
+      .filter(Boolean),
+  );
 }
 
 assert.deepEqual(TRADING_VIEW_EMBED_KINDS, ["ticker", "chart"]);
@@ -75,7 +77,7 @@ for (const host of [
   "https://s.tradingview.com",
   "https://*.tradingview-widget.com",
 ]) {
-  assert.equal(policyTokens(defaultPolicy).includes(host), false, host);
+  assert.equal(policyTokenSet(defaultPolicy).has(host), false, host);
 }
 assert.equal(defaultPolicy.includes("sandbox "), false);
 assert.equal(defaultPolicy.includes("frame-ancestors"), false);
@@ -118,7 +120,7 @@ assert.ok(
   readDirective(developmentPolicy, "script-src").includes("'unsafe-eval'"),
 );
 assert.equal(
-  policyTokens(developmentPolicy).includes("https://s3.tradingview.com"),
+  policyTokenSet(developmentPolicy).has("https://s3.tradingview.com"),
   false,
 );
 

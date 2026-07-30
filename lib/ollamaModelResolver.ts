@@ -157,12 +157,43 @@ async function fetchOllamaModelList(
     if (target.pathname !== "/api/tags" && target.pathname !== "/api/ps") {
       return { reachable: false, models: [] };
     }
-    const response = await fetch(target, {
+    if (
+      target.protocol !== "http:" ||
+      target.port !== "11434" ||
+      target.search ||
+      target.hash
+    ) {
+      return { reachable: false, models: [] };
+    }
+    const requestInit: RequestInit = {
       method: "GET",
       headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
       signal: AbortSignal.timeout(3_000),
       redirect: "error",
-    });
+    };
+    let response: Response;
+    switch (`${target.hostname}${target.pathname}`) {
+      case "localhost/api/tags":
+        response = await fetch("http://localhost:11434/api/tags", requestInit);
+        break;
+      case "localhost/api/ps":
+        response = await fetch("http://localhost:11434/api/ps", requestInit);
+        break;
+      case "127.0.0.1/api/tags":
+        response = await fetch("http://127.0.0.1:11434/api/tags", requestInit);
+        break;
+      case "127.0.0.1/api/ps":
+        response = await fetch("http://127.0.0.1:11434/api/ps", requestInit);
+        break;
+      case "[::1]/api/tags":
+        response = await fetch("http://[::1]:11434/api/tags", requestInit);
+        break;
+      case "[::1]/api/ps":
+        response = await fetch("http://[::1]:11434/api/ps", requestInit);
+        break;
+      default:
+        return { reachable: false, models: [] };
+    }
     if (!response.ok) {
       return { reachable: false, models: [] };
     }

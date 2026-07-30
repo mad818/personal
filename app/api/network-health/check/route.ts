@@ -6,7 +6,7 @@ import {
 } from "@/lib/security/rateLimit";
 import { fetchTrustedInternal } from "@/lib/internalFetch";
 import {
-  assertSafePublicUrl,
+  assertSafeExternalUrl,
   fetchSafePublicUrl,
 } from "@/lib/security/networkGuards";
 import { getRoutePolicy, readNetworkMode } from "@/lib/security/routePolicy";
@@ -77,21 +77,17 @@ async function runExternalCheck(rawUrl: string) {
     };
   }
 
-  const parsed = assertSafePublicUrl(rawUrl, { allowHttp: true });
+  const parsed = assertSafeExternalUrl(rawUrl);
   const start = Date.now();
-  const response = await fetchSafePublicUrl(
-    parsed.toString(),
-    {
-      method: "GET",
-      headers: {
-        Accept: "text/plain,application/json,*/*",
-        "User-Agent": "Homefront NetworkHealth/1.0",
-      },
-      cache: "no-store",
-      signal: AbortSignal.timeout(6_000),
+  const response = await fetchSafePublicUrl(parsed.toString(), {
+    method: "GET",
+    headers: {
+      Accept: "text/plain,application/json,*/*",
+      "User-Agent": "Homefront NetworkHealth/1.0",
     },
-    { allowHttp: true },
-  );
+    cache: "no-store",
+    signal: AbortSignal.timeout(6_000),
+  });
   const ms = Date.now() - start;
   return {
     ok: response.ok,

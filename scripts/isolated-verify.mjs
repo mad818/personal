@@ -134,15 +134,21 @@ export function classifyIsolatedOutcome({ verificationPassed, cleanupPassed }) {
 
 function runProcess(command, args, options = {}) {
   const startedAt = performance.now();
-  const result = spawnSync(command, args, {
-    cwd: options.cwd,
-    encoding: options.encoding ?? "utf8",
-    input: options.input,
-    maxBuffer: MAX_BUFFER_BYTES,
-    shell: false,
-    stdio: "pipe",
-    windowsHide: true,
-  });
+  const previousDirectory = process.cwd();
+  let result;
+  try {
+    if (options.cwd) process.chdir(options.cwd);
+    result = spawnSync(command, args, {
+      encoding: options.encoding ?? "utf8",
+      input: options.input,
+      maxBuffer: MAX_BUFFER_BYTES,
+      shell: false,
+      stdio: "pipe",
+      windowsHide: true,
+    });
+  } finally {
+    if (process.cwd() !== previousDirectory) process.chdir(previousDirectory);
+  }
   return {
     status: result.status,
     stdout: result.stdout ?? "",
@@ -157,10 +163,16 @@ function runGit(repoRoot, args, options = {}) {
 }
 
 function runSafeGit(repoRoot, args, options = {}) {
-  const wrapper = path.join(repoRoot, "scripts", "git-with-acl-repair.ps1");
   return runProcess(
     "powershell",
-    ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", wrapper, ...args],
+    [
+      "-NoProfile",
+      "-ExecutionPolicy",
+      "Bypass",
+      "-File",
+      "scripts/git-with-acl-repair.ps1",
+      ...args,
+    ],
     { cwd: repoRoot, ...options },
   );
 }

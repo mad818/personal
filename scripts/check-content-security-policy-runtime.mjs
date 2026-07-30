@@ -17,11 +17,13 @@ function readDirective(policy, name) {
   return directive.split(/\s+/);
 }
 
-function policyTokens(policy) {
-  return policy
-    .split(";")
-    .flatMap((directive) => directive.trim().split(/\s+/))
-    .filter(Boolean);
+function policyTokenSet(policy) {
+  return new Set(
+    policy
+      .split(";")
+      .flatMap((directive) => directive.trim().split(/\s+/))
+      .filter(Boolean),
+  );
 }
 
 const nonces = Array.from({ length: 64 }, () =>
@@ -111,7 +113,7 @@ assert.ok(
   readDirective(development, "connect-src").includes("ws://localhost:3100"),
 );
 assert.equal(
-  policyTokens(development).includes("https://s3.tradingview.com"),
+  policyTokenSet(development).has("https://s3.tradingview.com"),
   false,
 );
 
@@ -120,12 +122,12 @@ const tradingViewEmbed = buildContentSecurityPolicy(nonce, {
   tradingViewEmbed: true,
 });
 assert.ok(
-  readDirective(tradingViewEmbed, "script-src").includes(
+  new Set(readDirective(tradingViewEmbed, "script-src")).has(
     "https://s3.tradingview.com",
   ),
 );
 assert.ok(
-  readDirective(tradingViewEmbed, "frame-src").includes(
+  new Set(readDirective(tradingViewEmbed, "frame-src")).has(
     "https://*.tradingview-widget.com",
   ),
 );

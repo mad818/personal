@@ -45,6 +45,57 @@ function allowlistedHost(hostname: string) {
   return FETCH_URL_ALLOWLIST.includes(hostname.toLowerCase());
 }
 
+function fixedPublicOrigin(hostname: string) {
+  switch (hostname.toLowerCase()) {
+    case "github.com":
+      return new URL("https://github.com");
+    case "www.github.com":
+      return new URL("https://www.github.com");
+    case "news.ycombinator.com":
+      return new URL("https://news.ycombinator.com");
+    case "www.theguardian.com":
+      return new URL("https://www.theguardian.com");
+    case "theguardian.com":
+      return new URL("https://theguardian.com");
+    case "www.reuters.com":
+      return new URL("https://www.reuters.com");
+    case "reuters.com":
+      return new URL("https://reuters.com");
+    case "www.bbc.com":
+      return new URL("https://www.bbc.com");
+    case "bbc.com":
+      return new URL("https://bbc.com");
+    case "www.cisa.gov":
+      return new URL("https://www.cisa.gov");
+    case "cisa.gov":
+      return new URL("https://cisa.gov");
+    case "nvd.nist.gov":
+      return new URL("https://nvd.nist.gov");
+    case "www.nist.gov":
+      return new URL("https://www.nist.gov");
+    case "huggingface.co":
+      return new URL("https://huggingface.co");
+    case "www.sec.gov":
+      return new URL("https://www.sec.gov");
+    case "sec.gov":
+      return new URL("https://sec.gov");
+    case "www.aljazeera.com":
+      return new URL("https://www.aljazeera.com");
+    case "aljazeera.com":
+      return new URL("https://aljazeera.com");
+    case "gdeltproject.org":
+      return new URL("https://gdeltproject.org");
+    case "www.gdeltproject.org":
+      return new URL("https://www.gdeltproject.org");
+    case "www.coingecko.com":
+      return new URL("https://www.coingecko.com");
+    case "coingecko.com":
+      return new URL("https://coingecko.com");
+    default:
+      throw new Error("Host is not on the external fetch allowlist.");
+  }
+}
+
 type SafePublicUrlOptions = {
   allowHttp?: boolean;
   allowPrivateHosts?: boolean;
@@ -113,10 +164,12 @@ export function assertSafeExternalUrl(rawUrl: string) {
 export async function fetchSafePublicUrl(
   rawUrl: string,
   init: RequestInit = {},
-  opts: SafePublicUrlOptions = {},
 ) {
-  const target = assertSafePublicUrl(rawUrl, opts);
-  await assertPublicResolvableHost(target.hostname);
+  const parsed = assertSafeExternalUrl(rawUrl);
+  await assertPublicResolvableHost(parsed.hostname);
+  const target = fixedPublicOrigin(parsed.hostname);
+  target.pathname = parsed.pathname;
+  target.search = parsed.search;
   return fetch(target, {
     ...init,
     // Redirects are deliberately exposed to the caller instead of followed;

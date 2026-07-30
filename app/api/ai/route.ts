@@ -235,30 +235,109 @@ function providerAllowedByPolicy(providerName: string, localOnlyMode: boolean) {
   return FREE_DEFAULT_PROVIDERS.has(providerName);
 }
 
-function resolveProviderRequestUrl(
+async function fetchLocalOllamaChat(rawEndpoint: string, init: RequestInit) {
+  const endpoint = new URL(normalizeOllamaEndpoint(rawEndpoint));
+  if (
+    endpoint.protocol !== "http:" ||
+    endpoint.port !== "11434" ||
+    endpoint.pathname !== "/v1/chat/completions" ||
+    endpoint.search ||
+    endpoint.hash
+  ) {
+    throw new Error("Ollama chat endpoint must use the local port 11434.");
+  }
+  switch (endpoint.hostname) {
+    case "localhost":
+      return fetch("http://localhost:11434/v1/chat/completions", init);
+    case "127.0.0.1":
+      return fetch("http://127.0.0.1:11434/v1/chat/completions", init);
+    case "[::1]":
+      return fetch("http://[::1]:11434/v1/chat/completions", init);
+    default:
+      throw new Error("Ollama chat endpoint must use a loopback host.");
+  }
+}
+
+async function fetchLocalTurboQuantChat(init: RequestInit) {
+  const config = readLocalAccelerationConfig();
+  const endpoint = validateLocalAccelerationEndpoint(
+    config.turboQuant.openAiEndpoint,
+    false,
+  );
+  if (
+    endpoint.protocol !== "http:" ||
+    endpoint.port !== "8000" ||
+    endpoint.pathname !== "/v1/chat/completions" ||
+    endpoint.search ||
+    endpoint.hash
+  ) {
+    throw new Error("TurboQuant chat endpoint must use the local port 8000.");
+  }
+  switch (endpoint.hostname) {
+    case "localhost":
+      return fetch("http://localhost:8000/v1/chat/completions", init);
+    case "127.0.0.1":
+      return fetch("http://127.0.0.1:8000/v1/chat/completions", init);
+    case "[::1]":
+      return fetch("http://[::1]:8000/v1/chat/completions", init);
+    default:
+      throw new Error("TurboQuant chat endpoint must use a loopback host.");
+  }
+}
+
+async function fetchProviderRequest(
   providerName: string,
-  provider: Provider,
-  optionsUrl: string | undefined,
+  ollamaUrl: string | undefined,
   azureChatCompletionsUrl: string | undefined,
+  init: RequestInit,
 ) {
   if (providerName === "ollama") {
-    return new URL(normalizeOllamaEndpoint(optionsUrl ?? provider.url));
+    return fetchLocalOllamaChat(
+      ollamaUrl ?? "http://localhost:11434/v1/chat/completions",
+      init,
+    );
   }
   if (providerName === "turboquant") {
-    return validateLocalAccelerationEndpoint(
-      optionsUrl ?? provider.url,
-      readLocalAccelerationConfig().allowTailnet,
-    );
+    return fetchLocalTurboQuantChat(init);
   }
   if (providerName === "azure") {
     if (!azureChatCompletionsUrl) {
       throw new Error("Azure OpenAI endpoint is not configured.");
     }
-    return new URL(azureChatCompletionsUrl);
+    const target = new URL(azureChatCompletionsUrl);
+    const hostname = target.hostname.toLowerCase();
+    if (
+      target.protocol !== "https:" ||
+      target.pathname !== "/openai/v1/chat/completions" ||
+      target.port ||
+      target.search ||
+      target.hash ||
+      (!hostname.endsWith(".openai.azure.com") &&
+        !hostname.endsWith(".services.ai.azure.com"))
+    ) {
+      throw new Error("Azure OpenAI endpoint escaped the approved boundary.");
+    }
+    return fetch(target, init);
   }
-  // Cloud providers use only their fixed server-side registry URL. A request
-  // body can never override these destinations.
-  return new URL(provider.url);
+  switch (providerName) {
+    case "groq":
+      return fetch("https://api.groq.com/openai/v1/chat/completions", init);
+    case "openrouter":
+      return fetch("https://openrouter.ai/api/v1/chat/completions", init);
+    case "google":
+      return fetch(
+        "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        init,
+      );
+    case "anthropic":
+      return fetch("https://api.anthropic.com/v1/messages", init);
+    case "openai":
+      return fetch("https://api.openai.com/v1/chat/completions", init);
+    case "minimax":
+      return fetch("https://api.minimax.io/v1/chat/completions", init);
+    default:
+      throw new Error("Unknown AI provider.");
+  }
 }
 
 // ── Call a single provider ────────────────────────────────────────────────────
@@ -322,20 +401,19 @@ async function callProvider(
   }
 
   try {
-    const requestUrl = resolveProviderRequestUrl(
-      providerName,
-      p,
-      options?.url,
-      azureConfig?.chatCompletionsUrl,
-    );
-    const r = await fetch(requestUrl, {
+    const requestInit = {
       method: "POST",
       headers: p.headers(key),
       body: JSON.stringify(body),
       redirect: "error",
-      // @ts-expect-error — Node 18 fetch supports duplex for streaming
       duplex: "half",
-    });
+    } satisfies RequestInit & { duplex: "half" };
+    const r = await fetchProviderRequest(
+      providerName,
+      options?.url,
+      azureConfig?.chatCompletionsUrl,
+      requestInit,
+    );
     if (!r.ok) return null;
     return r;
   } catch {

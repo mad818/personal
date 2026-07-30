@@ -96,7 +96,7 @@ async function main() {
 
   try {
     const context = await browser.newContext({
-      viewport: { width: 1600, height: 1000 },
+      viewport: { width: 1600, height: 720 },
       deviceScaleFactor: 1,
       colorScheme: "dark",
       reducedMotion: "reduce",
@@ -105,16 +105,8 @@ async function main() {
     const page = await context.newPage();
 
     await page.addInitScript(() => {
-      const settings = {
-        state: {
-          settings: {
-            hqCompactOperatorLayout: false,
-            hqConsoleFocusMode: "command",
-          },
-        },
-        version: 1,
-      };
-      window.localStorage.setItem("nexus-settings", JSON.stringify(settings));
+      window.localStorage.clear();
+      window.sessionStorage.clear();
     });
 
     const authResponse = await page.request.post(
@@ -147,8 +139,13 @@ async function main() {
       state: "visible",
       timeout: 20_000,
     });
+    await page.evaluate(() => window.scrollTo({ top: 0, left: 0 }));
+    const repairNotice = page.getByTestId("persisted-shell-state-notice");
+    if (await repairNotice.isVisible().catch(() => false)) {
+      await repairNotice.waitFor({ state: "hidden", timeout: 10_000 });
+    }
     await page.evaluate(() => document.fonts.ready);
-    await page.waitForTimeout(1_200);
+    await page.waitForTimeout(5_000);
 
     const visibleText = await page.locator("body").innerText();
     if (visibleText.includes(token)) {
@@ -173,7 +170,7 @@ async function main() {
   }
 
   console.log(
-    "ok readme-showcase-capture (1600x1000, loopback-only, publish-safe acknowledgement required)",
+    "ok readme-showcase-capture (1600x720, loopback-only, publish-safe acknowledgement required)",
   );
   console.log(
     `artifact: ${path.relative(root, outputPath).replaceAll("\\", "/")}`,

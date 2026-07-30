@@ -40,6 +40,9 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Build production Nexus runtime
+        run: npm run build
+
       - name: Initialize masked one-run token
         shell: bash
         run: |
@@ -50,7 +53,7 @@ jobs:
       - name: Start isolated Nexus runtime
         shell: bash
         run: |
-          npm run dev > "$RUNNER_TEMP/nexus-readme-showcase.log" 2>&1 &
+          npm run start > "$RUNNER_TEMP/nexus-readme-showcase.log" 2>&1 &
           echo "$!" > "$RUNNER_TEMP/nexus-readme-showcase.pid"
           for attempt in {1..90}; do
             if curl --fail --silent http://127.0.0.1:3100/api/health > /dev/null; then

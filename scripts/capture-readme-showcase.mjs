@@ -119,27 +119,21 @@ async function main() {
       fail(`local authentication returned HTTP ${authResponse.status()}`);
     }
 
-    await page.goto(
-      new URL("/command?focus=runtime-efficiency", baseUrl).toString(),
-      {
-        waitUntil: "domcontentloaded",
-        timeout: 45_000,
-      },
-    );
+    await page.goto(new URL("/command", baseUrl).toString(), {
+      waitUntil: "domcontentloaded",
+      timeout: 45_000,
+    });
     await page.getByTestId("toprail-brand").waitFor({
       state: "visible",
       timeout: 20_000,
     });
 
-    const showcaseTarget = page.locator("#command-runtime-efficiency");
+    const showcaseTarget = page.locator(".nexus-command-mission-strip");
     await showcaseTarget.waitFor({
       state: "visible",
       timeout: 20_000,
     });
-    await showcaseTarget.scrollIntoViewIfNeeded();
-    await page.evaluate(() => {
-      window.scrollBy({ top: -176, left: 0, behavior: "instant" });
-    });
+    await page.evaluate(() => window.scrollTo({ top: 0, left: 0 }));
     const repairNotice = page.getByTestId("persisted-shell-state-notice");
     if (await repairNotice.isVisible().catch(() => false)) {
       await repairNotice.waitFor({ state: "hidden", timeout: 10_000 });

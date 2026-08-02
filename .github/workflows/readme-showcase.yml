@@ -64,14 +64,14 @@ jobs:
           cat "$RUNNER_TEMP/nexus-readme-showcase.log"
           exit 1
 
-      - name: Capture publish-safe HQ
+      - name: Capture publish-safe COMMAND surface
         run: npm run readme:showcase:capture
 
       - name: Upload showcase artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nexus-prime-hq-showcase
-          path: output/playwright/nexus-prime-hq-showcase.webp
+          name: nexus-prime-command-showcase
+          path: output/playwright/nexus-prime-command-showcase.webp
           if-no-files-found: error
           retention-days: 7
 

@@ -100,11 +100,19 @@ Phone/iPad acceptance is intentionally deferred until Mario has time to focus on
   - [x] Capture a repository-safe product view from the real application when feasible; otherwise use only truthful existing visual assets. Local browser capture was policy-blocked, so the showcase uses the corrected banner and checked-in route artwork without claiming screenshot proof.
   - [x] Replace the broken, infographic-heavy README with a strong hero, operator outcomes, supported surfaces, trust model, quickstart, architecture, and contributor/developer paths.
   - [x] Validate links, images, documentation contracts, local-inference/operational copy, publication safety, and the exact staged scope before publishing a draft PR. Proof: 18 local README targets resolved; banner render inspected; documentation stack, local-inference posture, operational-start runtime contract, publication safety, type-check, handoff consistency, and isolated five-file staged-scope verification passed with zero overlaps and successful cleanup.
-  - [ ] Strongest-showcase follow-up: produce one real, wide, privacy-reviewed HQ product image through a sanctioned local capture path, place it near the top of the README, and keep the eight-surface route-art tour as the deeper product map.
-    - [ ] Prove the capture path and frame a representative HQ state without exposing credentials, cookies, prompts, private archive content, account/device details, or raw local paths.
+  - [ ] Strongest-showcase follow-up: produce one real, wide, privacy-reviewed product image through a sanctioned local capture path, place it near the top of the README, and keep the eight-surface route-art tour as the deeper product map.
+    - [ ] Prove the capture path and frame the production COMMAND runtime-efficiency surface without exposing credentials, cookies, prompts, private archive content, account/device details, raw local paths, or deferred phone setup.
     - [ ] Save one optimized repository asset under `public/images/` with useful alt text and replace generic top-of-page explanation with direct product proof.
     - [ ] Inspect the final image, validate README targets and publication safety, run the required repository gates, refresh the handoff, and update draft PR 69 without widening scope.
   - Guardrail: no credentials, `.env.local`, private vault/device state, local paths, invented hosted demo, phone/PWA acceptance work, application behavior change, unrelated cleanup, or staging from Mario's original dirty worktree.
+
+- [ ] REPOSITORY-RECORD-CLEANUP-2026-08-02 — Remove tracked update debris that Git already preserves while retaining executable tests, current evidence, and release-critical archives.
+  - [x] Reconcile PR 69, the `35373eab` RPG-retirement commit, `tests/e2e`, archive quarantine, and current handoff/task authority before deleting anything.
+  - [ ] Classify timestamped metrics, generated snapshots, historical task prose, retired archives, and one-off README capture tooling by live references and executable dependency.
+  - [ ] Remove only proven-unreferenced or superseded records, update live references to stable current evidence, and prevent renewed timestamped accumulation where feasible.
+  - [ ] Keep active E2E coverage and any archive files required by current validators, security quarantine, or truthful project documentation.
+  - [ ] Run focused validators, TypeScript, canonical verification, publication safety, handoff consistency, and exact-scope Git review before updating draft PR 69.
+  - Guardrail: no Git history rewrite, executable-test deletion, release/security evidence fabrication, active runtime behavior change, private data exposure, phone/PWA work, or cleanup outside proven tracked debris.
 
 - [ ] SECURITY-AND-GITHUB-TRIAGE-2026-07-29 — Reconcile Mario's eight-current-alert Dependabot screenshot with the active manifests, lockfiles, installed dependency tree, local security lanes, open GitHub work, and the branch/default-branch publication boundary.
   - [x] Prove which alerts are already patched in the branch lockfiles and which remain actionable.

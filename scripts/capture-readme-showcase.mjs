@@ -133,7 +133,10 @@ async function main() {
       state: "visible",
       timeout: 20_000,
     });
-    await page.evaluate(() => window.scrollTo({ top: 0, left: 0 }));
+    await showcaseTarget.evaluate((element) => {
+      const top = element.getBoundingClientRect().top + window.scrollY - 132;
+      window.scrollTo({ top: Math.max(0, top), left: 0, behavior: "instant" });
+    });
     const repairNotice = page.getByTestId("persisted-shell-state-notice");
     if (await repairNotice.isVisible().catch(() => false)) {
       await repairNotice.waitFor({ state: "hidden", timeout: 10_000 });

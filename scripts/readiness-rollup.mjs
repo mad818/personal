@@ -258,7 +258,7 @@ function main() {
     ],
   };
 
-  const fileName = `readiness-rollup-${capturedAt.replace(/[:.]/g, "-")}.json`;
+  const fileName = "readiness-rollup-latest.json";
   const outPath = join(metricsDir, fileName);
   writeFileSync(outPath, `${JSON.stringify(sanitize(artifact), null, 2)}\n`);
 

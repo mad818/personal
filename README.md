@@ -16,6 +16,10 @@
 
 </div>
 
+![Nexus Prime Field Manual cross-surface capability audit](./public/images/nexus-prime-system-showcase.webp)
+
+_The production Field Manual maps each surface to its strongest operational role, posture, and next action._
+
 ## What Nexus Prime does
 
 Nexus Prime brings markets, world events, cyber intelligence, open-source research, automation, local notes, and AI-assisted analysis into one operator-owned workspace. Instead of switching among disconnected feeds and tools, you can move through one repeatable loop:

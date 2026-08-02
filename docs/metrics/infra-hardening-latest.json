@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-05-09T22:28:42.970Z",
+  "capturedAt": "2026-08-02T08:17:20.545Z",
   "auditName": "SECURITY-INFRASTRUCTURE-HARDENING",
   "checks": [
     {
@@ -9,9 +9,9 @@
       "critical": true,
       "ok": true,
       "exitCode": 0,
-      "durationMs": 1080,
+      "durationMs": 575,
       "summary": [
-        "Publication safety OK (tracked files contain no private LAN IPs, local home paths, env files, key material, or raw proof metadata)."
+        "Publication safety OK (tracked files respect cloud/local boundary and contain no private LAN IPs, local home paths, env files, key material, or raw proof metadata)."
       ]
     },
     {
@@ -21,7 +21,7 @@
       "critical": true,
       "ok": true,
       "exitCode": 0,
-      "durationMs": 63,
+      "durationMs": 120,
       "summary": [
         "✅ security-scan: clean"
       ]
@@ -33,9 +33,9 @@
       "critical": false,
       "ok": true,
       "exitCode": 0,
-      "durationMs": 35,
+      "durationMs": 112,
       "summary": [
-        "✅ tauri-security: capability + CSP checks passed"
+        "✅ tauri-security: capability + CSP + Windows/macOS release-scope checks passed"
       ]
     },
     {
@@ -45,9 +45,9 @@
       "critical": false,
       "ok": true,
       "exitCode": 0,
-      "durationMs": 37,
+      "durationMs": 322,
       "summary": [
-        "Security boundary OK (middleware, route policy, protected helpers, high-risk routes, and protected 401/403 posture are wired)."
+        "Security boundary OK (middleware, route policy, signed session tiers, protected helpers, high-risk routes, and protected 401/403 posture are wired)."
       ]
     },
     {
@@ -57,11 +57,11 @@
       "critical": false,
       "ok": true,
       "exitCode": 0,
-      "durationMs": 145,
+      "durationMs": 239,
       "summary": [
-        "Dependency risk posture written: docs/metrics/dependency-risk-posture-2026-05-09T22-28-44-321Z.json",
-        "Package graph: 40 runtime direct, 23 dev direct, 1070 transitive lockfile packages.",
-        "Warnings: 1"
+        "Dependency risk posture written: docs/metrics/dependency-risk-posture-latest.json",
+        "Package graph: 39 runtime direct, 22 dev direct, 1042 transitive lockfile packages.",
+        "Install-script review: 3 consumer package(s), 3 reviewed, 0 unreviewed, 363 publisher-only metadata package(s)."
       ]
     },
     {
@@ -71,10 +71,10 @@
       "critical": false,
       "ok": true,
       "exitCode": 0,
-      "durationMs": 41,
+      "durationMs": 66,
       "summary": [
-        "Dependabot security audit starter written: docs/metrics/dependabot-security-audit-2026-05-09T22-28-44-361Z.json",
-        "Known warning captured: 75 alerts (3 critical, 23 high, 39 moderate, 10 low)."
+        "Dependabot security audit starter written: docs/metrics/dependabot-security-audit-latest.json",
+        "Historical warning retained: 75 alerts (3 critical, 23 high, 39 moderate, 10 low); current open-alert count remains unknown without an import."
       ]
     },
     {
@@ -84,7 +84,7 @@
       "critical": false,
       "ok": true,
       "exitCode": 0,
-      "durationMs": 37,
+      "durationMs": 53,
       "summary": [
         "Phone LAN readiness OK (free local runbook, opt-in LAN launcher, env defaults, and readiness surfacing wired)."
       ]
@@ -92,14 +92,14 @@
   ],
   "artifacts": {
     "dependencyRiskPosture": {
-      "file": "docs/metrics/dependency-risk-posture-2026-05-09T22-28-44-321Z.json",
-      "capturedAt": "2026-05-09T22:28:44.321Z",
+      "file": "docs/metrics/dependency-risk-posture-latest.json",
+      "capturedAt": "2026-08-02T08:17:21.902Z",
       "ready": true,
       "blocked": []
     },
     "dependabotAudit": {
-      "file": "docs/metrics/dependabot-security-audit-2026-05-09T22-28-44-361Z.json",
-      "capturedAt": "2026-05-09T22:28:44.361Z",
+      "file": "docs/metrics/dependabot-security-audit-latest.json",
+      "capturedAt": "2026-08-02T08:17:21.959Z",
       "ready": false,
       "blocked": [
         "GitHub Dependabot alert details are not reachable from this Codex shell.",
@@ -108,8 +108,8 @@
       ]
     },
     "releaseDiagnostics": {
-      "file": "docs/metrics/release-diagnostics-2026-05-09T13-04-08-863Z.json",
-      "capturedAt": "2026-05-09T13:04:08.863Z",
+      "file": "docs/metrics/release-diagnostics-latest.json",
+      "capturedAt": "2026-06-20T19:29:37.871Z",
       "ready": false,
       "blocked": [
         "NEXUS_RELEASE_BASE_URL is missing; capture used local fallback.",
@@ -117,13 +117,12 @@
       ]
     },
     "readinessRollup": {
-      "file": "docs/metrics/readiness-rollup-2026-05-09T16-21-31-697Z.json",
-      "capturedAt": "2026-05-09T16:21:31.697Z",
+      "file": "docs/metrics/readiness-rollup-latest.json",
+      "capturedAt": "2026-06-20T20:25:31.264Z",
       "ready": false,
       "blocked": [
-        "Phone/PWA acceptance is still open because the latest sanitized phone artifact is not acceptanceReady.",
-        "Release diagnostics are still blocked by staged-host or Docker proof gaps.",
-        "Dependabot audit is started but detailed GitHub alert metadata is still pending."
+        "Phone/iPad PWA acceptance is still open (desktop local AI and LAN proof are complete).",
+        "Release diagnostics are still blocked by staged-host or Docker proof gaps."
       ]
     }
   },

@@ -52,7 +52,6 @@ desktop/src-tauri/target/
 desktop/packaged-runtime/
 playwright-report/
 test-results/
-output/playwright/
 *.pem
 *.key
 *.p12

@@ -650,7 +650,7 @@ function main() {
       : "Export GitHub Dependabot metadata from normal PowerShell, then run npm run dependabot:audit:classify -- --alerts=docs\\metrics\\dependabot-alerts-source.json.",
   };
 
-  const fileName = `dependabot-security-audit-${capturedAt.replace(/[:.]/g, "-")}.json`;
+  const fileName = "dependabot-security-audit-latest.json";
   const outPath = join(metricsDir, fileName);
   const displayPath = relative(root, outPath).replace(/\\/g, "/");
 

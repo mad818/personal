@@ -35,10 +35,9 @@ Per-commit message / SHA / file lists are **omitted** here so this file stays st
 
 ### What’s next (from `tasks/todo.md`)
 
-- ADAPTIVE-CAPABILITY-ASSURANCE-2026-08-03 — Make Nexus continuously improve from verified outcomes while every capability truthfully communicates its information, actions, readiness, and most efficient safe next path. Spec:...
 - SECURITY-AND-GITHUB-TRIAGE-2026-07-29 — Reconcile Mario's eight-current-alert Dependabot screenshot with the active manifests, lockfiles, installed dependency tree, local security lanes, open GitHub work, and the branch/default-branch publication boundary.
 - AURORA-WHOLE-PRODUCT-VISUAL-AND-FETCH-RELIABILITY — Sharpen the shared Homefront Aurora system across every GA route and make live-data loading truthful, retained, cancellable, and visible. Spec: `specs/features/aurora-whole-product-visual-and-fetch-reliability.md`.
-- Queue posture: 3 actionable and 7 blocked/manual tasks remain context-only.
+- Queue posture: 2 actionable and 7 blocked/manual tasks remain context-only.
 - Review the full classified queue only when prerequisites change: `npm run orbit:next -- --all`.
 - Canonical task evidence: `tasks/todo.md` → `## Next Up`.
 

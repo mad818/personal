@@ -161,3 +161,6 @@ Each capability displays:
 - The temporary QA runtime and browser sessions are stopped, and the local
   evidence store plus browser artifacts remain ignored or removed rather than
   entering publication scope.
+- PR 70 proves the published revision with green canonical verification,
+  quality, path safety, JavaScript/TypeScript CodeQL, and Rust CodeQL checks;
+  dependency review is correctly skipped because the tranche adds no package.

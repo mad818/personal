@@ -177,7 +177,7 @@ export async function POST(req: NextRequest) {
     return protectedJson({
       ok: true,
       available: true,
-      receiptId: result.receipt.id,
+      outcomeId: result.receipt.id,
       proposedLearningIds: result.proposals.map((entry) => entry.id),
     });
   } catch (error) {

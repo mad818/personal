@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import ActionSessionCluster from "@/components/ui/ActionSessionCluster";
+import CapabilityAssurancePanel from "@/components/ui/CapabilityAssurancePanel";
 import NativeCapabilityAuditCard from "@/components/ui/NativeCapabilityAuditCard";
 import { SectionLabel, ShellBadge } from "@/components/ui/shell";
 import { SurfaceCallout } from "@/components/ui/surfacePrimitives";
@@ -142,6 +143,14 @@ export default function SurfaceCapabilitiesConsole() {
               title={`${selectedSurface.title} native audit`}
               detail="Read the current route’s workflow, memory, context, and browser posture before opening a new exact session or companion stack."
               workflowCatalogCount={HQ_WORKFLOW_CATALOG.length}
+            />
+          </div>
+
+          <div style={{ gridColumn: "1 / -1" }}>
+            <CapabilityAssurancePanel
+              title="Capability truth manual"
+              detail="Inspect what Nexus can inform or do, its proof-backed readiness, and the safest efficient route before acting."
+              compact
             />
           </div>
 

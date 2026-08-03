@@ -95,6 +95,16 @@ Active open-ready queue:
 
 Phone/iPad acceptance is intentionally deferred until Mario has time to focus on it. Do not reopen that lane from this queue.
 
+- [ ] ADAPTIVE-CAPABILITY-ASSURANCE-2026-08-03 — Make Nexus continuously improve from verified outcomes while every capability truthfully communicates its information, actions, readiness, and most efficient safe next path. Spec: `specs/features/adaptive-capability-assurance.md`.
+  - [x] Add a versioned assurance contract for every canonical assistant capability, including information semantics, action/approval posture, prerequisites, verification, recovery, and free/local-first efficiency targets.
+  - [x] Extend completed agent runs with privacy-safe capability outcome receipts and a bounded ignored local evidence store.
+  - [x] Repair the missing learning API, keep `/api/agent-learnings` as a truthful compatibility lane, and require evidence plus explicit operator approval before any lesson can influence future prompt context.
+  - [x] Aggregate verified outcomes into ready, degraded, retained, unavailable, approval-required, and unverified states with decay, deduplication, known weaknesses, and safe next-action ranking.
+  - [x] Mount one shared Capability Assurance panel in COMMAND, Skills, and Field Manual/System with complete loading, empty, unavailable, retry, information, action, verification, recovery, and efficiency states.
+  - [ ] Add contract/reachability/API/reinforcement/UI fixtures, wire the focused gate into canonical verification, and complete TypeScript, lint, formatting, publication, security, build, exact-scope, handoff, and remote proof.
+  - Guardrail: no autonomous source edit, self-granted permission, automatic lesson approval, direct provider call, prompt/answer persistence, tracked live-learning data, new top-level route, phone/PWA work, deployment, dependency, telemetry service, or unrelated redesign.
+  - Progress: all 13 contracts, run receipts, bounded local store, repaired protected APIs, six-state readiness aggregation, safe-action ranking, approval-gated reinforcement, and shared UI mounts are implemented in the isolated branch. The focused assurance gate, canonical verification, 41-page production build, performance budget, and authenticated Edge QA pass; handoff and remote publication proof remain.
+
 - [ ] SECURITY-AND-GITHUB-TRIAGE-2026-07-29 — Reconcile Mario's eight-current-alert Dependabot screenshot with the active manifests, lockfiles, installed dependency tree, local security lanes, open GitHub work, and the branch/default-branch publication boundary.
   - [x] Prove which alerts are already patched in the branch lockfiles and which remain actionable.
   - [x] Repair feasible local dependency/security-tooling drift without inventing live GitHub metadata.

@@ -256,18 +256,6 @@ export function queueOfficeRunSideEffects({
     /* best-effort */
   }
 
-  void apiFetch("/api/agent-learnings", {
-    method: "POST",
-    body: JSON.stringify({
-      agent: target,
-      query: query.slice(0, 200),
-      answer: result.slice(0, 300),
-      outcome: "success",
-    }),
-  }).catch(() => {
-    /* best-effort */
-  });
-
   if (!workflow) return;
   if (workflow.outputTarget !== "compiled_memory_page") return;
 

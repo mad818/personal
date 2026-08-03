@@ -28,9 +28,22 @@ export function useSchedulerEfficiencyReadiness(limit = 12, enabled = true) {
         `scheduler-efficiency:limit=${limit}`,
         async () => {
           const response = await apiFetch(
-            `/api/metrics/runtime-eval/scheduler-efficiency?limit=${limit}`,
+            `/api/metrics/runtime-eval?limit=${limit}`,
           );
-          return await response.json();
+          if (!response.ok) {
+            throw new Error("Scheduler efficiency request failed.");
+          }
+          const envelope = (await response.json()) as {
+            schedulerEfficiency?: unknown;
+          };
+          return (
+            envelope.schedulerEfficiency ?? {
+              status: "unavailable",
+              latest: null,
+              history: [],
+              points: 0,
+            }
+          );
         },
         15_000,
       );

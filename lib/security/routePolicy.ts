@@ -57,6 +57,11 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
     public: false,
   },
   { prefix: "/api/agent-health", routeClass: "local_only", public: false },
+  {
+    prefix: "/api/capability-assurance",
+    routeClass: "local_only",
+    public: false,
+  },
   { prefix: "/api/agent-learnings", routeClass: "local_only", public: false },
   {
     prefix: "/api/free-local-readiness",

@@ -36,6 +36,8 @@ import type { ArticleReasoningIndex } from '@/lib/articleReasoning'
 import type { VoiceProfile, VoiceProject } from '@/lib/voiceLab'
 import type { RuntimeContinuityReceipt } from '@/lib/runtimeAuthority'
 import type { AgentExecutionSummary } from '@/lib/agentExecutionContract'
+import type { CapabilityOutcomeReceipt } from '@/lib/capabilityAssurance'
+import type { AssistantCapabilityId } from '@/lib/governanceCatalog'
 // ── Lessons engine types ──────────────────────────────────────────────────────
 export interface Lesson {
   id:               number
@@ -262,6 +264,9 @@ export interface AgentRunArtifact {
   contextChars: number
   contextCompacted: boolean
   executionContract?: AgentExecutionSummary
+  capabilityId?: AssistantCapabilityId
+  capabilityConfidence?: number
+  assuranceReceipt?: CapabilityOutcomeReceipt
   toolTraces: AgentToolTrace[]
   efficiency: AgentEfficiencyMetrics
   continuity: RuntimeContinuityReceipt

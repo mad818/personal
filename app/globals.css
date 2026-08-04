@@ -1632,7 +1632,7 @@ body::before {
   pointer-events: none;
   background:
     linear-gradient(180deg, rgba(2, 5, 9, 0.24), rgba(2, 5, 9, 0.9)),
-    url("/theme/aegis-cosmos.svg") center 12% / cover no-repeat;
+    url("/theme/nexus-cosmos.svg") center 12% / cover no-repeat;
   opacity: 0.16;
   transform: scale(1.03);
   filter: saturate(0.74) contrast(1.14) brightness(0.86);
@@ -1757,7 +1757,7 @@ body {
       rgba(3, 5, 8, 0.42) 64%,
       rgba(3, 5, 8, 0.98) 100%
     ),
-    url("/theme/aegis-cosmos.svg") right 10% top 12% / 620px auto no-repeat;
+    url("/theme/nexus-cosmos.svg") right 10% top 12% / 620px auto no-repeat;
   opacity: var(--nexus-atmosphere-world-opacity);
 }
 

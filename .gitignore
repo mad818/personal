@@ -24,6 +24,18 @@ docs/metrics/dependabot-alerts-source*.json
 docs/metrics/dependabot-security-audit-2026-05-24T22-43-47-493Z.json
 agent-workspace/feynman/sessions/
 agent-workspace/feynman/tmp/
+# Runtime-created agent notes, research state, and operator workspace data.
+agent-workspace/
+# Generated desktop snapshot; Tauri packages the canonical standalone build.
+desktop/frontend-dist/
+# Superseded local launcher retained on existing machines only.
+start-nexus.ps1
+# Retired README/capture exports kept out of the current product surface.
+public/github-*.svg
+public/groqlabs-logo-black.png
+public/images/hero_bg.jpeg
+public/office/la-skyline.jpg
+public/theme/sadie-*.jpg
 *.log
 .nexus-runtime-identity.json
 .nexus-runtime.pid

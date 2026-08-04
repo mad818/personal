@@ -9,7 +9,7 @@ pretending retired archive manifests are live application dependencies.
 
 - Every installed `postcss` copy must be at least `8.5.10`.
 - Every installed `prismjs` copy must be at least `1.30.0`.
-- Every installed `brace-expansion` `5.x` copy must be at least `5.0.6`.
+- Every installed `brace-expansion` copy must be at least `5.0.9`.
 - The desktop lockfile must use `tauri` at least `2.11.1`.
 - The desktop lockfile must not contain vulnerable `rand` `0.7.x` or `0.8.x`
   copies below `0.8.6`.

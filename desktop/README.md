@@ -1,12 +1,11 @@
-# Nexus Desktop Host (bootstrap)
+# Nexus Prime desktop host
 
-This folder is the landing zone for the desktop host layer (Tauri-first) described in:
-`docs/plans/desktop-app-secure-migration-map.md`.
+The desktop release uses Tauri 2 to host the same verified Next.js standalone
+runtime as the web application. Windows and macOS are the supported release
+targets. Linux bundles remain disabled until their dependency and signing
+posture is separately approved.
 
-Supported release platforms are Windows and macOS. Linux bundles are intentionally
-disabled until their dependency chain and signing strategy are separately approved.
-
-## Current bootstrap
+## Build and run
 
 - Build standalone runtime:
 
@@ -20,19 +19,40 @@ npm run desktop:build-runtime
 npm run desktop:start-runtime
 ```
 
-- Tauri shell (initial scaffold):
+- Open the Tauri development shell:
 
 ```bash
 npm run desktop:tauri:dev
 ```
 
-The runtime launcher uses the repo-root `.next/standalone/server.js`, and the Tauri shell consumes the same bundle via `../../.next/standalone` from `desktop/src-tauri/tauri.conf.json`.
+The runtime launcher uses `.next/standalone/server.js`. Tauri consumes that
+same canonical output through `../../.next/standalone` in
+`desktop/src-tauri/tauri.conf.json`. Generated frontend snapshots are not
+tracked under `desktop/`; rebuild from the current source and lockfiles instead.
 
-It defaults to:
+The runtime defaults to:
+
 - `HOSTNAME=127.0.0.1`
 - `PORT=3000`
 
-## Security profile variables
+## Release and security contract
+
+The checked-in desktop inputs are limited to the Tauri manifest, Rust source,
+capability policy, generated Tauri schemas, packaging templates, and required
+icons. A release candidate must pass:
+
+```bash
+npm run security:tauri
+npm run desktop:sbom:check
+npm run desktop:isolation:check
+npm run desktop:trust-chain:check
+```
+
+Signing identities and packaged installers are operator-supplied release
+evidence. The repository does not claim a signed desktop release until those
+artifacts exist and their checksums are recorded.
+
+Use these profile variables with the centralized route policy:
 
 Use with route policy controls:
 
@@ -46,13 +66,14 @@ NEXUS_NETWORK_MODE=isolated
 NEXUS_ENABLE_HIGH_RISK_TOOLS=false
 ```
 
-For full operating procedure, see:
-`docs/deployment/desktop-secured-runbook.md`
+For the full operating procedure, see
+`docs/deployment/desktop-secured-runbook.md`.
 
-For Tauri-specific isolation/signing implementation tasks, see:
-`docs/deployment/tauri-security-checklist.md`
+For the Tauri isolation and signing checklist, see
+`docs/deployment/tauri-security-checklist.md`.
 
-Scaffolded files live in:
+Release-owned inputs include:
+
 - `desktop/src-tauri/Cargo.toml`
 - `desktop/src-tauri/tauri.conf.json`
 - `desktop/src-tauri/capabilities/default.json`

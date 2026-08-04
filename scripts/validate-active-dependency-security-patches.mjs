@@ -70,8 +70,8 @@ if (packageJson?.overrides?.["js-yaml"] !== "4.3.0") {
 if (packageJson?.overrides?.sharp !== "0.35.0") {
   fail("package.json must override transitive sharp to 0.35.0");
 }
-if (packageJson?.overrides?.["brace-expansion"] !== "5.0.8") {
-  fail("package.json must override brace-expansion globally to 5.0.8");
+if (packageJson?.overrides?.["brace-expansion"] !== "5.0.9") {
+  fail("package.json must override brace-expansion globally to 5.0.9");
 }
 
 const npmFloors = new Map([
@@ -81,7 +81,7 @@ const npmFloors = new Map([
   ["js-yaml", "4.3.0"],
   ["next", "15.5.21"],
   ["sharp", "0.35.0"],
-  ["brace-expansion", "5.0.8"],
+  ["brace-expansion", "5.0.9"],
 ]);
 
 for (const [path, metadata] of Object.entries(packages)) {
@@ -151,7 +151,7 @@ if (process.exitCode) {
 }
 
 console.log(
-  `ok active-dependency-security (Next image optimizer disabled and SVG optimization denied; next>=15.5.21, sharp>=0.35.0, postcss>=8.5.25, prismjs>=1.30.0, ws>=8.21.0, js-yaml>=4.3.0, brace-expansion>=5.0.8 globally, tauri>=2.11.1, serde_with>=3.21.0${
+  `ok active-dependency-security (Next image optimizer disabled and SVG optimization denied; next>=15.5.21, sharp>=0.35.0, postcss>=8.5.25, prismjs>=1.30.0, ws>=8.21.0, js-yaml>=4.3.0, brace-expansion>=5.0.9 globally, tauri>=2.11.1, serde_with>=3.21.0${
     glib ? `; Linux-only non-release glib=${glib.version}` : ""
   })`,
 );

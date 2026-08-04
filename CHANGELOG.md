@@ -81,8 +81,12 @@ versioning for release tags.
   build, performance, and secure-start checks. Earlier authenticated proof also
   covered every GA route, all three assurance mounts, and a sanitized readiness
   transition with local cleanup.
-- Live security-alert inspection, repository settings, the release tag, and
-  release publication remain approval-gated or pending external proof.
+- Manual GitHub inspection confirms `desktop`, `public`, and `tests/e2e` carry
+  the current RC1 baseline label. Dependabot, code scanning, and secret scanning
+  each report zero open alerts.
+- Repository settings enforce squash-only merges, PR-title/PR-body squash
+  messages, and automatic merged-branch deletion. The release tag and
+  publication remain separately approval-gated.
 
 ### Limitations and migration notes
 

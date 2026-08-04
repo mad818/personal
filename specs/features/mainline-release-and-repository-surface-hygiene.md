@@ -9,19 +9,22 @@ current Nexus product. Existing Git history remains intact.
 
 ## Current status
 
-PR 69 was squash-merged as `cd0654ec`, PR 70 as `011ee649`, and the approved
-hygiene-only PR 72 as `ae0eab3c` with the exact requested titles. Remote `main`
-now has tree `cf995c58`. The exact tree passes post-merge canonical
-verification, the optimized 41-page build, performance, and secure-start checks;
-PR 72's remote Quality, Path Safety, verify-security, JavaScript/TypeScript
-CodeQL, and Rust CodeQL checks also passed on that tree. PR 71 is closed as a
-preserved, superseded integration draft. Git history was not rewritten and no
-branch was deleted.
+PR 69 was squash-merged as `cd0654ec`, PR 70 as `011ee649`, hygiene-only PR 72
+as `ae0eab3c`, and the post-merge record in PR 73 as `84f5521`, each with the
+exact approved title. The implementation baseline tree `cf995c58` passes
+post-merge canonical verification, the optimized 41-page build, performance,
+secure startup, Quality, Path Safety, verify-security, and both CodeQL
+languages. PR 71 is closed as a preserved, superseded integration draft.
 
-The goal remains open until GitHub's rendered root labels and live
-Dependabot/code/secret-scanning state are inspected, the separately approved
-repository settings are applied, and Mario separately approves the
-`v1.0.0-rc.1` tag and release publication. Phone/PWA work remains deferred.
+Manual GitHub inspection confirms `desktop`, `public`, and `tests/e2e` now show
+the current RC1 baseline label. Dependabot, code scanning, and secret scanning
+each report zero open alerts. Repository settings enforce squash-only merges,
+PR-title/PR-body squash messages, and automatic merged-branch deletion. Git
+history was not rewritten.
+
+The goal remains open only for Mario's separate approval of the
+`v1.0.0-rc.1` tag and GitHub release, publication, and the final audit.
+Phone/PWA work remains deferred.
 
 ## Starting gap
 

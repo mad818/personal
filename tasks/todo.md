@@ -95,6 +95,17 @@ Active open-ready queue:
 
 Phone/iPad acceptance is intentionally deferred until Mario has time to focus on it. Do not reopen that lane from this queue.
 
+- [ ] MAINLINE-RELEASE-AND-REPOSITORY-SURFACE-HYGIENE — Create one verified Nexus Prime release baseline by combining PRs 69 and 70, cleaning obsolete tracked material without rewriting history, and making the active GitHub repository surface describe the current product. Spec: `specs/features/mainline-release-and-repository-surface-hygiene.md`.
+  - [ ] Inventory every GitHub-visible root path with current purpose, reachability/owner, latest mainline message, classification, and evidence.
+  - [ ] Apply PR 69 first and PR 70 second in an isolated integration tree, reconciling `package.json`, `tasks/todo.md`, and `docs/SYSTEM_STATE.md` without dropping either tranche.
+  - [ ] Remove or consolidate only proven obsolete artifacts and publish a grouped removal ledger with replacements or non-use proof.
+  - [ ] Legitimately refresh active `public`, `tests/e2e`, and `desktop` surfaces through current showcase, release, coverage, startup, packaging, or security work rather than cosmetic label churn.
+  - [ ] Replace the StockBot changelog, prepare `v1.0.0-rc.1` release notes, and strengthen the PR template for concise future mainline history.
+  - [ ] Pass focused cleanup/capability/reachability checks, canonical verification, production build, performance, secure startup, authenticated GA-route QA, exact-scope review, and remote PR proof.
+  - [ ] Request explicit approval immediately before any PR merge, repository-settings change, tag creation, or GitHub release publication; then verify the exact resulting `main` head, root labels, and live security state.
+  - Guardrail: no history rewrite, force push, orphan branch, commit deletion, cosmetic-only file touch, critical-runtime removal, unrelated Dependabot work, phone/PWA work, deployment, secret/private evidence, `main.bat`, or unsupported completion claim.
+  - Progress: live GitHub confirms PRs 69 and 70 are open draft PRs, cleanly mergeable, and based on `main` at `a3c57497`; the isolated integration worktree and branch now exist at that exact head. No merge, settings, tag, or release mutation has occurred.
+
 - [ ] SECURITY-AND-GITHUB-TRIAGE-2026-07-29 — Reconcile Mario's eight-current-alert Dependabot screenshot with the active manifests, lockfiles, installed dependency tree, local security lanes, open GitHub work, and the branch/default-branch publication boundary.
   - [x] Prove which alerts are already patched in the branch lockfiles and which remain actionable.
   - [x] Repair feasible local dependency/security-tooling drift without inventing live GitHub metadata.

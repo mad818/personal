@@ -566,7 +566,7 @@ function main() {
   };
 
   if (!checkOnly) {
-    const fileName = `dependency-risk-posture-${capturedAt.replace(/[:.]/g, "-")}.json`;
+    const fileName = "dependency-risk-posture-latest.json";
     const outPath = join(metricsDir, fileName);
     writeFileSync(outPath, `${JSON.stringify(artifact, null, 2)}\n`);
 

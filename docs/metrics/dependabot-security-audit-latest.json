@@ -1,15 +1,18 @@
 {
-  "capturedAt": "2026-05-24T22:15:17.934Z",
+  "capturedAt": "2026-08-02T08:17:21.959Z",
   "auditName": "DEPENDABOT-SECURITY-AUDIT",
   "source": {
     "mode": "metadata-starter",
     "githubReachableFromCodex": false,
     "upgradesPerformed": false,
-    "alertImportArtifact": null
+    "alertImportArtifact": null,
+    "currentAlertCountAvailable": false
   },
   "knownWarning": {
     "source": "github-push-warning",
     "repository": "mad818/personal",
+    "historical": true,
+    "observedBefore": "2026-05-25T05:52:26.760Z",
     "totalAlerts": 75,
     "severityCounts": {
       "critical": 3,
@@ -17,31 +20,29 @@
       "moderate": 39,
       "low": 10
     },
-    "note": "Push output reported a Dependabot warning on the default branch. Detailed alert metadata was not reachable from this Codex shell."
+    "note": "Historical push output reported this Dependabot warning. These counts are preserved for audit history and must not be treated as the current open-alert state."
   },
   "importSummary": null,
   "packageGraph": {
-    "directDependencies": 40,
-    "directDevDependencies": 23,
-    "lockfilePackages": 1133,
+    "directDependencies": 39,
+    "directDevDependencies": 22,
+    "lockfilePackages": 1103,
     "lockfilePresent": true
   },
   "dependencyPosture": {
-    "artifact": "docs/metrics/dependency-risk-posture-2026-05-09T22-28-44-321Z.json",
+    "artifact": "docs/metrics/dependency-risk-posture-latest.json",
     "riskReady": true,
     "blocked": [],
-    "warnings": [
-      "242 installed package(s) expose lifecycle install scripts and should be reviewed before upgrades."
-    ],
+    "warnings": [],
     "packageGraph": {
-      "directRuntime": 40,
-      "directDev": 23,
+      "directRuntime": 39,
+      "directDev": 22,
       "directOptional": 0,
       "directPeer": 0,
-      "lockfilePackages": 1133,
+      "lockfilePackages": 1103,
       "lockfileRuntimePackages": 365,
-      "lockfileDevPackages": 768,
-      "transitivePackages": 1070
+      "lockfileDevPackages": 738,
+      "transitivePackages": 1042
     }
   },
   "metadataSource": {
@@ -50,7 +51,7 @@
     "alertImportArtifact": null,
     "localGraphAvailable": true,
     "manualMetadataRequired": true,
-    "dependencyPostureArtifact": "docs/metrics/dependency-risk-posture-2026-05-09T22-28-44-321Z.json",
+    "dependencyPostureArtifact": "docs/metrics/dependency-risk-posture-latest.json",
     "requiredFields": [
       "package name",
       "manifest path",
@@ -61,6 +62,15 @@
       "direct or transitive ownership",
       "runtime or dev-only impact"
     ]
+  },
+  "retiredManifestQuarantine": {
+    "quarantined": true,
+    "liveManifestsPresent": [],
+    "archivedFilesPresent": [
+      "archive/package.archived.json",
+      "archive/pnpm-lock.archived.yaml"
+    ],
+    "note": "Retired archive dependency files are preserved under non-manifest names so GitHub does not treat them as active package manifests after rescan."
   },
   "classification": {
     "runtimeCritical": {
@@ -89,8 +99,16 @@
     },
     "blockedDeferred": {
       "status": "blocked",
-      "count": 75,
-      "description": "All known alerts remain deferred as a metadata-only audit lane until GitHub Dependabot details are reachable.",
+      "count": null,
+      "description": "The current open-alert count is unknown until current Dependabot metadata is imported; the historical push-warning count is not reused.",
+      "blockers": [
+        "Dependabot alert package metadata is unavailable from this shell because GitHub access is blocked; category counts stay pending until the GitHub UI or API can be queried."
+      ]
+    },
+    "retiredManifest": {
+      "status": "pending_metadata",
+      "count": null,
+      "description": "Alerts from archived manifests are unknown until Dependabot metadata is imported.",
       "blockers": [
         "Dependabot alert package metadata is unavailable from this shell because GitHub access is blocked; category counts stay pending until the GitHub UI or API can be queried."
       ]
@@ -102,7 +120,8 @@
     "transitive": [],
     "blockedDeferred": [
       "Dependabot package metadata is still required before selecting upgrade batches."
-    ]
+    ],
+    "retiredManifest": []
   },
   "upgradePolicy": {
     "order": [
@@ -131,7 +150,7 @@
     "Run the GitHub Dependabot UI or API from a network-enabled session to fill package names, vulnerable ranges, patched ranges, and direct/transitive ownership."
   ],
   "importInstructions": {
-    "normalPowerShell": "gh api -H \"Accept: application/vnd.github+json\" -H \"X-GitHub-Api-Version: 2026-03-10\" \"/repos/mad818/personal/dependabot/alerts?state=open&per_page=100\" > docs\\metrics\\dependabot-alerts-source.json",
+    "normalPowerShell": "gh api --paginate --slurp -H \"Accept: application/vnd.github+json\" -H \"X-GitHub-Api-Version: 2026-03-10\" \"/repos/mad818/personal/dependabot/alerts?state=open&per_page=100\" > docs\\metrics\\dependabot-alerts-source.json",
     "classify": "npm run dependabot:audit:classify -- --alerts=docs\\metrics\\dependabot-alerts-source.json"
   },
   "auditReady": false,

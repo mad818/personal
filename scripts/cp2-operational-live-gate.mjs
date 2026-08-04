@@ -103,12 +103,8 @@ async function main() {
     tokenInitReason: tokenInit.reason,
   };
   mkdirSync(metricsDir, { recursive: true });
-  const artifactPath = join(
-    metricsDir,
-    `cp2-operational-live-gate-${artifact.generatedAt.replace(/[:.]/g, "-")}.json`,
-  );
+  const artifactPath = join(metricsDir, "cp2-operational-live-gate-latest.json");
   writeFileSync(artifactPath, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
-  writeFileSync(join(metricsDir, "cp2-operational-live-gate-latest.json"), `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
   console.log(`  Wrote ${artifactPath.replace(/\\/g, "/")}`);
 
   if (!passed || gate.status !== 0) {

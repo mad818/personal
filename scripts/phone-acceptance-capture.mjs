@@ -96,9 +96,6 @@ function normalizeBaseUrl(value) {
   return value.replace(/\/+$/, "");
 }
 
-function timestampForFile(date) {
-  return date.toISOString().replace(/[:.]/g, "-");
-}
 
 function sanitizeString(value) {
   return value
@@ -479,10 +476,7 @@ async function main() {
   const outDir = args.outDir ? path.resolve(root, args.outDir) : metricsDir;
   fs.mkdirSync(outDir, { recursive: true });
 
-  const outPath = path.join(
-    outDir,
-    `phone-local-acceptance-${timestampForFile(capturedAt)}.json`,
-  );
+  const outPath = path.join(outDir, "phone-local-acceptance-latest.json");
   fs.writeFileSync(outPath, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
 
   console.log(`phone acceptance captured: ${path.relative(root, outPath)}`);

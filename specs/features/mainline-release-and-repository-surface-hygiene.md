@@ -7,7 +7,23 @@ and adaptive capability assurance coexist, obsolete tracked material is removed
 only with current proof, and GitHub's active repository surface describes the
 current Nexus product. Existing Git history remains intact.
 
-## Current gap
+## Current status
+
+PR 69 was squash-merged as `cd0654ec`, PR 70 as `011ee649`, and the approved
+hygiene-only PR 72 as `ae0eab3c` with the exact requested titles. Remote `main`
+now has tree `cf995c58`. The exact tree passes post-merge canonical
+verification, the optimized 41-page build, performance, and secure-start checks;
+PR 72's remote Quality, Path Safety, verify-security, JavaScript/TypeScript
+CodeQL, and Rust CodeQL checks also passed on that tree. PR 71 is closed as a
+preserved, superseded integration draft. Git history was not rewritten and no
+branch was deleted.
+
+The goal remains open until GitHub's rendered root labels and live
+Dependabot/code/secret-scanning state are inspected, the separately approved
+repository settings are applied, and Mario separately approves the
+`v1.0.0-rc.1` tag and release publication. Phone/PWA work remains deferred.
+
+## Starting gap
 
 - PR 69 contains the current public showcase, privacy-reviewed media, metrics
   retention contract, and a large cleanup, but its branch history contains

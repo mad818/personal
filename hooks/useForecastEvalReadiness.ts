@@ -26,9 +26,22 @@ export function useForecastEvalReadiness(limit = 12, enabled = true) {
         `forecast-eval:limit=${limit}`,
         async () => {
           const response = await apiFetch(
-            `/api/metrics/runtime-eval/forecast?limit=${limit}`,
+            `/api/metrics/runtime-eval?limit=${limit}`,
           );
-          return await response.json();
+          if (!response.ok) {
+            throw new Error("Forecast readiness request failed.");
+          }
+          const envelope = (await response.json()) as {
+            forecastEval?: unknown;
+          };
+          return (
+            envelope.forecastEval ?? {
+              status: "unavailable",
+              latest: null,
+              history: [],
+              points: 0,
+            }
+          );
         },
         15_000,
       );

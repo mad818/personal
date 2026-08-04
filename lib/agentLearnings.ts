@@ -28,6 +28,10 @@ export interface LearningEntry {
   summary: string; // ≤200 chars
   proposedFix?: string;
   applied: boolean;
+  status?: "proposed" | "approved" | "rejected";
+  evidenceReceiptIds?: string[];
+  reinforcementCount?: number;
+  lastVerifiedAt?: number;
 }
 
 // ── Heuristic failure classifier ──────────────────────────────────────────────
@@ -141,8 +145,11 @@ export function buildLearningsBlock(
   agent: AgentId,
   entries: LearningEntry[],
 ): string {
-  if (!entries.length) return "";
-  const lines = entries.slice(0, 5).map((e) => {
+  const approved = entries.filter(
+    (entry) => entry.applied && (!entry.status || entry.status === "approved"),
+  );
+  if (!approved.length) return "";
+  const lines = approved.slice(0, 5).map((e) => {
     const prefix =
       e.category === "failure"
         ? "• avoid:"
@@ -154,7 +161,7 @@ export function buildLearningsBlock(
     return `${prefix} ${e.summary}${e.proposedFix ? ` → ${e.proposedFix}` : ""}`;
   });
   return [
-    `\n[AGENT LEARNINGS — ${agent.toUpperCase()} — last ${entries.length} sessions]`,
+    `\n[AGENT LEARNINGS — ${agent.toUpperCase()} — ${approved.length} approved]`,
     ...lines,
     "[END LEARNINGS]",
   ].join("\n");

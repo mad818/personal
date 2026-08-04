@@ -1574,6 +1574,9 @@ export default function OfficeCommandCenter() {
         const result = await runAgent({
           settings,
           agentId: target,
+          capabilityId: dispatchPlan.capabilityId,
+          capabilityConfidence: dispatchPlan.capabilityConfidence,
+          routeHint: dispatchPlan.routeHref,
           toolCatalog: dispatchPlan.toolCatalog,
           systemPrompt: enrichedPrompt + extraDirective,
           messages: [{ role: "user", content: agentInput }],

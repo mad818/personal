@@ -132,6 +132,10 @@ const LazyLocalUsageMetricsPanel = dynamic(
   () => import("@/components/command/LocalUsageMetricsPanel"),
   { ssr: false },
 );
+const LazyCapabilityAssurancePanel = dynamic(
+  () => import("@/components/ui/CapabilityAssurancePanel"),
+  { ssr: false },
+);
 
 type CommandBriefView = "brief" | "pressure" | "world";
 type CommandDispatchView = "dispatch" | "programs";
@@ -626,6 +630,19 @@ export default function CommandPage() {
                             />
                           </div>
                         </details>
+                      </OpsField>
+                      <OpsField
+                        id="command-capability-assurance"
+                        title="Capability assurance"
+                        detail="Truthful information and action contracts, verified outcomes, and approval-gated reinforcement"
+                        compact
+                        className="nexus-command-gridSpan"
+                      >
+                        <LazyCapabilityAssurancePanel
+                          title="Verified capability posture"
+                          detail="COMMAND now separates declared ability from runtime proof and ranks the safest efficient next path."
+                          compact
+                        />
                       </OpsField>
                       <OpsField
                         id="command-provider-health"

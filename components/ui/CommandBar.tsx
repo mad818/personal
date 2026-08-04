@@ -1004,6 +1004,9 @@ export default function CommandBar() {
         const result = await runAgent({
           settings,
           agentId: target,
+          capabilityId: dispatchPlan.capabilityId,
+          capabilityConfidence: dispatchPlan.capabilityConfidence,
+          routeHint: dispatchPlan.routeHref,
           toolCatalog: dispatchPlan.toolCatalog,
           systemPrompt: enrichedPrompt,
           messages: history,

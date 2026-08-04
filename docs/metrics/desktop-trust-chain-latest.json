@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-03T08:04:02.570Z",
+  "generatedAt": "2026-08-02T08:28:14.106Z",
   "releaseLane": "desktop",
   "targetDir": "desktop/dist",
   "releaseReady": false,
@@ -37,28 +37,38 @@
       },
       {
         "platform": "Linux",
-        "status": "strategy_pending",
-        "evidence": "AppImage target is enabled.",
-        "missing": [
-          "Linux package signing strategy is not recorded."
-        ]
+        "status": "not_targeted",
+        "evidence": null,
+        "missing": []
       }
     ]
   },
   "sbom": {
-    "status": "inventory_available",
-    "sbomFiles": [],
+    "status": "recorded",
+    "canonical": {
+      "path": "docs/metrics/desktop-sbom.cdx.json",
+      "valid": true,
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.5",
+      "componentCount": 1257,
+      "npmComponentCount": 823,
+      "cargoComponentCount": 434,
+      "lockDigest": "b66131e20c1f09fb38c59ce3a07143a82e5cb62801be84360c417f151abbe8e9"
+    },
+    "componentCount": 1257,
+    "lockDigest": "b66131e20c1f09fb38c59ce3a07143a82e5cb62801be84360c417f151abbe8e9",
+    "sbomFiles": [
+      "docs/metrics/desktop-sbom.cdx.json"
+    ],
     "packageLock": {
       "present": true,
-      "packageCount": 1133
+      "packageCount": 1103
     },
     "cargoLock": {
       "present": true,
       "path": "desktop/src-tauri/Cargo.lock"
     },
-    "findings": [
-      "No desktop SBOM artifact was found; dependency inventory is available from lockfiles."
-    ]
+    "findings": []
   },
   "tauriSecurity": {
     "command": "npm run security:tauri",
@@ -67,14 +77,11 @@
   "blockers": [
     "Desktop artifact directory is missing.",
     "macOS signing identity is not configured.",
-    "Windows code-signing certificate status is not recorded in config.",
-    "Linux package signing strategy is not recorded.",
-    "No desktop SBOM artifact was found; dependency inventory is available from lockfiles."
+    "Windows code-signing certificate status is not recorded in config."
   ],
   "nextActions": [
     "Build desktop artifacts with npm run desktop:tauri:build when release packaging is ready.",
     "Run npm run release:checksums -- <artifact-dir> after artifacts exist.",
-    "Record signing identities/cert strategy before promoting artifacts.",
-    "Attach or generate a desktop SBOM before release promotion."
+    "Record signing identities/cert strategy before promoting artifacts."
   ]
 }

@@ -1,26 +1,26 @@
 {
-  "capturedAt": "2026-05-09T16:21:31.697Z",
+  "capturedAt": "2026-08-02T08:17:22.773Z",
   "rollupName": "WIDE-STABILIZATION-READINESS-ROLLUP",
   "artifacts": {
     "phoneAcceptance": {
-      "file": "docs/metrics/phone-local-acceptance-2026-05-09T13-04-08-856Z.json",
-      "capturedAt": "2026-05-09T13:04:08.856Z"
+      "file": "docs/metrics/phone-local-acceptance-latest.json",
+      "capturedAt": "2026-06-22T10:50:05.065Z"
     },
     "releaseDiagnostics": {
-      "file": "docs/metrics/release-diagnostics-2026-05-09T13-04-08-863Z.json",
-      "capturedAt": "2026-05-09T13:04:08.863Z"
+      "file": "docs/metrics/release-diagnostics-latest.json",
+      "capturedAt": "2026-06-20T19:29:37.871Z"
     },
     "dependencyAudit": {
-      "file": "docs/metrics/dependabot-security-audit-2026-05-09T16-21-25-651Z.json",
-      "capturedAt": "2026-05-09T16:21:25.651Z"
+      "file": "docs/metrics/dependabot-security-audit-latest.json",
+      "capturedAt": "2026-08-02T08:17:21.959Z"
     },
     "dependencyPosture": {
-      "file": "docs/metrics/dependency-risk-posture-2026-05-09T16-21-25-610Z.json",
-      "capturedAt": "2026-05-09T16:21:25.610Z"
+      "file": "docs/metrics/dependency-risk-posture-latest.json",
+      "capturedAt": "2026-08-02T08:17:21.902Z"
     },
     "infraHardening": {
-      "file": "docs/metrics/infra-hardening-2026-05-09T16-21-25-114Z.json",
-      "capturedAt": "2026-05-09T16:21:25.114Z"
+      "file": "docs/metrics/infra-hardening-latest.json",
+      "capturedAt": "2026-08-02T08:17:20.545Z"
     },
     "agentRuntime": {
       "file": "docs/metrics/agent-runtime-latest.json",
@@ -36,7 +36,7 @@
       "command": "node scripts/validate-publication-safety.mjs",
       "ok": true,
       "exitCode": 0,
-      "summary": "Publication safety OK (tracked files contain no private LAN IPs, local home paths, env files, key material, or raw proof metadata)."
+      "summary": "Publication safety OK (tracked files respect cloud/local boundary and contain no private LAN IPs, local home paths, env files, key material, or raw proof metadata)."
     },
     "phoneAcceptanceReady": false,
     "localAiOfflineReady": false,
@@ -51,42 +51,110 @@
       "routes": [
         {
           "route": "/api/health",
-          "ok": false,
-          "status": 0,
+          "ok": true,
+          "status": 200,
           "redirected": false,
-          "contentType": null,
-          "durationMs": 25,
-          "error": "fetch failed"
+          "contentType": "application/json",
+          "durationMs": 61
         },
         {
           "route": "/hq?focus=hq-chronicle",
-          "ok": false,
-          "status": 0,
+          "ok": true,
+          "status": 200,
           "redirected": false,
-          "contentType": null,
-          "durationMs": 1,
-          "error": "fetch failed"
+          "contentType": "text/html; charset=utf-8",
+          "durationMs": 62
         },
         {
           "route": "/command",
-          "ok": false,
-          "status": 0,
+          "ok": true,
+          "status": 200,
           "redirected": false,
-          "contentType": null,
-          "durationMs": 1,
-          "error": "fetch failed"
+          "contentType": "text/html; charset=utf-8",
+          "durationMs": 4550
         },
         {
           "route": "/api/free-local-readiness",
-          "ok": false,
-          "status": 0,
+          "ok": true,
+          "status": 200,
           "redirected": false,
-          "contentType": null,
-          "durationMs": 0,
-          "error": "fetch failed"
+          "contentType": "application/json",
+          "durationMs": 1156
+        },
+        {
+          "route": "/api/phone-acceptance/receipt",
+          "ok": true,
+          "status": 200,
+          "redirected": false,
+          "contentType": "application/json",
+          "durationMs": 361
         }
       ],
-      "readinessSummary": null,
+      "readinessSummary": {
+        "overallStatus": "blocked",
+        "freeInvariant": {
+          "status": "ready",
+          "chargesEndUsers": false,
+          "value": "Free — no in-app charges"
+        },
+        "networkMode": {
+          "status": "ready",
+          "mode": "isolated",
+          "value": "isolated"
+        },
+        "paidApisAllowed": {
+          "status": "ready",
+          "allowed": false,
+          "value": "blocked"
+        },
+        "ollama": {
+          "status": "ready",
+          "reachable": true,
+          "installedCount": 5,
+          "runningCount": 0,
+          "value": "reachable"
+        },
+        "resolvedModel": {
+          "status": "ready",
+          "resolvedModel": "gemma4:latest",
+          "value": "gemma4:latest",
+          "resolutionReason": "recommended_fallback"
+        },
+        "agentHealth": {
+          "status": "ready",
+          "passRate": 1,
+          "passCount": 4,
+          "failCount": 0,
+          "lastRun": "2026-04-01T15:45:01.853Z"
+        },
+        "session": {
+          "status": "blocked",
+          "authenticated": false,
+          "tokenConfigured": true,
+          "remainingSeconds": null
+        },
+        "toolPosture": {
+          "status": "ready",
+          "highRiskEnabled": false,
+          "settingsWrites": "session_required",
+          "verification": "session_required",
+          "mutateExecTools": "session_required",
+          "networkedTools": "session_required",
+          "value": "review-gated"
+        },
+        "phoneLan": {
+          "status": "ready",
+          "enabled": true,
+          "tokenRequired": true,
+          "pwaReady": true,
+          "preferredLanUrl": "http://100.116.64.77:3100",
+          "preferredHqLanUrl": "http://100.116.64.77:3100/hq?focus=hq-chronicle",
+          "lanUrlCount": 2,
+          "hqLanUrlCount": 2,
+          "firewallStatus": "Allow Node/Next on this port through Windows Firewall before using phone LAN access.",
+          "tailscaleOptional": "Optional free private tunnel: use Tailscale personal/free tier if LAN is not available."
+        }
+      },
       "manualPhoneProof": {
         "phoneOpened": false,
         "phoneLogin": false,
@@ -94,18 +162,89 @@
         "localAiReceipt": false,
         "pwaInstalled": false
       },
+      "receiptPhoneProof": {
+        "receiptAvailable": true,
+        "latestAt": "2026-06-22T10:36:17.812Z",
+        "receiptCount": 4,
+        "mobileReceiptCount": 4,
+        "phoneOpened": true,
+        "phoneLogin": true,
+        "browserStorageReady": true,
+        "pwaCapable": false,
+        "pingReceipt": true,
+        "localAiReceipt": true,
+        "pwaInstalled": false
+      },
+      "combinedPhoneProof": {
+        "phoneOpened": true,
+        "phoneLogin": true,
+        "pingReceipt": true,
+        "localAiReceipt": true,
+        "pwaInstalled": false,
+        "browserStorageReady": true,
+        "pwaCapable": false,
+        "receiptCount": 4,
+        "mobileReceiptCount": 4,
+        "latestReceiptAt": "2026-06-22T10:36:17.812Z"
+      },
+      "receiptLiveStatus": {
+        "overallStatus": "warning",
+        "acceptanceReady": false,
+        "receiptCount": 4,
+        "mobileReceiptCount": 4,
+        "latestAt": "2026-06-22T10:36:17.812Z",
+        "items": [
+          {
+            "id": "phoneOpened",
+            "label": "Phone opened",
+            "passed": true,
+            "detail": "A recent mobile receipt exists."
+          },
+          {
+            "id": "phoneLogin",
+            "label": "Phone login",
+            "passed": true,
+            "detail": "The mobile receipt shows protected access."
+          },
+          {
+            "id": "browserStorageReady",
+            "label": "Browser storage",
+            "passed": true,
+            "detail": "Phone browser storage accepted the local probe."
+          },
+          {
+            "id": "pingReceipt",
+            "label": "Ping receipt",
+            "passed": true,
+            "detail": "The phone recorded the local fast-path assistant receipt."
+          },
+          {
+            "id": "localAiReceipt",
+            "label": "Local AI receipt",
+            "passed": true,
+            "detail": "The phone recorded a local/free AI receipt."
+          },
+          {
+            "id": "pwaCapable",
+            "label": "PWA capable",
+            "passed": false,
+            "detail": "Use a browser with home-screen install support."
+          },
+          {
+            "id": "pwaInstalled",
+            "label": "PWA installed",
+            "passed": false,
+            "detail": "Install Homefront from the phone browser home-screen flow."
+          }
+        ]
+      },
+      "missingReceiptProofItems": [
+        "PWA capable",
+        "PWA installed"
+      ],
       "blocked": [
-        "Route /api/health did not pass acceptance capture (ERR).",
-        "Route /hq?focus=hq-chronicle did not pass acceptance capture (ERR).",
-        "Route /command did not pass acceptance capture (ERR).",
-        "Route /api/free-local-readiness did not pass acceptance capture (ERR).",
-        "Free Local Readiness capture did not return 200 (ERR).",
         "Free Local Readiness is not fully local/free for phone acceptance.",
-        "Manual phone proof missing: phone opened LAN URL.",
-        "Manual phone proof missing: phone logged in with NEXUS_TOKEN.",
-        "Manual phone proof missing: HQ ping receipt.",
-        "Manual phone proof missing: local AI receipt.",
-        "Manual phone proof missing: PWA install."
+        "Phone proof missing: PWA install."
       ],
       "acceptanceReady": false
     },
@@ -118,7 +257,7 @@
           "status": 0,
           "redirected": false,
           "contentType": null,
-          "durationMs": 20,
+          "durationMs": 25,
           "error": "fetch failed"
         },
         {
@@ -145,7 +284,7 @@
           "status": 0,
           "redirected": false,
           "contentType": null,
-          "durationMs": 0,
+          "durationMs": 1,
           "error": "fetch failed"
         },
         {
@@ -163,7 +302,7 @@
           "status": 0,
           "redirected": false,
           "contentType": null,
-          "durationMs": 1,
+          "durationMs": 0,
           "error": "fetch failed"
         },
         {
@@ -205,6 +344,8 @@
       "knownWarning": {
         "source": "github-push-warning",
         "repository": "mad818/personal",
+        "historical": true,
+        "observedBefore": "2026-05-25T05:52:26.760Z",
         "totalAlerts": 75,
         "severityCounts": {
           "critical": 3,
@@ -212,7 +353,7 @@
           "moderate": 39,
           "low": 10
         },
-        "note": "Push output reported a Dependabot warning on the default branch. Detailed alert metadata was not reachable from this Codex shell."
+        "note": "Historical push output reported this Dependabot warning. These counts are preserved for audit history and must not be treated as the current open-alert state."
       },
       "classification": {
         "runtimeCritical": {
@@ -241,8 +382,16 @@
         },
         "blockedDeferred": {
           "status": "blocked",
-          "count": 75,
-          "description": "All known alerts remain deferred as a metadata-only audit lane until GitHub Dependabot details are reachable.",
+          "count": null,
+          "description": "The current open-alert count is unknown until current Dependabot metadata is imported; the historical push-warning count is not reused.",
+          "blockers": [
+            "Dependabot alert package metadata is unavailable from this shell because GitHub access is blocked; category counts stay pending until the GitHub UI or API can be queried."
+          ]
+        },
+        "retiredManifest": {
+          "status": "pending_metadata",
+          "count": null,
+          "description": "Alerts from archived manifests are unknown until Dependabot metadata is imported.",
           "blockers": [
             "Dependabot alert package metadata is unavailable from this shell because GitHub access is blocked; category counts stay pending until the GitHub UI or API can be queried."
           ]
@@ -271,9 +420,11 @@
       },
       "metadataSource": {
         "githubReachable": false,
+        "importedAlertMetadata": false,
+        "alertImportArtifact": null,
         "localGraphAvailable": true,
         "manualMetadataRequired": true,
-        "dependencyPostureArtifact": "docs/metrics/dependency-risk-posture-2026-05-09T16-21-25-610Z.json",
+        "dependencyPostureArtifact": "docs/metrics/dependency-risk-posture-latest.json",
         "requiredFields": [
           "package name",
           "manifest path",
@@ -294,19 +445,17 @@
     },
     "dependencyPosture": {
       "packageGraph": {
-        "directRuntime": 40,
-        "directDev": 23,
+        "directRuntime": 39,
+        "directDev": 22,
         "directOptional": 0,
         "directPeer": 0,
-        "lockfilePackages": 1133,
+        "lockfilePackages": 1103,
         "lockfileRuntimePackages": 365,
-        "lockfileDevPackages": 768,
-        "transitivePackages": 1070
+        "lockfileDevPackages": 738,
+        "transitivePackages": 1042
       },
-      "lifecycleScriptPackageCount": 242,
-      "warnings": [
-        "242 installed package(s) expose lifecycle install scripts and should be reviewed before upgrades."
-      ],
+      "lifecycleScriptPackageCount": 3,
+      "warnings": [],
       "blocked": [],
       "riskReady": true
     },
@@ -319,9 +468,9 @@
           "critical": true,
           "ok": true,
           "exitCode": 0,
-          "durationMs": 227,
+          "durationMs": 575,
           "summary": [
-            "Publication safety OK (tracked files contain no private LAN IPs, local home paths, env files, key material, or raw proof metadata)."
+            "Publication safety OK (tracked files respect cloud/local boundary and contain no private LAN IPs, local home paths, env files, key material, or raw proof metadata)."
           ]
         },
         {
@@ -331,7 +480,7 @@
           "critical": true,
           "ok": true,
           "exitCode": 0,
-          "durationMs": 63,
+          "durationMs": 120,
           "summary": [
             "✅ security-scan: clean"
           ]
@@ -343,9 +492,9 @@
           "critical": false,
           "ok": true,
           "exitCode": 0,
-          "durationMs": 36,
+          "durationMs": 112,
           "summary": [
-            "✅ tauri-security: capability + CSP checks passed"
+            "✅ tauri-security: capability + CSP + Windows/macOS release-scope checks passed"
           ]
         },
         {
@@ -355,9 +504,9 @@
           "critical": false,
           "ok": true,
           "exitCode": 0,
-          "durationMs": 37,
+          "durationMs": 322,
           "summary": [
-            "Security boundary OK (middleware, route policy, protected helpers, high-risk routes, and protected 401/403 posture are wired)."
+            "Security boundary OK (middleware, route policy, signed session tiers, protected helpers, high-risk routes, and protected 401/403 posture are wired)."
           ]
         },
         {
@@ -367,11 +516,11 @@
           "critical": false,
           "ok": true,
           "exitCode": 0,
-          "durationMs": 141,
+          "durationMs": 239,
           "summary": [
-            "Dependency risk posture written: docs/metrics/dependency-risk-posture-2026-05-09T16-21-25-610Z.json",
-            "Package graph: 40 runtime direct, 23 dev direct, 1070 transitive lockfile packages.",
-            "Warnings: 1"
+            "Dependency risk posture written: docs/metrics/dependency-risk-posture-latest.json",
+            "Package graph: 39 runtime direct, 22 dev direct, 1042 transitive lockfile packages.",
+            "Install-script review: 3 consumer package(s), 3 reviewed, 0 unreviewed, 363 publisher-only metadata package(s)."
           ]
         },
         {
@@ -381,10 +530,10 @@
           "critical": false,
           "ok": true,
           "exitCode": 0,
-          "durationMs": 43,
+          "durationMs": 66,
           "summary": [
-            "Dependabot security audit starter written: docs/metrics/dependabot-security-audit-2026-05-09T16-21-25-651Z.json",
-            "Known warning captured: 75 alerts (3 critical, 23 high, 39 moderate, 10 low)."
+            "Dependabot security audit starter written: docs/metrics/dependabot-security-audit-latest.json",
+            "Historical warning retained: 75 alerts (3 critical, 23 high, 39 moderate, 10 low); current open-alert count remains unknown without an import."
           ]
         },
         {
@@ -394,7 +543,7 @@
           "critical": false,
           "ok": true,
           "exitCode": 0,
-          "durationMs": 38,
+          "durationMs": 53,
           "summary": [
             "Phone LAN readiness OK (free local runbook, opt-in LAN launcher, env defaults, and readiness surfacing wired)."
           ]

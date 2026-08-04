@@ -1,7 +1,7 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:b66131e2-0c1f-09fb-38c5-9ce3a07143a8",
+  "serialNumber": "urn:uuid:8f227b4b-b389-db1f-885c-2d25d2df7af7",
   "version": 1,
   "metadata": {
     "component": {
@@ -21,7 +21,7 @@
       },
       {
         "name": "nexus:lock-digest-sha256",
-        "value": "b66131e20c1f09fb38c59ce3a07143a82e5cb62801be84360c417f151abbe8e9"
+        "value": "8f227b4bb389db1f885c2d25d2df7af77f3cb6e52574785fc88bfcc9fda7531f"
       },
       {
         "name": "nexus:network-required",
@@ -16307,10 +16307,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/brace-expansion@5.0.8",
+      "bom-ref": "pkg:npm/brace-expansion@5.0.9",
       "name": "brace-expansion",
-      "version": "5.0.8",
-      "purl": "pkg:npm/brace-expansion@5.0.8",
+      "version": "5.0.9",
+      "purl": "pkg:npm/brace-expansion@5.0.9",
       "properties": [
         {
           "name": "nexus:ecosystem",
@@ -16324,7 +16324,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "259c83caadc3e005227ca4cf381ec310b7fa5ec07759d3ee3710ada1bd6f1573ec49785d0221c1589fed27c1c073d687f3804afb924564b36424ac771bd93342"
+          "content": "49c43822ebc8105d533253fb66dfaf8c9ffff7394f6f64837315b13376e4f2ceade8619d27b28ed5d09c4e274e3c929e3d6df42c4ff6713ef00b23e1a3dfd6c6"
         }
       ],
       "licenses": [

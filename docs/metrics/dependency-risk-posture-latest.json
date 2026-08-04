@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-08-02T08:17:21.902Z",
+  "capturedAt": "2026-08-04T05:13:55.467Z",
   "postureName": "DEPENDENCY-RISK-POSTURE",
   "source": {
     "githubRequired": false,
@@ -462,7 +462,7 @@
     {
       "packagePath": "node_modules/brace-expansion",
       "name": "brace-expansion",
-      "version": "5.0.8",
+      "version": "5.0.9",
       "installedPublisherScripts": [
         "prepare",
         "prepublishOnly"

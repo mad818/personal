@@ -45,6 +45,8 @@ versioning for release tags.
 - Preserved protected-route policy, approval gates, Privacy Shield, publication
   checks, path safety, dependency checks, and JavaScript/TypeScript plus Rust
   CodeQL coverage.
+- Raised the global `brace-expansion` floor to `5.0.9` after the newer
+  GHSA-rgw5-rvv9-x895 advisory superseded the previous `5.0.8` floor.
 - Kept prompts, answers, credentials, private vault data, and live capability
   evidence out of tracked release files.
 

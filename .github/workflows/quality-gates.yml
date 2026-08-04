@@ -23,6 +23,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Pull request title
+        if: github.event_name == 'pull_request'
+        env:
+          NEXUS_PR_TITLE: ${{ github.event.pull_request.title }}
+        run: npm run pr:title:check
+
       - name: Type check
         run: npm run type-check
 

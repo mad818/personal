@@ -78,8 +78,10 @@ versioning for release tags.
 - PR 70 independently passed capability fixtures, canonical verification,
   production build, performance, authenticated UI QA, path safety, quality,
   publication checks, and both CodeQL languages.
-- The combined release candidate must pass its own complete local and remote
-  matrix before this entry can be published as a release.
+- The combined candidate passes its complete local matrix, including an exact
+  clean install, zero-vulnerability audit, optimized build, authenticated route
+  and assurance QA, sanitized readiness transition, and canonical verification.
+  Remote checks and the approval-gated mainline/release steps remain.
 
 ### Limitations and migration notes
 

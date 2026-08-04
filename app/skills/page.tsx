@@ -82,6 +82,10 @@ const SkillSpectrumValidatorStrip = dynamic(
   () => import("@/components/skills/SkillSpectrumValidatorStrip"),
   { ssr: false },
 );
+const CapabilityAssurancePanel = dynamic(
+  () => import("@/components/ui/CapabilityAssurancePanel"),
+  { ssr: false },
+);
 
 type View = "forge" | "prompts" | "blacksite" | "brain" | "library";
 
@@ -410,6 +414,16 @@ export default function SkillsPage() {
                         tone="muted"
                       >
                         <KnowledgeGraphViz />
+                      </OpsField>
+                      <OpsField
+                        title="Reinforcement studio"
+                        detail="Evidence-backed readiness and human-approved reusable lessons"
+                      >
+                        <CapabilityAssurancePanel
+                          title="Learning from verified outcomes"
+                          detail="A lesson becomes reusable only after matching current receipts and an explicit review."
+                          initialCapabilityId="guided-learning"
+                        />
                       </OpsField>
                     </ShellStack>
                   </OpsWorkplane>

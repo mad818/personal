@@ -46,6 +46,7 @@ export interface AssistantDispatchPlan {
   intent: HQAssistantIntent;
   agent: AgentId;
   capabilityId: AssistantCapabilityId;
+  capabilityConfidence: number;
   answerStyle: HQAnswerStyle;
   answerMode: AssistantAnswerMode;
   routeHref: string | null;
@@ -277,6 +278,7 @@ export function resolveAssistantDispatch(
     intent,
     agent,
     capabilityId: capabilityMatch.capability.id,
+    capabilityConfidence: capabilityMatch.confidence,
     answerStyle: answerStylePlan.style,
     answerMode,
     routeHref: preparedWorkspace?.href ?? routeHint,

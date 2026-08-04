@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { apiFetch } from "@/lib/apiFetch";
+import { useMemo } from "react";
 import { timeAgo } from "@/lib/helpers";
 import { useForecastEvalReadiness } from "@/hooks/useForecastEvalReadiness";
 import { ShellBadge } from "@/components/ui/shell";
@@ -19,9 +18,7 @@ function toneForQuality(quality?: string, stale?: boolean) {
 }
 
 export default function ForecastLabCard() {
-  const { payload, loading, loadError, refresh } = useForecastEvalReadiness(12);
-  const [running, setRunning] = useState(false);
-  const [runMsg, setRunMsg] = useState("");
+  const { payload, loading, loadError } = useForecastEvalReadiness(12);
 
   const latest = payload?.latest;
   const quality = latest?.summary?.quality ?? "degraded";
@@ -39,42 +36,6 @@ export default function ForecastLabCard() {
     }));
   }, [latest?.backtests]);
 
-  const runEval = async () => {
-    setRunning(true);
-    setRunMsg("");
-    try {
-      const response = await apiFetch(
-        "/api/metrics/runtime-eval/forecast/run",
-        {
-          method: "POST",
-          body: JSON.stringify({}),
-        },
-      );
-      const data = (await response.json()) as {
-        ok?: boolean;
-        skipped?: boolean;
-        reason?: string;
-        output?: string;
-      };
-      if (!response.ok || !data.ok) {
-        setRunMsg(
-          `Forecast run failed: ${(data.output || "unknown error").slice(0, 160)}`,
-        );
-      } else if (data.skipped) {
-        setRunMsg(
-          `Forecast bench skipped: ${data.reason ?? "cooldown active"}`,
-        );
-      } else {
-        setRunMsg("Forecast baseline recorded.");
-      }
-      await refresh();
-    } catch {
-      setRunMsg("Forecast bench could not be reached.");
-    } finally {
-      setRunning(false);
-    }
-  };
-
   if (loading && !payload) {
     return <SurfaceSkeletonRows rows={3} height={52} />;
   }
@@ -86,21 +47,8 @@ export default function ForecastLabCard() {
           compact
           tone="muted"
           icon="◎"
-          title="Forecast bench standing by"
-          description="The native baseline is staged, but no rolling backtest has been recorded yet. Keep the market tape primary until the bench calibrates."
-          action={
-            <button
-              type="button"
-              onClick={() => {
-                void runEval();
-              }}
-              className="nexus-shell-button"
-              style={{ minHeight: "30px", padding: "0 10px", fontSize: "11px" }}
-              disabled={running}
-            >
-              {running ? "Calibrating…" : "Calibrate baseline"}
-            </button>
-          }
+          title="Forecast bench unavailable"
+          description="No owned forecast evaluation runtime is installed in this build. The verified market tape remains primary, and Nexus will not offer an action it cannot execute."
         />
         {loadError ? (
           <SurfaceCallout
@@ -218,25 +166,6 @@ export default function ForecastLabCard() {
           </div>
         </div>
       ) : null}
-
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => {
-            void runEval();
-          }}
-          className="nexus-shell-button"
-          style={{ minHeight: "30px", padding: "0 10px", fontSize: "11px" }}
-          disabled={running}
-        >
-          {running ? "Calibrating…" : "Run baseline eval"}
-        </button>
-        {runMsg ? (
-          <span role="status" className="text-[10px] text-[var(--text3)]">
-            {runMsg}
-          </span>
-        ) : null}
-      </div>
 
       {loadError ? (
         <SurfaceCallout

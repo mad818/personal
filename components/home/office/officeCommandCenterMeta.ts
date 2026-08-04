@@ -167,16 +167,40 @@ function buildMetaResultText(proposal: HQMetaProposal) {
 }
 
 export async function runHQMetaCommand(): Promise<HQMetaCommandResult> {
-  const learningsRes = await apiFetch("/api/agent-learnings?limit=10");
-  const learningsData = learningsRes.ok
-    ? ((await learningsRes.json()) as { entries: LearningEntry[] })
-    : { entries: [] as LearningEntry[] };
-  const entries = learningsData.entries ?? [];
+  let entries: LearningEntry[] = [];
+  try {
+    const learningsRes = await apiFetch("/api/agent-learnings?limit=10");
+    if (!learningsRes.ok) {
+      return {
+        kind: "message",
+        text: "Capability learning evidence is unavailable. No meta-edit was inferred; retry from COMMAND or Skills after the assurance store recovers.",
+      };
+    }
+    const learningsData = (await learningsRes.json()) as {
+      available?: boolean;
+      entries?: LearningEntry[];
+    };
+    if (
+      learningsData.available !== true ||
+      !Array.isArray(learningsData.entries)
+    ) {
+      return {
+        kind: "message",
+        text: "Capability learning evidence is unverified. No meta-edit was inferred.",
+      };
+    }
+    entries = learningsData.entries;
+  } catch {
+    return {
+      kind: "message",
+      text: "Capability learning evidence could not be loaded. The existing approved rules remain unchanged.",
+    };
+  }
 
   if (entries.length === 0) {
     return {
       kind: "message",
-      text: "No learnings recorded yet. Run a few queries first, then try /meta again.",
+      text: "No approved capability learnings exist yet. Verified repeated outcomes must create a proposal, and the operator must approve it before /meta can use it.",
     };
   }
 

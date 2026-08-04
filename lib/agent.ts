@@ -87,6 +87,11 @@ import {
   validateAgentToolInput,
   type AgentExecutionAction,
 } from "@/lib/agentExecutionContract";
+import {
+  createCapabilityOutcomeReceipt,
+  type CapabilityProviderPosture,
+} from "@/lib/capabilityAssurance";
+import type { AssistantCapabilityId } from "@/lib/governanceCatalog";
 
 type ToolRiskTier = "tier0" | "tier1" | "tier2";
 
@@ -1386,6 +1391,9 @@ export interface AgentOptions {
   maxIterations?: number;
   draftMode?: boolean;
   agentId?: string;
+  capabilityId?: AssistantCapabilityId;
+  capabilityConfidence?: number;
+  routeHint?: string | null;
   toolCatalog?: AgentToolCatalog;
   efficiencyHint?: Partial<AgentEfficiencyMetrics>;
   onToolMetric?: (metric: ToolExecutionMeta) => void;
@@ -2666,12 +2674,13 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
           adapters: [],
           details: [],
         };
+    const runStatus = args.ok
+      ? verification.passed
+        ? "verified"
+        : "degraded"
+      : "failed";
     useStore.getState().finishAgentRun({
-      status: args.ok
-        ? verification.passed
-          ? "verified"
-          : "degraded"
-        : "failed",
+      status: runStatus,
       failureCause: args.failureCause,
       verification,
       contextChars,
@@ -2738,11 +2747,68 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
       provider: providerUsed,
       verificationPassed: verification.passed,
     });
+    const finishedAt = Date.now();
+    const highestRisk: ToolRiskTier = toolTraces.some(
+      (trace) => trace.risk === "tier2",
+    )
+      ? "tier2"
+      : toolTraces.some((trace) => trace.risk === "tier1")
+        ? "tier1"
+        : "tier0";
+    const providerPosture: CapabilityProviderPosture =
+      providerUsed === "ollama"
+        ? "local"
+        : providerUsed === "groq" ||
+            providerUsed === "google" ||
+            providerUsed === "openrouter"
+          ? "free_byok"
+          : providerUsed
+            ? "paid_byok"
+            : "unknown";
+    const assuranceReceipt = createCapabilityOutcomeReceipt(
+      {
+        capabilityId: opts.capabilityId ?? "conversation-general",
+        runId,
+        agent:
+          opts.agentId === "orbit" ||
+          opts.agentId === "nova" ||
+          opts.agentId === "cipher" ||
+          opts.agentId === "flux"
+            ? opts.agentId
+            : "jansky",
+        route: opts.routeHint ?? undefined,
+        mode: highestRisk === "tier0" ? "information" : "action",
+        status: runStatus,
+        dataState: "not_applicable",
+        startedAt: runStartedAt,
+        finishedAt,
+        durationMs: finishedAt - runStartedAt,
+        contextChars,
+        toolCount: toolTraces.length,
+        riskTier: highestRisk,
+        providerPosture,
+        verificationRequired: verification.required,
+        verificationPassed: verification.passed,
+        evidence: [
+          `run:${args.ok ? "completed" : "failed"}`,
+          ...verificationEvidence.map((entry) =>
+            `verification:${entry}`.replace(/[^a-zA-Z0-9:_-]/g, "-"),
+          ),
+        ],
+        failureCode:
+          runStatus === "verified"
+            ? null
+            : verification.required && !verification.passed
+              ? "verification_failed"
+              : "unknown",
+      },
+      finishedAt,
+    );
     useStore.getState().addAgentRunArtifact({
       runId,
       runtimeEngine,
       startedAt: runStartedAt,
-      finishedAt: Date.now(),
+      finishedAt,
       userMessage,
       finalAnswer: args.finalAnswer ?? "",
       verificationSummary,
@@ -2750,9 +2816,21 @@ async function runNexusRuntime(opts: AgentOptions): Promise<string> {
       contextChars,
       contextCompacted,
       executionContract: summarizeAgentExecutionState(executionState),
+      capabilityId: assuranceReceipt.capabilityId,
+      capabilityConfidence: opts.capabilityConfidence,
+      assuranceReceipt,
       toolTraces,
       efficiency,
       continuity,
+    });
+    void apiFetch("/api/capability-assurance", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "record_outcome",
+        receipt: assuranceReceipt,
+      }),
+    }).catch(() => {
+      // The operator-facing assurance panel reports unavailable persistence.
     });
   };
 

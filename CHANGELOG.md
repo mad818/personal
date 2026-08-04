@@ -73,15 +73,16 @@ versioning for release tags.
 
 ### Verification
 
-- PR 69 independently passed canonical verification, production build, path
-  safety, quality, publication checks, and both CodeQL languages.
-- PR 70 independently passed capability fixtures, canonical verification,
-  production build, performance, authenticated UI QA, path safety, quality,
-  publication checks, and both CodeQL languages.
-- The combined candidate passes its complete local matrix, including an exact
-  clean install, zero-vulnerability audit, optimized build, authenticated route
-  and assurance QA, sanitized readiness transition, and canonical verification.
-  Remote checks and the approval-gated mainline/release steps remain.
+- PR 69 was squash-merged as `cd0654ec`, PR 70 as `011ee649`, and PR 72 as
+  `ae0eab3c`; the resulting `main` tree is `cf995c58`.
+- PR 72 passed Quality, Path Safety, verify-security, JavaScript/TypeScript
+  CodeQL, and Rust CodeQL on that exact tree.
+- The exact merged tree passes canonical verification, the optimized 41-page
+  build, performance, and secure-start checks. Earlier authenticated proof also
+  covered every GA route, all three assurance mounts, and a sanitized readiness
+  transition with local cleanup.
+- Live security-alert inspection, repository settings, the release tag, and
+  release publication remain approval-gated or pending external proof.
 
 ### Limitations and migration notes
 

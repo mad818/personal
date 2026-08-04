@@ -1,7 +1,7 @@
 "use client";
 
-// ── TradingView embeds (from legacy StockBot / sanity-next era in archive/) ──
-// Free widgets run inside a fixed opaque-origin sandbox instead of the Nexus document.
+// TradingView market context runs in a fixed opaque-origin sandbox instead of
+// the Nexus document. The archived prototype remains historical evidence only.
 
 import { memo } from "react";
 
@@ -29,7 +29,7 @@ function TradingViewSandboxFrame({
   );
 }
 
-/** Horizontal tape — crypto + majors (legacy experimentalbot defaults, crypto-tilted). */
+/** Horizontal tape — crypto plus major market references. */
 export const TradingViewTickerTape = memo(function TradingViewTickerTape() {
   return (
     <div style={{ marginBottom: "14px" }}>
@@ -125,9 +125,9 @@ export default function TradingViewMarkets() {
           maxWidth: "640px",
         }}
       >
-        Embeds from the early <strong>StockBot</strong> phase (Groq +
-        TradingView widgets), now isolated from the Nexus document in a
-        no-referrer sandbox while preserving the dark MARKETS view.
+        TradingView market context runs outside the Nexus document in a fixed
+        no-referrer sandbox. Nexus keeps the view read-only and does not share
+        operator session data with the embed.
       </p>
       <TradingViewTickerTape />
       <div

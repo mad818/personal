@@ -328,7 +328,7 @@ export default function AuthGate({ children, initiallyAuthed = false }: Props) {
           position: "absolute",
           inset: 0,
           zIndex: 0,
-          backgroundImage: "url(/theme/aegis-cosmos.svg)",
+          backgroundImage: "url(/theme/nexus-cosmos.svg)",
           backgroundSize: "cover",
           backgroundPosition: "center center",
           opacity: 0.45,

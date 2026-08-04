@@ -71,13 +71,7 @@ if (major(packageJson.dependencies?.react) !== 19) {
   fail("package.json React major changed; reconcile current documentation");
 }
 
-const svgPaths = [
-  "public/banner.svg",
-  "public/github-infographic-features.svg",
-  "public/github-infographic-stack.svg",
-  "public/github-section-stack-layers.svg",
-  "public/github-social-card.svg",
-];
+const svgPaths = ["public/banner.svg"];
 const currentSurfaces = new Map([
   ["README.md", readme],
   ["docs/architecture.md", architecture],
@@ -91,6 +85,25 @@ for (const svgPath of svgPaths) {
   const svg = readRequired(svgPath);
   currentSurfaces.set(svgPath, svg);
   requireText(svg, "Next.js 15", svgPath);
+}
+
+const readmeAssetPaths = [
+  "public/banner.svg",
+  "public/images/nexus-prime-system-showcase.webp",
+  "public/theme/citadel.svg",
+  "public/theme/vector.svg",
+  "public/theme/spectra.svg",
+  "public/theme/quant.svg",
+  "public/theme/bastion.svg",
+  "public/theme/parallax.svg",
+  "public/theme/archive.svg",
+  "public/theme/manual.svg",
+];
+for (const assetPath of readmeAssetPaths) {
+  if (!fs.existsSync(path.join(root, assetPath))) {
+    fail(`${assetPath} is missing`);
+  }
+  requireText(readme, `./${assetPath}`, "README.md current asset map");
 }
 
 for (const [label, source] of currentSurfaces) {
@@ -232,5 +245,5 @@ requireText(
 );
 
 console.log(
-  `ok current-documentation-stack (latest=${latestShippedTaskId}; ${latestShippedTaskIds.length} shipped entries; ${latestShippedSection.length} chars; manifest, README/SVGs, system state, architecture, design, operator, and historical boundaries)`,
+  `ok current-documentation-stack (latest=${latestShippedTaskId}; ${latestShippedTaskIds.length} shipped entries; ${latestShippedSection.length} chars; manifest, current README assets, system state, architecture, design, operator, and historical boundaries)`,
 );

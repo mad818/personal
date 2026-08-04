@@ -78,9 +78,6 @@ function normalizeBaseUrl(value) {
   return value.replace(/\/+$/, "");
 }
 
-function timestampForFile(date) {
-  return date.toISOString().replace(/[:.]/g, "-");
-}
 
 function dockerStatus() {
   const result = spawnSync("docker", ["--version"], {
@@ -226,7 +223,7 @@ async function main() {
   const outDir = args.outDir ? path.resolve(root, args.outDir) : metricsDir;
   fs.mkdirSync(outDir, { recursive: true });
 
-  const outPath = path.join(outDir, `release-diagnostics-${timestampForFile(capturedAt)}.json`);
+  const outPath = path.join(outDir, "release-diagnostics-latest.json");
   fs.writeFileSync(outPath, `${JSON.stringify(artifact, null, 2)}\n`);
 
   console.log(`release diagnostics captured: ${path.relative(root, outPath)}`);

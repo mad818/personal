@@ -343,8 +343,7 @@ function buildRecord(targetDir) {
 
 function writeRecord(record) {
   mkdirSync(metricsDir, { recursive: true });
-  const stamp = record.generatedAt.replace(/[:.]/g, "-");
-  const outFile = join(metricsDir, `desktop-trust-chain-${stamp}.json`);
+  const outFile = join(metricsDir, "desktop-trust-chain-latest.json");
   writeFileSync(outFile, `${JSON.stringify(record, null, 2)}\n`, "utf8");
   return outFile;
 }

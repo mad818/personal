@@ -211,7 +211,7 @@ function main() {
     ],
   });
 
-  const fileName = `infra-hardening-${capturedAt.replace(/[:.]/g, "-")}.json`;
+  const fileName = "infra-hardening-latest.json";
   const outPath = join(metricsDir, fileName);
   writeFileSync(outPath, `${JSON.stringify(artifact, null, 2)}\n`);
 

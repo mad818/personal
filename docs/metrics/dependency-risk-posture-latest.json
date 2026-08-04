@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-07-15T02:56:38.897Z",
+  "capturedAt": "2026-08-02T08:17:21.902Z",
   "postureName": "DEPENDENCY-RISK-POSTURE",
   "source": {
     "githubRequired": false,
@@ -9,14 +9,14 @@
     "lifecycleReview": "docs/security/dependency-lifecycle-review.json"
   },
   "packageGraph": {
-    "directRuntime": 40,
-    "directDev": 23,
+    "directRuntime": 39,
+    "directDev": 22,
     "directOptional": 0,
     "directPeer": 0,
-    "lockfilePackages": 1124,
-    "lockfileRuntimePackages": 362,
-    "lockfileDevPackages": 762,
-    "transitivePackages": 1061
+    "lockfilePackages": 1103,
+    "lockfileRuntimePackages": 365,
+    "lockfileDevPackages": 738,
+    "transitivePackages": 1042
   },
   "duplicateDirectDependencies": [],
   "lockfileMismatches": [],
@@ -27,7 +27,9 @@
       "version": "2.3.3",
       "devOnly": true,
       "optional": true,
-      "os": ["darwin"],
+      "os": [
+        "darwin"
+      ],
       "integrity": "sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==",
       "integrityPresent": true,
       "lockfileInstallScript": true,
@@ -39,23 +41,13 @@
       "version": "2.3.2",
       "devOnly": false,
       "optional": true,
-      "os": ["darwin"],
+      "os": [
+        "darwin"
+      ],
       "integrity": "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==",
       "integrityPresent": true,
       "lockfileInstallScript": true,
       "installedLifecycleScripts": []
-    },
-    {
-      "packagePath": "node_modules/sharp",
-      "name": "sharp",
-      "version": "0.34.5",
-      "devOnly": false,
-      "optional": true,
-      "os": [],
-      "integrity": "sha512-Ou9I5Ft9WNcCbXrU9cMgPBcCK8LiwLqcbywW3t4oDV37n1pzpuNLsYiAV8eODnjbtQlSDwZ2cUEeQz4E54Hltg==",
-      "integrityPresent": true,
-      "lockfileInstallScript": true,
-      "installedLifecycleScripts": ["install"]
     },
     {
       "packagePath": "node_modules/unrs-resolver",
@@ -67,318 +59,451 @@
       "integrity": "sha512-bSjt9pjaEBnNiGgc9rUiHGKv5l4/TGzDmYw3RhnkJGtLhbnnA/5qJj7x3dNDCRx/PJxu774LlH8lCOlB4hEfKg==",
       "integrityPresent": true,
       "lockfileInstallScript": true,
-      "installedLifecycleScripts": ["postinstall"]
+      "installedLifecycleScripts": [
+        "postinstall"
+      ]
     }
   ],
-  "lifecycleScriptPackageCount": 4,
+  "lifecycleScriptPackageCount": 3,
   "publisherOnlyLifecycleMetadataPackages": [
     {
       "packagePath": "node_modules/@alcalzone/ansi-tokenize",
       "name": "@alcalzone/ansi-tokenize",
       "version": "0.2.5",
-      "installedPublisherScripts": ["prepare"]
+      "installedPublisherScripts": [
+        "prepare"
+      ]
     },
     {
       "packagePath": "node_modules/@eslint/eslintrc",
       "name": "@eslint/eslintrc",
       "version": "2.1.4",
-      "installedPublisherScripts": ["prepare"]
+      "installedPublisherScripts": [
+        "prepare"
+      ]
     },
     {
       "packagePath": "node_modules/@google/design.md/node_modules/@alcalzone/ansi-tokenize",
       "name": "@alcalzone/ansi-tokenize",
       "version": "0.3.0",
-      "installedPublisherScripts": ["prepare"]
+      "installedPublisherScripts": [
+        "prepare"
+      ]
     },
     {
       "packagePath": "node_modules/@google/design.md/node_modules/ink",
       "name": "ink",
       "version": "7.0.1",
-      "installedPublisherScripts": ["prepare"]
+      "installedPublisherScripts": [
+        "prepare"
+      ]
     },
     {
       "packagePath": "node_modules/@google/design.md/node_modules/mdast-util-to-string",
       "name": "mdast-util-to-string",
       "version": "4.0.0",
-      "installedPublisherScripts": ["prepack"]
+      "installedPublisherScripts": [
+        "prepack"
+      ]
     },
     {
       "packagePath": "node_modules/@google/design.md/node_modules/unified",
       "name": "unified",
       "version": "11.0.5",
-      "installedPublisherScripts": ["prepack"]
+      "installedPublisherScripts": [
+        "prepack"
+      ]
     },
     {
       "packagePath": "node_modules/@google/design.md/node_modules/unist-util-is",
       "name": "unist-util-is",
       "version": "6.0.1",
-      "installedPublisherScripts": ["prepack"]
+      "installedPublisherScripts": [
+        "prepack"
+      ]
     },
     {
       "packagePath": "node_modules/@google/design.md/node_modules/unist-util-stringify-position",
       "name": "unist-util-stringify-position",
       "version": "4.0.0",
-      "installedPublisherScripts": ["prepack"]
+      "installedPublisherScripts": [
+        "prepack"
+      ]
     },
     {
       "packagePath": "node_modules/@google/design.md/node_modules/unist-util-visit",
       "name": "unist-util-visit",
       "version": "5.1.0",
-      "installedPublisherScripts": ["prepack"]
+      "installedPublisherScripts": [
+        "prepack"
+      ]
     },
     {
       "packagePath": "node_modules/@google/design.md/node_modules/unist-util-visit-parents",
       "name": "unist-util-visit-parents",
       "version": "6.0.2",
-      "installedPublisherScripts": ["prepack"]
+      "installedPublisherScripts": [
+        "prepack"
+      ]
     },
     {
       "packagePath": "node_modules/@google/design.md/node_modules/vfile",
       "name": "vfile",
       "version": "6.0.3",
-      "installedPublisherScripts": ["prepack"]
+      "installedPublisherScripts": [
+        "prepack"
+      ]
     },
     {
       "packagePath": "node_modules/@google/design.md/node_modules/vfile-message",
       "name": "vfile-message",
       "version": "4.0.3",
-      "installedPublisherScripts": ["prepack"]
+      "installedPublisherScripts": [
+        "prepack"
+      ]
     },
     {
       "packagePath": "node_modules/@humanwhocodes/config-array",
       "name": "@humanwhocodes/config-array",
       "version": "0.13.0",
-      "installedPublisherScripts": ["prepublish"]
+      "installedPublisherScripts": [
+        "prepublish"
+      ]
     },
     {
       "packagePath": "node_modules/@humanwhocodes/module-importer",
       "name": "@humanwhocodes/module-importer",
       "version": "1.0.1",
-      "installedPublisherScripts": ["prepare"]
+      "installedPublisherScripts": [
+        "prepare"
+      ]
     },
     {
       "packagePath": "node_modules/@jridgewell/gen-mapping",
       "name": "@jridgewell/gen-mapping",
       "version": "0.3.13",
-      "installedPublisherScripts": ["prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/@jridgewell/resolve-uri",
       "name": "@jridgewell/resolve-uri",
       "version": "3.1.2",
-      "installedPublisherScripts": ["prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/@jridgewell/sourcemap-codec",
       "name": "@jridgewell/sourcemap-codec",
       "version": "1.5.5",
-      "installedPublisherScripts": ["prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/@jridgewell/trace-mapping",
       "name": "@jridgewell/trace-mapping",
       "version": "0.3.31",
-      "installedPublisherScripts": ["prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/@json-render/core/node_modules/zod",
       "name": "zod",
       "version": "4.3.6",
-      "installedPublisherScripts": ["prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/@monogrid/gainmap-js",
       "name": "@monogrid/gainmap-js",
       "version": "3.4.0",
-      "installedPublisherScripts": ["prepack"]
-    },
-    {
-      "packagePath": "node_modules/@next/env",
-      "name": "@next/env",
-      "version": "15.5.18",
-      "installedPublisherScripts": ["prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepack"
+      ]
     },
     {
       "packagePath": "node_modules/@next/eslint-plugin-next",
       "name": "@next/eslint-plugin-next",
       "version": "15.5.15",
-      "installedPublisherScripts": ["prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/@radix-ui/react-icons",
       "name": "@radix-ui/react-icons",
       "version": "1.3.2",
-      "installedPublisherScripts": ["prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/@reduxjs/toolkit",
       "name": "@reduxjs/toolkit",
       "version": "2.11.2",
-      "installedPublisherScripts": ["prepack"]
+      "installedPublisherScripts": [
+        "prepack"
+      ]
     },
     {
       "packagePath": "node_modules/@swc/helpers",
       "name": "@swc/helpers",
       "version": "0.5.15",
-      "installedPublisherScripts": ["prepack"]
+      "installedPublisherScripts": [
+        "prepack"
+      ]
     },
     {
       "packagePath": "node_modules/@tweenjs/tween.js",
       "name": "@tweenjs/tween.js",
       "version": "23.1.3",
-      "installedPublisherScripts": ["prepare"]
+      "installedPublisherScripts": [
+        "prepare"
+      ]
     },
     {
       "packagePath": "node_modules/@typescript-eslint/type-utils/node_modules/minimatch",
       "name": "minimatch",
       "version": "10.2.5",
-      "installedPublisherScripts": ["prepare", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepare",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/@typescript-eslint/type-utils/node_modules/ts-api-utils",
       "name": "ts-api-utils",
       "version": "2.5.0",
-      "installedPublisherScripts": ["prepare"]
+      "installedPublisherScripts": [
+        "prepare"
+      ]
     },
     {
       "packagePath": "node_modules/@typescript-eslint/utils/node_modules/minimatch",
       "name": "minimatch",
       "version": "10.2.5",
-      "installedPublisherScripts": ["prepare", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepare",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/@typescript-eslint/utils/node_modules/ts-api-utils",
       "name": "ts-api-utils",
       "version": "2.5.0",
-      "installedPublisherScripts": ["prepare"]
+      "installedPublisherScripts": [
+        "prepare"
+      ]
     },
     {
       "packagePath": "node_modules/acorn",
       "name": "acorn",
       "version": "8.16.0",
-      "installedPublisherScripts": ["prepare"]
+      "installedPublisherScripts": [
+        "prepare"
+      ]
     },
     {
       "packagePath": "node_modules/ajv",
       "name": "ajv",
       "version": "6.14.0",
-      "installedPublisherScripts": ["prepublish"]
+      "installedPublisherScripts": [
+        "prepublish"
+      ]
     },
     {
       "packagePath": "node_modules/aria-hidden",
       "name": "aria-hidden",
       "version": "1.2.6",
-      "installedPublisherScripts": ["prepare", "prepublish"]
+      "installedPublisherScripts": [
+        "prepare",
+        "prepublish"
+      ]
     },
     {
       "packagePath": "node_modules/aria-query",
       "name": "aria-query",
       "version": "5.3.2",
-      "installedPublisherScripts": ["prepack", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepack",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/array-buffer-byte-length",
       "name": "array-buffer-byte-length",
       "version": "1.0.2",
-      "installedPublisherScripts": ["prepack", "prepublish", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepack",
+        "prepublish",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/array-includes",
       "name": "array-includes",
       "version": "3.1.9",
-      "installedPublisherScripts": ["prepack", "prepublish", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepack",
+        "prepublish",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/array.prototype.findlast",
       "name": "array.prototype.findlast",
       "version": "1.2.5",
-      "installedPublisherScripts": ["prepack", "prepublish", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepack",
+        "prepublish",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/array.prototype.findlastindex",
       "name": "array.prototype.findlastindex",
       "version": "1.2.6",
-      "installedPublisherScripts": ["prepack", "prepublish", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepack",
+        "prepublish",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/array.prototype.flat",
       "name": "array.prototype.flat",
       "version": "1.3.3",
-      "installedPublisherScripts": ["prepack", "prepublish", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepack",
+        "prepublish",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/array.prototype.flatmap",
       "name": "array.prototype.flatmap",
       "version": "1.3.3",
-      "installedPublisherScripts": ["prepack", "prepublish", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepack",
+        "prepublish",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/array.prototype.tosorted",
       "name": "array.prototype.tosorted",
       "version": "1.1.4",
-      "installedPublisherScripts": ["prepack", "prepublish", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepack",
+        "prepublish",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/arraybuffer.prototype.slice",
       "name": "arraybuffer.prototype.slice",
       "version": "1.0.4",
-      "installedPublisherScripts": ["prepack", "prepublish", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepack",
+        "prepublish",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/async-function",
       "name": "async-function",
       "version": "1.0.0",
-      "installedPublisherScripts": ["prepack", "prepublish", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepack",
+        "prepublish",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/available-typed-arrays",
       "name": "available-typed-arrays",
       "version": "1.0.7",
-      "installedPublisherScripts": ["prepack", "prepublish", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepack",
+        "prepublish",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/axe-core",
       "name": "axe-core",
       "version": "4.11.1",
-      "installedPublisherScripts": ["prepare"]
+      "installedPublisherScripts": [
+        "prepare"
+      ]
     },
     {
       "packagePath": "node_modules/axobject-query",
       "name": "axobject-query",
       "version": "4.1.0",
-      "installedPublisherScripts": ["prepack", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepack",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/bail",
       "name": "bail",
       "version": "2.0.2",
-      "installedPublisherScripts": ["prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/brace-expansion",
       "name": "brace-expansion",
-      "version": "5.0.6",
-      "installedPublisherScripts": ["prepare", "prepublishOnly"]
+      "version": "5.0.8",
+      "installedPublisherScripts": [
+        "prepare",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/brace-expansion/node_modules/balanced-match",
       "name": "balanced-match",
       "version": "4.0.4",
-      "installedPublisherScripts": ["prepare", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepare",
+        "prepublishOnly"
+      ]
     },
     {
       "packagePath": "node_modules/call-bind",
       "name": "call-bind",
       "version": "1.0.8",
-      "installedPublisherScripts": ["prepack", "prepublish", "prepublishOnly"]
+      "installedPublisherScripts": [
+        "prepack",
+        "prepublish",
+        "prepublishOnly"
+      ]
+    },
+    {
+      "packagePath": "node_modules/call-bind-apply-helpers",
+      "name": "call-bind-apply-helpers",
+      "version": "1.0.2",
+      "installedPublisherScripts": [
+        "prepack",
+        "prepublish",
+        "prepublishOnly"
+      ]
     }
   ],
-  "publisherOnlyLifecycleMetadataCount": 367,
+  "publisherOnlyLifecycleMetadataCount": 363,
   "lifecycleReview": {
     "file": "docs/security/dependency-lifecycle-review.json",
-    "reviewedAt": "2026-07-14",
-    "totalConsumerPackages": 4,
-    "matchedReviewCount": 4,
+    "reviewedAt": "2026-07-30",
+    "totalConsumerPackages": 3,
+    "matchedReviewCount": 3,
     "unreviewed": [],
     "mismatches": [],
     "staleReviewEntries": [],

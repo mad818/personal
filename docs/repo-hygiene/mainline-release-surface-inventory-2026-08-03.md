@@ -5,6 +5,16 @@ The “main label” column records the latest commit subject GitHub displayed f
 that root path before this release-candidate work. A label is not itself a
 reason to edit or remove a path.
 
+## Post-merge verification
+
+Manual inspection of the merged default branch on 2026-08-04 confirms that
+`desktop`, `public`, and `tests/e2e` now display
+`chore: finalize Nexus Prime rc1 baseline`. The old RPG-removal subject remains
+available in Git history but is no longer the active label for those folders.
+Dependabot showed zero open alerts and 131 closed alerts; the operator also
+confirmed zero open code-scanning and secret-scanning alerts. Screenshots and
+machine-local paths remain outside the tracked repository.
+
 | Root path                   | Purpose and current owner                                                                          | Main label                                                                     | Disposition and evidence                                                                                                                   |
 | --------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `.agents`                   | Current project-local skill entrypoints; `AGENTS.md` routes feature/API/tab/bug work here.         | `Future-proof free local operations and repo recovery`                         | Keep unchanged. Active instruction authority and skill validation own it.                                                                  |

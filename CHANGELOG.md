@@ -100,4 +100,3 @@ versioning for release tags.
   longer part of the supported repository surface.
 - Desktop output must be rebuilt from source. `desktop/frontend-dist/` is not a
   release input.
-

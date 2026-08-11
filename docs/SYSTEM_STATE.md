@@ -37,7 +37,22 @@ Do not use it for:
 - This Codex shell currently cannot reach GitHub over port 443, so `npm run git:safe -- push` failed before this tranche could publish. Use `npm run repo:sync:status` to inspect ahead/dirty state without network, then run `npm run git:safe -- push` from normal PowerShell when GitHub connectivity is available; do not claim the branch is synced until that succeeds.
 - Phone/PWA acceptance still requires a physical phone or iPad on the same trusted network even though the receipt engine, assistant proof bridge, live status panel, capture-status artifact, direct-HQ QR handoff, one-command local preflight, no-network repo sync status, and latest-capture report are now implemented: run `npm run repo:sync:status`, run `npm run ops:preflight`, scan the `Scan direct HQ` QR or open the printed LAN HQ URL, log in with `NEXUS_TOKEN`, let the Free Local Readiness panel create the mobile receipt, send `ping`, ask one local Ollama prompt, watch live receipt proof turn ready, install the PWA, rerun capture, then run `npm run phone:acceptance:report` until `acceptanceReady: true`.
 - The wide readiness rollup is not release-candidate ready yet because `docs/metrics/readiness-rollup-latest.json` links a blocked phone acceptance artifact, release diagnostics used local fallback with routes down, Docker is unavailable, and the local Dependabot audit lacks a current exported alert payload.
-- Local Docker proof is still blocked because Docker is not currently available on this machin…342 tokens truncated…cting DOM, screenshot, console, and network reads under local-URL policy. For the Aurora closure only, Mario explicitly accepted authenticated manual visual confirmation as the release visual gate; automated Browser evidence remains unavailable, is not represented as passed, and should be rerun in a policy-permitted environment for future visual changes.
+- Local Docker proof is still blocked because Docker is not currently available on this machine.
+- The target-runtime gate now reads repo-root `.env.local`, but the current project-local config still does not define `NEXUS_RELEASE_BASE_URL`, so the combined `FD2`/`FD3` proof remains blocked until the real Coolify host is added there.
+
+## Release Posture
+
+- Current stage: `v1.0.0-rc.1` published for the web lane; release-candidate hardening continues.
+- Published RC1 baseline: tag and release `Nexus Prime v1.0.0-rc.1` at `5160ac9863725a10230a51c4d45c4cb0be218540`; GitHub comparison reports the tag identical to the approved `main` commit, and the final repository-hygiene audit is closed without history rewrite or phone/PWA scope.
+- Current active priority: preserve the published RC1 baseline while the next evidence-backed queue item is selected. Phone/PWA acceptance remains deferred.
+- Current wide rollup status: blocked, not release-candidate ready, with sanitized evidence in `docs/metrics/readiness-rollup-latest.json`.
+- Highest-value milestone: first web deployment proof, not another major feature tranche.
+- First release remains web-only and GA-scope only: `/hq`, `/command`, `/intel`, `/alpha`, `/cyber`, `/recon`, `/vault`, `/resources`.
+- Desktop remains the second release wave after the web lane is proven in staged hosting.
+
+## Known Environment Issues
+
+- The in-app Browser can attach to a local `127.0.0.1` Nexus tab while still rejecting DOM, screenshot, console, and network reads under local-URL policy. For the Aurora closure only, Mario explicitly accepted authenticated manual visual confirmation as the release visual gate; automated Browser evidence remains unavailable, is not represented as passed, and should be rerun in a policy-permitted environment for future visual changes.
 - `handoff:pull` now uses `scripts/git-with-acl-repair.ps1` so the known `.git` DENY ACL is removed before Git runs. Normal PowerShell previously proved GitHub connectivity and push, but this Codex shell currently cannot reach GitHub port 443; inside the Codex sandbox, `npm run repo:sync:health` may still show the sandbox-applied DENY between tool calls, so use `npm run git:safe -- <git args>` for Git operations and retry publish from normal PowerShell when network connectivity is available.
 - The original checkout at `<repo-root>` is back on `main` and is now the canonical local coding/runtime folder again. The previous dirty root state is preserved on `codex/root-preserve-before-main-restore-2026-04-21`, and the former dedicated `main` worktree now lives on `codex/mainline-runtime-archive-2026-04-21` for rollback/reference.
 - The merged `main` runtime launcher prefers `.next/standalone` and mirrors `public/` plus `.next/static/` into it before boot; if a local Next build does not emit standalone output or a `BUILD_ID`, `scripts/start-runtime.mjs` now falls back to a repo-root Next runtime so local review on `http://localhost:3100` can still become healthy.
@@ -121,4 +136,3 @@ Do not use it for:
 
 - `CLAUDE.md`, `tasks/todo.md`, `tasks/lessons.md`, and `docs/AGENT_HANDOFF.md` remain in the repo for compatibility only.
 - Historical execution detail remains in `docs/plans/`, `docs/ideas/`, and git history.
-

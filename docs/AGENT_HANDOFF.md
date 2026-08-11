@@ -66,4 +66,3 @@ Per-commit message / SHA / file lists are **omitted** here so this file stays st
 - Run `npm run handoff:write` after task/docs state changes.
 - Run `npm run handoff:check` before calling handoff docs synced.
 - Do not expand Claude/Cursor mirrors unless Mario explicitly asks; this repo is Codex-first now.
-

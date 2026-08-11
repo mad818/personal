@@ -168,4 +168,3 @@ proof are complete.
 Completed on 2026-08-11. The final audit confirmed the approved tag, published
 release, exact commit identity, successful remote gates, truthful security and
 repository-surface evidence, preserved history, and deferred phone/PWA lane.
-

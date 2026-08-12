@@ -12,7 +12,7 @@ versioning for release tags.
 - Signed desktop installers, staged-host proof, and Docker rehearsal remain
   release evidence rather than completed claims.
 
-## [1.0.0-rc.1] - Pending publication
+## [1.0.0-rc.1] - 2026-08-11
 
 ### Capabilities
 
@@ -85,8 +85,11 @@ versioning for release tags.
   the current RC1 baseline label. Dependabot, code scanning, and secret scanning
   each report zero open alerts.
 - Repository settings enforce squash-only merges, PR-title/PR-body squash
-  messages, and automatic merged-branch deletion. The release tag and
-  publication remain separately approval-gated.
+  messages, and automatic merged-branch deletion.
+- After separate operator approval, tag `v1.0.0-rc.1` and the GitHub release
+  `Nexus Prime v1.0.0-rc.1` were published at
+  `5160ac9863725a10230a51c4d45c4cb0be218540`; GitHub comparison reports the
+  tag and release baseline identical to that `main` commit.
 
 ### Limitations and migration notes
 

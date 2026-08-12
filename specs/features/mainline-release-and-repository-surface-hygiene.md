@@ -22,9 +22,13 @@ each report zero open alerts. Repository settings enforce squash-only merges,
 PR-title/PR-body squash messages, and automatic merged-branch deletion. Git
 history was not rewritten.
 
-The goal remains open only for Mario's separate approval of the
-`v1.0.0-rc.1` tag and GitHub release, publication, and the final audit.
-Phone/PWA work remains deferred.
+Final pre-publication record PR 74 was squash-merged as `5160ac9`. After
+Mario's separate approval, tag `v1.0.0-rc.1` and release
+`Nexus Prime v1.0.0-rc.1` were published at exact commit
+`5160ac9863725a10230a51c4d45c4cb0be218540`; GitHub comparison reports the tag
+identical to `main`. The post-publication audit closes every scoped requirement
+without a history rewrite, unrelated change, private evidence, or phone/PWA
+work. The goal is complete; phone/PWA acceptance remains deferred.
 
 ## Starting gap
 
@@ -160,3 +164,7 @@ local and remote checks, live security reconciliation, and zero unrelated or
 private publication scope. Preparation may stop at the explicit approval gate;
 the overall goal remains open until approved external mutations and post-merge
 proof are complete.
+
+Completed on 2026-08-11. The final audit confirmed the approved tag, published
+release, exact commit identity, successful remote gates, truthful security and
+repository-surface evidence, preserved history, and deferred phone/PWA lane.

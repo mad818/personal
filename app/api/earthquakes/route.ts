@@ -4,6 +4,7 @@
 
 import { NextResponse } from "next/server";
 import { createCache } from "@/lib/apiCache";
+import { readBoundedUpstreamJson } from "@/lib/liveFeedReliability";
 
 // Merges two feeds:
 //   - significant_week: significant earthquakes in the past week
@@ -143,7 +144,9 @@ export async function GET() {
     let successfulSources = 0;
 
     if (significantRes.status === "fulfilled" && significantRes.value.ok) {
-      const data = (await significantRes.value.json()) as USGSGeoJSON;
+      const data = await readBoundedUpstreamJson<USGSGeoJSON>(
+        significantRes.value,
+      );
       successfulSources += 1;
       Array.from(extractEarthquakes(data)).forEach(([id, eq]) => {
         merged.set(id, eq);
@@ -151,7 +154,7 @@ export async function GET() {
     }
 
     if (recentRes.status === "fulfilled" && recentRes.value.ok) {
-      const data = (await recentRes.value.json()) as USGSGeoJSON;
+      const data = await readBoundedUpstreamJson<USGSGeoJSON>(recentRes.value);
       successfulSources += 1;
       Array.from(extractEarthquakes(data)).forEach(([id, eq]) => {
         if (!merged.has(id)) {

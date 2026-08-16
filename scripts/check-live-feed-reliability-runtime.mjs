@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import {
   combineFeedAbortSignals,
   isDedupeSafeGet,
+  readBoundedUpstreamJson,
+  readBoundedUpstreamText,
   readJsonFeedResponse,
   summarizeFeedSignals,
 } from "../lib/liveFeedReliability.ts";
@@ -35,6 +37,69 @@ await assert.rejects(
       "Feed unavailable.",
     ),
   /Feed unavailable/,
+);
+
+assert.equal(
+  await readBoundedUpstreamText(
+    new Response("bounded", { headers: { "content-length": "7" } }),
+    7,
+  ),
+  "bounded",
+);
+assert.deepEqual(
+  await readBoundedUpstreamJson(
+    new Response(JSON.stringify({ records: [] })),
+    64,
+  ),
+  { records: [] },
+);
+await assert.rejects(
+  () =>
+    readBoundedUpstreamText(
+      new Response("oversized", { headers: { "content-length": "9" } }),
+      8,
+    ),
+  /exceeded 8 bytes/,
+);
+let declaredOversizeCancelled = false;
+const declaredOversizeBody = new ReadableStream({
+  pull(controller) {
+    controller.enqueue(new TextEncoder().encode("oversized"));
+  },
+  cancel() {
+    declaredOversizeCancelled = true;
+  },
+});
+await assert.rejects(
+  () =>
+    readBoundedUpstreamText(
+      new Response(declaredOversizeBody, {
+        headers: { "content-length": "9" },
+      }),
+      8,
+    ),
+  /exceeded 8 bytes/,
+);
+assert.equal(declaredOversizeCancelled, true);
+await assert.rejects(
+  () =>
+    readBoundedUpstreamText(
+      new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode("12345"));
+            controller.enqueue(new TextEncoder().encode("67890"));
+            controller.close();
+          },
+        }),
+      ),
+      8,
+    ),
+  /exceeded 8 bytes/,
+);
+await assert.rejects(
+  () => readBoundedUpstreamJson(new Response("{"), 8),
+  /invalid JSON/,
 );
 await assert.rejects(
   () =>
@@ -114,5 +179,5 @@ assert.equal(
 );
 
 console.log(
-  "ok live-feed-reliability-runtime (strict responses, linked cancellation, safe dedupe, and truthful signal states)",
+  "ok live-feed-reliability-runtime (strict responses, bounded upstream bodies, linked cancellation, safe dedupe, and truthful signal states)",
 );

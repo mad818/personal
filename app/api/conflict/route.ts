@@ -2,6 +2,7 @@
 // Conflict tracker API: GDELT event feed with clustering and density analysis.
 
 import { NextResponse } from "next/server";
+import { readBoundedUpstreamText } from "@/lib/liveFeedReliability";
 // Parses RSS from BBC World News + Al Jazeera English — no API key needed,
 // no CORS issues, far more reliable than GDELT.
 
@@ -19,7 +20,7 @@ async function parseRSS(feedUrl: string): Promise<ConflictArticle[]> {
     signal: AbortSignal.timeout(10000),
   });
   if (!r.ok) throw new Error(`Conflict feed ${r.status}`);
-  const xml = await r.text();
+  const xml = await readBoundedUpstreamText(r);
   if (!/<(?:rss|feed)\b/i.test(xml)) {
     throw new Error("Conflict feed returned an invalid document.");
   }

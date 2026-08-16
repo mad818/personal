@@ -9,6 +9,7 @@ import {
 import {
   appendCapabilityOutcomeReceipt,
   readCapabilityAssuranceState,
+  removeTemporaryQaCapabilityReceiptsWithProof,
   reviewStoredCapabilityLearning,
 } from "@/lib/capabilityAssuranceStore";
 import type { AssistantCapabilityId } from "@/lib/governanceCatalog";
@@ -17,6 +18,8 @@ import {
   applyRateLimitHeaders,
   checkRateLimit,
 } from "@/lib/security/rateLimit";
+import { applyProtectedActionHeaders } from "@/lib/security/protectedActionTelemetry";
+import { requireStepUpForAction } from "@/lib/security/stepUpAuth";
 
 const RATE_LIMIT = {
   bucket: "api-capability-assurance",
@@ -117,6 +120,8 @@ export async function POST(req: NextRequest) {
       receipt?: Partial<CapabilityOutcomeReceipt>;
       proposalId?: unknown;
       decision?: unknown;
+      runId?: unknown;
+      confirmation?: unknown;
     };
     if (body.action === "record_outcome") {
       const capabilityId = parseCapabilityId(body.receipt?.capabilityId);
@@ -129,6 +134,9 @@ export async function POST(req: NextRequest) {
       const result = await appendCapabilityOutcomeReceipt({
         ...body.receipt,
         capabilityId,
+        provenance: "client_reported",
+        approvalGranted: false,
+        proofSignature: null,
       });
       return protectedJson({
         ok: true,
@@ -157,6 +165,53 @@ export async function POST(req: NextRequest) {
         available: true,
         proposal: result.proposal,
       });
+    }
+    if (body.action === "remove_temporary_qa_receipts") {
+      const stepUpRequired = await requireStepUpForAction(req, {
+        action: "settings_writes",
+        capability: "mutate",
+      });
+      if (stepUpRequired) return stepUpRequired;
+      if (body.confirmation !== "REMOVE_TEMPORARY_QA_RECEIPTS") {
+        const response = protectedJson(
+          {
+            ok: false,
+            available: false,
+            error: "Explicit temporary QA cleanup confirmation is required.",
+            protectedAction: {
+              action: "settings_writes" as const,
+              capability: "mutate" as const,
+              status: "blocked_policy" as const,
+              blockedReason: "explicit_confirmation_required",
+            },
+          },
+          { status: 400 },
+        );
+        applyProtectedActionHeaders(response, {
+          action: "settings_writes",
+          capability: "mutate",
+          status: "blocked_policy",
+          blockedReason: "explicit_confirmation_required",
+        });
+        return response;
+      }
+      const result = await removeTemporaryQaCapabilityReceiptsWithProof(
+        body.runId,
+        process.env.NEXUS_EVIDENCE_KEY ?? "",
+      );
+      const protectedAction = {
+        action: "settings_writes" as const,
+        capability: "mutate" as const,
+        status: "ready" as const,
+      };
+      const response = protectedJson({
+        ok: true,
+        available: true,
+        cleanup: result,
+        protectedAction,
+      });
+      applyProtectedActionHeaders(response, protectedAction);
+      return response;
     }
     return protectedJson(
       { ok: false, available: false, error: "Unsupported assurance action." },

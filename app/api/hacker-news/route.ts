@@ -2,6 +2,7 @@
 // Hacker News API: top stories and activity from HN.
 
 import { NextRequest, NextResponse } from "next/server";
+import { readBoundedUpstreamJson } from "@/lib/liveFeedReliability";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,7 @@ async function fetchStoryIds(type: HNType): Promise<number[]> {
     headers: { Accept: "application/json" },
   });
   if (!r.ok) throw new Error(`HN stories list error: ${r.status}`);
-  const ids = (await r.json()) as number[];
+  const ids = await readBoundedUpstreamJson<number[]>(r);
   return ids.slice(0, 20);
 }
 
@@ -59,7 +60,7 @@ async function fetchItem(id: number): Promise<HNStory | null> {
     });
     if (!r.ok) return null;
 
-    const item = (await r.json()) as HNRawItem | null;
+    const item = await readBoundedUpstreamJson<HNRawItem | null>(r);
     if (!item || item.deleted || item.dead) return null;
     if (!item.title) return null;
 

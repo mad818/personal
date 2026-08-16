@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "nexus-github-security-posture.v1",
+  "capturedAt": "2026-08-12T04:30:05.9657627Z",
+  "expiresAt": "2026-08-13T04:30:05.9657627Z",
+  "repository": "mad818/personal",
+  "defaultBranch": "main",
+  "source": {
+    "kind": "operator-confirmed-github-ui",
+    "confirmedBy": "Mario",
+    "perAlertMetadataAvailable": false,
+    "limitations": [
+      "The connected GitHub tools available to this run do not expose Dependabot, code-scanning, or secret-scanning alert-list endpoints.",
+      "This record preserves the operator-confirmed current open counts without inventing alert identifiers, package metadata, or dismissal history."
+    ]
+  },
+  "surfaces": {
+    "dependabot": {
+      "openCount": 0,
+      "status": "clear"
+    },
+    "codeScanning": {
+      "openCount": 0,
+      "status": "clear"
+    },
+    "secretScanning": {
+      "openCount": 0,
+      "status": "clear"
+    }
+  },
+  "zeroOpen": true,
+  "ready": true
+}

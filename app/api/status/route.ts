@@ -34,6 +34,7 @@ import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { isAzureOpenAIConfigured } from "@/lib/azureOpenAI";
+import { readReleaseIdentity } from "@/lib/releaseIdentity";
 
 export const dynamic = "force-dynamic";
 const PROJECT_ROOT = resolveRuntimeProjectRoot();
@@ -115,6 +116,7 @@ function readRunnerState() {
 
 export async function GET() {
   const runtimeIdentity = readRuntimeIdentity();
+  const releaseIdentity = readReleaseIdentity();
   const latestEval = readLatestEval();
   const runner = readRunnerState();
   const runnerNormalized = runner ?? {
@@ -364,6 +366,7 @@ export async function GET() {
       platform: runtimeIdentity.platform,
       arch: runtimeIdentity.arch,
     },
+    releaseIdentity,
     readiness: {
       agentPlatform,
       aiProviders: providers,

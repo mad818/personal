@@ -18,6 +18,58 @@ export interface FeedSignalSummary {
   items: FeedSignalItem[];
 }
 
+export const MAX_UPSTREAM_FEED_BYTES = 8 * 1024 * 1024;
+
+export async function readBoundedUpstreamText(
+  response: Response,
+  maxBytes = MAX_UPSTREAM_FEED_BYTES,
+): Promise<string> {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes <= 0) {
+    throw new Error("Upstream body byte limit must be a positive integer.");
+  }
+
+  const contentLength = response.headers.get("content-length");
+  if (contentLength && /^\d+$/.test(contentLength)) {
+    const declaredBytes = Number(contentLength);
+    if (declaredBytes > maxBytes) {
+      await response.body?.cancel().catch(() => undefined);
+      throw new Error(`Upstream response exceeded ${maxBytes} bytes.`);
+    }
+  }
+
+  if (!response.body) return "";
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let receivedBytes = 0;
+  let text = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    receivedBytes += value.byteLength;
+    if (receivedBytes > maxBytes) {
+      await reader.cancel().catch(() => undefined);
+      throw new Error(`Upstream response exceeded ${maxBytes} bytes.`);
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+
+  return text + decoder.decode();
+}
+
+export async function readBoundedUpstreamJson<T>(
+  response: Response,
+  maxBytes = MAX_UPSTREAM_FEED_BYTES,
+): Promise<T> {
+  const text = await readBoundedUpstreamText(response, maxBytes);
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error("Upstream response contained invalid JSON.");
+  }
+}
+
 export async function readJsonFeedResponse<T>(
   response: Response,
   validate: (value: unknown) => value is T,

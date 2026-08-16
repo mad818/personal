@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-08-02T08:17:20.545Z",
+  "capturedAt": "2026-08-12T06:03:06.848Z",
   "auditName": "SECURITY-INFRASTRUCTURE-HARDENING",
   "checks": [
     {
@@ -9,7 +9,7 @@
       "critical": true,
       "ok": true,
       "exitCode": 0,
-      "durationMs": 575,
+      "durationMs": 1131,
       "summary": [
         "Publication safety OK (tracked files respect cloud/local boundary and contain no private LAN IPs, local home paths, env files, key material, or raw proof metadata)."
       ]
@@ -21,7 +21,7 @@
       "critical": true,
       "ok": true,
       "exitCode": 0,
-      "durationMs": 120,
+      "durationMs": 238,
       "summary": [
         "✅ security-scan: clean"
       ]
@@ -33,7 +33,7 @@
       "critical": false,
       "ok": true,
       "exitCode": 0,
-      "durationMs": 112,
+      "durationMs": 118,
       "summary": [
         "✅ tauri-security: capability + CSP + Windows/macOS release-scope checks passed"
       ]
@@ -45,7 +45,7 @@
       "critical": false,
       "ok": true,
       "exitCode": 0,
-      "durationMs": 322,
+      "durationMs": 383,
       "summary": [
         "Security boundary OK (middleware, route policy, signed session tiers, protected helpers, high-risk routes, and protected 401/403 posture are wired)."
       ]
@@ -57,7 +57,7 @@
       "critical": false,
       "ok": true,
       "exitCode": 0,
-      "durationMs": 239,
+      "durationMs": 413,
       "summary": [
         "Dependency risk posture written: docs/metrics/dependency-risk-posture-latest.json",
         "Package graph: 39 runtime direct, 22 dev direct, 1042 transitive lockfile packages.",
@@ -71,7 +71,7 @@
       "critical": false,
       "ok": true,
       "exitCode": 0,
-      "durationMs": 66,
+      "durationMs": 143,
       "summary": [
         "Dependabot security audit starter written: docs/metrics/dependabot-security-audit-latest.json",
         "Historical warning retained: 75 alerts (3 critical, 23 high, 39 moderate, 10 low); current open-alert count remains unknown without an import."
@@ -84,7 +84,7 @@
       "critical": false,
       "ok": true,
       "exitCode": 0,
-      "durationMs": 53,
+      "durationMs": 149,
       "summary": [
         "Phone LAN readiness OK (free local runbook, opt-in LAN launcher, env defaults, and readiness surfacing wired)."
       ]
@@ -93,13 +93,13 @@
   "artifacts": {
     "dependencyRiskPosture": {
       "file": "docs/metrics/dependency-risk-posture-latest.json",
-      "capturedAt": "2026-08-02T08:17:21.902Z",
+      "capturedAt": "2026-08-12T06:03:09.116Z",
       "ready": true,
       "blocked": []
     },
     "dependabotAudit": {
       "file": "docs/metrics/dependabot-security-audit-latest.json",
-      "capturedAt": "2026-08-02T08:17:21.959Z",
+      "capturedAt": "2026-08-12T06:03:09.247Z",
       "ready": false,
       "blocked": [
         "GitHub Dependabot alert details are not reachable from this Codex shell.",
@@ -109,20 +109,38 @@
     },
     "releaseDiagnostics": {
       "file": "docs/metrics/release-diagnostics-latest.json",
-      "capturedAt": "2026-06-20T19:29:37.871Z",
+      "capturedAt": "2026-08-12T05:25:47.084Z",
       "ready": false,
       "blocked": [
         "NEXUS_RELEASE_BASE_URL is missing; capture used local fallback.",
-        "Docker CLI is unavailable; local container proof remains blocked."
+        "NEXUS_TOKEN is missing; protected diagnostics are unproven.",
+        "Route check failed: /api/health (request error).",
+        "Route check failed: / (request error).",
+        "Route check failed: /hq (request error).",
+        "Route check failed: /command (request error).",
+        "Route check failed: /intel (request error).",
+        "Route check failed: /alpha (request error).",
+        "Route check failed: /cyber (request error).",
+        "Route check failed: /recon (request error).",
+        "Route check failed: /vault (request error).",
+        "Route check failed: /resources (request error).",
+        "Route check failed: /api/status (request error).",
+        "Route check failed: /api/diagnostics (request error).",
+        "A real HTTPS staged target is required for release proof."
       ]
     },
     "readinessRollup": {
       "file": "docs/metrics/readiness-rollup-latest.json",
-      "capturedAt": "2026-06-20T20:25:31.264Z",
+      "capturedAt": "2026-08-12T05:25:48.684Z",
       "ready": false,
       "blocked": [
-        "Phone/iPad PWA acceptance is still open (desktop local AI and LAN proof are complete).",
-        "Release diagnostics are still blocked by staged-host or Docker proof gaps."
+        "Dependency graph and lifecycle posture pass. Evidence expired at 2026-08-11T05:13:55.467Z.",
+        "Critical infrastructure hardening checks pass. Evidence expired at 2026-08-09T08:17:20.545Z.",
+        "A real HTTPS staged target and complete live diagnostics are not proven.",
+        "Docker image or container proof has blocking findings.",
+        "read-only web staging assurance artifact is missing or unreadable. Evidence timestamp or freshness policy is missing.",
+        "protected action proof artifact is missing or unreadable. Evidence timestamp or freshness policy is missing.",
+        "platform rollback proof artifact is missing or unreadable. Evidence timestamp or freshness policy is missing."
       ]
     }
   },

@@ -121,6 +121,9 @@ export interface CapabilityOutcomeReceipt {
   verificationPassed: boolean;
   evidence: string[];
   failureCode: CapabilityFailureCode | null;
+  provenance: "client_reported" | "server_protected_action";
+  approvalGranted: boolean;
+  proofSignature: string | null;
 }
 
 export interface CapabilityLearningProposal {
@@ -564,6 +567,20 @@ export const CAPABILITY_ASSURANCE_CONTRACTS: Record<
         "The artifact reopens at an exact VAULT target.",
         "Reject the proposal and preserve the source unchanged.",
       ),
+      action(
+        "remove-temporary-qa-evidence",
+        "Remove temporary QA evidence",
+        "Remove only one confirmed temporary QA run from the local evidence store.",
+        "execute",
+        "/resources?view=system",
+        "tier1",
+        true,
+        true,
+        ["exact qa run id", "desktop step-up", "explicit confirmation"],
+        "Only the confirmed temporary QA run is removed.",
+        "The server records a signed, prompt-free protected-action receipt.",
+        "Keep the temporary evidence and make no change.",
+      ),
     ],
     { durationMs: 20_000, contextChars: 28_000 },
   ),
@@ -791,6 +808,18 @@ export function createCapabilityOutcomeReceipt(
   const verificationPassed = verificationRequired
     ? Boolean(input.verificationPassed)
     : status === "verified";
+  const provenance =
+    input.provenance === "server_protected_action"
+      ? "server_protected_action"
+      : "client_reported";
+  const approvalGranted =
+    provenance === "server_protected_action" && input.approvalGranted === true;
+  const proofSignature =
+    provenance === "server_protected_action" &&
+    typeof input.proofSignature === "string" &&
+    /^[a-f0-9]{64}$/.test(input.proofSignature)
+      ? input.proofSignature
+      : null;
 
   return {
     schemaVersion: CAPABILITY_ASSURANCE_SCHEMA_VERSION,
@@ -818,7 +847,27 @@ export function createCapabilityOutcomeReceipt(
     verificationPassed,
     evidence: sanitizeEvidence(input.evidence),
     failureCode,
+    provenance,
+    approvalGranted,
+    proofSignature,
   };
+}
+
+export function createClientReportedCapabilityOutcomeReceipt(
+  input: Partial<CapabilityOutcomeReceipt> & {
+    capabilityId: AssistantCapabilityId;
+  },
+  now = Date.now(),
+) {
+  return createCapabilityOutcomeReceipt(
+    {
+      ...input,
+      provenance: "client_reported",
+      approvalGranted: false,
+      proofSignature: null,
+    },
+    now,
+  );
 }
 
 export function capabilityEvidenceWeight(timestamp: number, now = Date.now()) {
@@ -881,15 +930,22 @@ export function buildCapabilityAssuranceSnapshot(
   proposals: readonly CapabilityLearningProposal[] = [],
   now = Date.now(),
 ): CapabilityAssuranceSnapshot {
-  const observed = receipts
+  const recorded = receipts
     .filter((entry) => entry.capabilityId === contractValue.capabilityId)
-    .filter((entry) => capabilityEvidenceWeight(entry.finishedAt, now) > 0)
     .sort((left, right) => right.finishedAt - left.finishedAt);
+  const observed = recorded.filter(
+    (entry) => capabilityEvidenceWeight(entry.finishedAt, now) > 0,
+  );
   const verified = observed.filter(
     (entry) => entry.status === "verified" && entry.verificationPassed,
   );
   const latest = observed[0] ?? null;
   const latestVerified = verified[0] ?? null;
+  const latestRecorded = recorded[0] ?? null;
+  const latestRecordedVerified =
+    recorded.find(
+      (entry) => entry.status === "verified" && entry.verificationPassed,
+    ) ?? null;
   const failed = observed.filter(
     (entry) => entry.status === "failed" || entry.status === "degraded",
   );
@@ -905,7 +961,16 @@ export function buildCapabilityAssuranceSnapshot(
   let readiness: CapabilityReadinessState = "unverified";
   let readinessReason =
     "No recent verified outcome exists for this capability.";
-  if (
+  if (!latest && latestRecorded) {
+    const evidenceAgeDays = Math.floor(
+      Math.max(0, now - latestRecorded.finishedAt) / (24 * 60 * 60 * 1000),
+    );
+    const assuranceWindowDays = Math.floor(
+      CAPABILITY_EVIDENCE_MAX_AGE_MS / (24 * 60 * 60 * 1000),
+    );
+    readiness = "degraded";
+    readinessReason = `The latest capability evidence is ${evidenceAgeDays} days old and expired beyond the ${assuranceWindowDays}-day assurance window; re-verify before relying on this capability.`;
+  } else if (
     latest?.status === "blocked" &&
     latest.failureCode === "approval_required"
   ) {
@@ -984,8 +1049,9 @@ export function buildCapabilityAssuranceSnapshot(
     successRate,
     averageDurationMs,
     averageContextChars,
-    lastObservedAt: latest?.finishedAt ?? null,
-    lastVerifiedAt: latestVerified?.finishedAt ?? null,
+    lastObservedAt: latest?.finishedAt ?? latestRecorded?.finishedAt ?? null,
+    lastVerifiedAt:
+      latestVerified?.finishedAt ?? latestRecordedVerified?.finishedAt ?? null,
     knownWeakness: failureSummary(latest?.failureCode ?? null),
     evidenceWeight,
     efficiencyPosture,

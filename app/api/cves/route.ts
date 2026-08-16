@@ -4,6 +4,7 @@
 
 import { NextResponse } from "next/server";
 import { createCache } from "@/lib/apiCache";
+import { readBoundedUpstreamJson } from "@/lib/liveFeedReliability";
 
 // Returns last 30 days of CVEs, sorted by severity.
 
@@ -59,7 +60,9 @@ async function fetchCisaKevFallback() {
     signal: AbortSignal.timeout(12000),
   });
   if (!r.ok) return [];
-  const d = await r.json();
+  const d = await readBoundedUpstreamJson<{
+    vulnerabilities?: KevEntry[];
+  }>(r);
   return ((d.vulnerabilities ?? []) as KevEntry[])
     .slice(0, 40)
     .map(mapKevToNvdLikeVulnerability);
@@ -107,7 +110,9 @@ export async function GET() {
       );
     }
 
-    const d = await r.json();
+    const d = await readBoundedUpstreamJson<{
+      vulnerabilities?: unknown[];
+    }>(r);
     const vulns = d.vulnerabilities ?? [];
     if (!vulns.length) {
       const fallback = await fetchCisaKevFallback();

@@ -6,7 +6,7 @@ import { join } from "node:path";
 
 const metricsDir = join(process.cwd(), "docs", "metrics");
 const recurringTimestampedArtifact =
-  /^(?:cp2-operational-live-gate|dependabot-security-audit|dependency-risk-posture|desktop-trust-chain|infra-hardening|phone-local-acceptance|readiness-rollup|release-diagnostics)-\d{4}-\d{2}-\d{2}.*\.json$/;
+  /^(?:cp2-operational-live-gate|cp2-staged-release-rehearsal|cp2-web-release-local-rehearsal|dependabot-security-audit|dependency-risk-posture|desktop-trust-chain|docker-release-proof|github-security-posture|infra-hardening|known-good-deployment|phone-local-acceptance|protected-action-proof|readiness-rollup|release-diagnostics|rollback-proof|web-staging-assurance)-\d{4}-\d{2}-\d{2}.*\.json$/;
 const findings = readdirSync(metricsDir)
   .filter((name) => recurringTimestampedArtifact.test(name))
   .sort();

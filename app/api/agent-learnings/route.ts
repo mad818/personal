@@ -173,6 +173,9 @@ export async function POST(req: NextRequest) {
           : "unknown",
       failureCode,
       evidence: ["compatibility:agent-learnings"],
+      provenance: "client_reported",
+      approvalGranted: false,
+      proofSignature: null,
     });
     return protectedJson({
       ok: true,

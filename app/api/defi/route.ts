@@ -2,6 +2,7 @@
 // DeFi protocol data API: TVL, APY, risk metrics from Defillama and Curve.
 
 import { NextRequest, NextResponse } from "next/server";
+import { readBoundedUpstreamJson } from "@/lib/liveFeedReliability";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,7 @@ async function fetchTVL(): Promise<Protocol[]> {
 
   if (!r.ok) throw new Error(`DeFiLlama TVL error: ${r.status}`);
 
-  const data = (await r.json()) as Array<Record<string, unknown>>;
+  const data = await readBoundedUpstreamJson<Array<Record<string, unknown>>>(r);
 
   return data
     .filter((p) => typeof p.tvl === "number" && p.tvl > 0)
@@ -79,9 +80,9 @@ async function fetchStablecoins(): Promise<Stablecoin[]> {
 
   if (!r.ok) throw new Error(`DeFiLlama stablecoins error: ${r.status}`);
 
-  const data = (await r.json()) as {
+  const data = await readBoundedUpstreamJson<{
     peggedAssets: Array<Record<string, unknown>>;
-  };
+  }>(r);
   const assets = data.peggedAssets ?? [];
 
   return assets
@@ -121,7 +122,9 @@ async function fetchYields(): Promise<YieldPool[]> {
 
   if (!r.ok) throw new Error(`DeFiLlama yields error: ${r.status}`);
 
-  const data = (await r.json()) as { data: Array<Record<string, unknown>> };
+  const data = await readBoundedUpstreamJson<{
+    data: Array<Record<string, unknown>>;
+  }>(r);
   const pools = data.data ?? [];
 
   return pools

@@ -1,101 +1,24 @@
 {
-  "capturedAt": "2026-06-20T19:29:37.871Z",
-  "baseUrl": "http://127.0.0.1:3100",
-  "baseUrlSource": "local-fallback",
-  "routes": [
-    {
-      "route": "/api/health",
-      "ok": false,
-      "status": 0,
-      "redirected": false,
-      "contentType": null,
-      "durationMs": 25,
-      "error": "fetch failed"
-    },
-    {
-      "route": "/",
-      "ok": false,
-      "status": 0,
-      "redirected": false,
-      "contentType": null,
-      "durationMs": 1,
-      "error": "fetch failed"
-    },
-    {
-      "route": "/hq?focus=hq-chronicle",
-      "ok": false,
-      "status": 0,
-      "redirected": false,
-      "contentType": null,
-      "durationMs": 1,
-      "error": "fetch failed"
-    },
-    {
-      "route": "/command",
-      "ok": false,
-      "status": 0,
-      "redirected": false,
-      "contentType": null,
-      "durationMs": 1,
-      "error": "fetch failed"
-    },
-    {
-      "route": "/resources",
-      "ok": false,
-      "status": 0,
-      "redirected": false,
-      "contentType": null,
-      "durationMs": 1,
-      "error": "fetch failed"
-    },
-    {
-      "route": "/vehicle",
-      "ok": false,
-      "status": 0,
-      "redirected": false,
-      "contentType": null,
-      "durationMs": 0,
-      "error": "fetch failed"
-    },
-    {
-      "route": "/internal/vehicle",
-      "ok": false,
-      "status": 0,
-      "redirected": false,
-      "contentType": null,
-      "durationMs": 1,
-      "error": "fetch failed"
-    },
-    {
-      "route": "/api/status",
-      "ok": false,
-      "status": 0,
-      "redirected": false,
-      "contentType": null,
-      "durationMs": 1,
-      "error": "fetch failed"
-    },
-    {
-      "route": "/api/diagnostics",
-      "ok": false,
-      "status": 0,
-      "redirected": false,
-      "contentType": null,
-      "durationMs": 0,
-      "error": "fetch failed"
-    }
-  ],
-  "environment": {
-    "hasReleaseBaseUrl": false,
-    "hasToken": true,
-    "dockerExpected": true,
-    "dockerAvailable": false,
-    "node": "v24.14.0",
-    "platform": "win32"
+  "schemaVersion": "nexus-release-diagnostics.v1",
+  "capturedAt": "2026-08-14T09:16:39.489Z",
+  "expiresAt": "2026-08-15T09:16:39.489Z",
+  "evidenceMaxAgeMs": 86400000,
+  "target": null,
+  "candidate": {
+    "tag": "v1.0.0-rc.2",
+    "tagObject": null,
+    "peeledCommit": null,
+    "objectType": null,
+    "state": "missing",
+    "ready": false,
+    "blocker": "Local annotated tag v1.0.0-rc.2 is missing or incomplete; no HEAD, environment, or artifact fallback is allowed."
   },
+  "routes": [],
+  "security": null,
+  "identity": null,
   "blocked": [
-    "NEXUS_RELEASE_BASE_URL is missing; capture used local fallback.",
-    "Docker CLI is unavailable; local container proof remains blocked."
+    "Local annotated tag v1.0.0-rc.2 is missing or incomplete; no HEAD, environment, or artifact fallback is allowed."
   ],
+  "diagnosticsReady": false,
   "releaseProofReady": false
 }

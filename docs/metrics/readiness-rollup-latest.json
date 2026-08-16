@@ -1,46 +1,692 @@
 {
-  "capturedAt": "2026-08-02T08:17:22.773Z",
-  "rollupName": "WIDE-STABILIZATION-READINESS-ROLLUP",
+  "schemaVersion": "nexus-readiness-rollup.v2",
+  "capturedAt": "2026-08-16T02:30:18.584Z",
+  "rollupName": "WEB-CANDIDATE-STAGING-ADAPTIVE-RELIABILITY",
+  "freshnessPolicy": {
+    "localChecksMaxAgeMs": 3600000,
+    "liveSecurityAndTargetMaxAgeMs": 86400000,
+    "localArtifactMaxAgeMs": 604800000,
+    "rule": "Missing, malformed, or expired required evidence is never success."
+  },
   "artifacts": {
     "phoneAcceptance": {
       "file": "docs/metrics/phone-local-acceptance-latest.json",
-      "capturedAt": "2026-06-22T10:50:05.065Z"
+      "capturedAt": "2026-06-22T10:50:05.065Z",
+      "available": true
     },
     "releaseDiagnostics": {
       "file": "docs/metrics/release-diagnostics-latest.json",
-      "capturedAt": "2026-06-20T19:29:37.871Z"
+      "capturedAt": "2026-08-14T09:16:39.489Z",
+      "available": true
+    },
+    "githubSecurity": {
+      "file": "docs/metrics/github-security-posture-latest.json",
+      "capturedAt": "2026-08-12T04:30:05.9657627Z",
+      "available": true
     },
     "dependencyAudit": {
       "file": "docs/metrics/dependabot-security-audit-latest.json",
-      "capturedAt": "2026-08-02T08:17:21.959Z"
+      "capturedAt": "2026-08-12T06:03:09.247Z",
+      "available": true
     },
     "dependencyPosture": {
       "file": "docs/metrics/dependency-risk-posture-latest.json",
-      "capturedAt": "2026-08-02T08:17:21.902Z"
+      "capturedAt": "2026-08-12T06:03:09.116Z",
+      "available": true
     },
     "infraHardening": {
       "file": "docs/metrics/infra-hardening-latest.json",
-      "capturedAt": "2026-08-02T08:17:20.545Z"
+      "capturedAt": "2026-08-12T06:03:06.848Z",
+      "available": true
+    },
+    "desktopTrustChain": {
+      "file": "docs/metrics/desktop-trust-chain-latest.json",
+      "capturedAt": "2026-08-02T08:28:14.106Z",
+      "available": true
+    },
+    "desktopSigning": {
+      "file": "docs/metrics/desktop-signing-preflight-latest.json",
+      "capturedAt": "2026-06-20T19:29:36.463Z",
+      "available": true
+    },
+    "dockerReleaseProof": {
+      "file": "docs/metrics/docker-release-proof-latest.json",
+      "capturedAt": "2026-08-14T09:16:55.853Z",
+      "available": true
+    },
+    "webStagingAssurance": {
+      "file": "docs/metrics/web-staging-assurance-latest.json",
+      "capturedAt": null,
+      "available": false
+    },
+    "protectedActionProof": {
+      "file": "docs/metrics/protected-action-proof-latest.json",
+      "capturedAt": null,
+      "available": false
+    },
+    "knownGoodDeployment": {
+      "file": "docs/metrics/known-good-deployment-latest.json",
+      "capturedAt": null,
+      "available": false
+    },
+    "rollbackProof": {
+      "file": "docs/metrics/rollback-proof-latest.json",
+      "capturedAt": null,
+      "available": false
     },
     "agentRuntime": {
       "file": "docs/metrics/agent-runtime-latest.json",
-      "capturedAt": null
+      "capturedAt": "2026-04-01T15:45:01.853Z",
+      "available": true
     },
     "runtimeExperiment": {
       "file": "docs/metrics/runtime-experiment-latest.json",
-      "capturedAt": null
+      "capturedAt": "2026-04-23T04:29:29.597Z",
+      "available": true
     }
+  },
+  "lanes": {
+    "webCandidate": {
+      "id": "webCandidate",
+      "label": "Web candidate (v1.0.0-rc.2)",
+      "status": "unavailable",
+      "ready": false,
+      "evidence": [
+        {
+          "id": "publication-safety",
+          "owner": "publication safety",
+          "file": null,
+          "appliesTo": [
+            "webCandidate",
+            "desktop",
+            "phonePwa"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-16T02:30:18.584Z",
+          "maxAgeMs": 3600000,
+          "expiresAt": "2026-08-16T03:30:18.584Z",
+          "freshnessStatus": "fresh",
+          "state": "ready",
+          "reason": "publication safety passed.",
+          "nextAction": {
+            "id": "rerun-publication-safety",
+            "label": "Rerun publication safety",
+            "command": "npm run publication:safety:check",
+            "requiresApproval": false,
+            "reason": "Resolve tracked privacy or publication findings first."
+          }
+        },
+        {
+          "id": "github-security-posture",
+          "owner": "GitHub security posture",
+          "file": "docs/metrics/github-security-posture-latest.json",
+          "appliesTo": [
+            "webCandidate",
+            "desktop",
+            "phonePwa"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-12T04:30:05.965Z",
+          "maxAgeMs": 86400000,
+          "expiresAt": "2026-08-13T04:30:05.965Z",
+          "freshnessStatus": "stale",
+          "state": "stale",
+          "reason": "Current Dependabot, code-scanning, and secret-scanning open counts are zero. Evidence expired at 2026-08-13T04:30:05.965Z.",
+          "nextAction": {
+            "id": "refresh-github-security-posture",
+            "label": "Refresh current GitHub security evidence",
+            "command": null,
+            "requiresApproval": false,
+            "reason": "Capture current zero/open counts without inventing per-alert metadata."
+          }
+        },
+        {
+          "id": "dependency-risk",
+          "owner": "dependency risk posture",
+          "file": "docs/metrics/dependency-risk-posture-latest.json",
+          "appliesTo": [
+            "webCandidate",
+            "desktop",
+            "phonePwa"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-12T06:03:09.116Z",
+          "maxAgeMs": 604800000,
+          "expiresAt": "2026-08-19T06:03:09.116Z",
+          "freshnessStatus": "fresh",
+          "state": "ready",
+          "reason": "Dependency graph and lifecycle posture pass.",
+          "nextAction": {
+            "id": "refresh-dependency-risk",
+            "label": "Refresh dependency risk posture",
+            "command": "npm run dependency:risk:posture",
+            "requiresApproval": false,
+            "reason": "Re-evaluate the installed and locked dependency graph."
+          }
+        },
+        {
+          "id": "infra-hardening",
+          "owner": "infrastructure hardening",
+          "file": "docs/metrics/infra-hardening-latest.json",
+          "appliesTo": [
+            "webCandidate",
+            "desktop",
+            "phonePwa"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-12T06:03:06.848Z",
+          "maxAgeMs": 604800000,
+          "expiresAt": "2026-08-19T06:03:06.848Z",
+          "freshnessStatus": "fresh",
+          "state": "ready",
+          "reason": "Critical infrastructure hardening checks pass.",
+          "nextAction": {
+            "id": "refresh-infra-hardening",
+            "label": "Refresh infrastructure hardening",
+            "command": "npm run infra:hardening:audit",
+            "requiresApproval": false,
+            "reason": "Recapture current infrastructure checks and prerequisites."
+          }
+        },
+        {
+          "id": "capability-assurance-contract",
+          "owner": "Capability Assurance contract",
+          "file": null,
+          "appliesTo": [
+            "webCandidate"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-16T02:30:18.584Z",
+          "maxAgeMs": 3600000,
+          "expiresAt": "2026-08-16T03:30:18.584Z",
+          "freshnessStatus": "fresh",
+          "state": "ready",
+          "reason": "Capability Assurance contract passed.",
+          "nextAction": {
+            "id": "rerun-capability-assurance",
+            "label": "Rerun Capability Assurance proof",
+            "command": "npm run capability:assurance:check",
+            "requiresApproval": false,
+            "reason": "Verify all canonical capability contracts and reinforcement boundaries."
+          }
+        },
+        {
+          "id": "live-feed-reliability-contract",
+          "owner": "live-feed reliability contract",
+          "file": null,
+          "appliesTo": [
+            "webCandidate"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-16T02:30:18.584Z",
+          "maxAgeMs": 3600000,
+          "expiresAt": "2026-08-16T03:30:18.584Z",
+          "freshnessStatus": "fresh",
+          "state": "ready",
+          "reason": "live-feed reliability contract passed.",
+          "nextAction": {
+            "id": "rerun-live-feed-reliability",
+            "label": "Rerun live-feed reliability proof",
+            "command": "npm run live-feed:reliability:check",
+            "requiresApproval": false,
+            "reason": "Verify feed failure, retained-data, cancellation, and stale-result semantics."
+          }
+        },
+        {
+          "id": "release-diagnostics",
+          "owner": "release diagnostics",
+          "file": "docs/metrics/release-diagnostics-latest.json",
+          "appliesTo": [
+            "webCandidate"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-14T09:16:39.489Z",
+          "maxAgeMs": 86400000,
+          "expiresAt": "2026-08-15T09:16:39.489Z",
+          "freshnessStatus": "stale",
+          "state": "stale",
+          "reason": "A real HTTPS staged target with the active candidate identity is not proven. Evidence expired at 2026-08-15T09:16:39.489Z.",
+          "nextAction": {
+            "id": "authorize-first-staging-deployment",
+            "label": "Provide the HTTPS staging target and approve first deployment",
+            "command": null,
+            "requiresApproval": true,
+            "reason": "Live release diagnostics require the real approved staged target."
+          }
+        },
+        {
+          "id": "docker-release-proof",
+          "owner": "Docker release proof",
+          "file": "docs/metrics/docker-release-proof-latest.json",
+          "appliesTo": [
+            "webCandidate"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-14T09:16:55.853Z",
+          "maxAgeMs": 86400000,
+          "expiresAt": "2026-08-15T09:16:55.853Z",
+          "freshnessStatus": "stale",
+          "state": "stale",
+          "reason": "Docker image proof is missing or does not match the active candidate tag and commit. Evidence expired at 2026-08-15T09:16:55.853Z.",
+          "nextAction": {
+            "id": "refresh-stale-docker-release-proof",
+            "label": "Refresh stale docker-release-proof evidence",
+            "command": "npm run readiness:rollup",
+            "requiresApproval": false,
+            "reason": "Expired evidence must be recaptured before promotion."
+          }
+        },
+        {
+          "id": "web-staging-assurance",
+          "owner": "read-only web staging assurance",
+          "file": "docs/metrics/web-staging-assurance-latest.json",
+          "appliesTo": [
+            "webCandidate"
+          ],
+          "required": true,
+          "capturedAt": null,
+          "maxAgeMs": 86400000,
+          "expiresAt": null,
+          "freshnessStatus": "unavailable",
+          "state": "unavailable",
+          "reason": "read-only web staging assurance artifact is missing or unreadable. Evidence timestamp or freshness policy is missing.",
+          "nextAction": {
+            "id": "rerun-web-staging-assurance",
+            "label": "Rerun read-only web staging assurance",
+            "command": "npm run staging:assurance",
+            "requiresApproval": false,
+            "reason": "Refresh target evidence without deploying, restarting, or mutating it."
+          }
+        },
+        {
+          "id": "protected-action-proof",
+          "owner": "protected action proof",
+          "file": "docs/metrics/protected-action-proof-latest.json",
+          "appliesTo": [
+            "webCandidate"
+          ],
+          "required": true,
+          "capturedAt": null,
+          "maxAgeMs": 86400000,
+          "expiresAt": null,
+          "freshnessStatus": "unavailable",
+          "state": "unavailable",
+          "reason": "protected action proof artifact is missing or unreadable. Evidence timestamp or freshness policy is missing.",
+          "nextAction": {
+            "id": "capture-approved-protected-action-proof",
+            "label": "Capture the approved protected-action receipt",
+            "command": null,
+            "requiresApproval": true,
+            "reason": "A matching receipt exists only after a separately approved protected action."
+          }
+        },
+        {
+          "id": "rollback-proof",
+          "owner": "platform rollback proof",
+          "file": "docs/metrics/rollback-proof-latest.json",
+          "appliesTo": [
+            "webCandidate"
+          ],
+          "required": true,
+          "capturedAt": null,
+          "maxAgeMs": 86400000,
+          "expiresAt": null,
+          "freshnessStatus": "unavailable",
+          "state": "unavailable",
+          "reason": "platform rollback proof artifact is missing or unreadable. Evidence timestamp or freshness policy is missing.",
+          "nextAction": {
+            "id": "perform-approved-platform-rollback",
+            "label": "Perform and verify the approved platform rollback",
+            "command": null,
+            "requiresApproval": true,
+            "reason": "Rollback proof requires an operator-completed platform action."
+          }
+        }
+      ],
+      "blockers": [
+        "Current Dependabot, code-scanning, and secret-scanning open counts are zero. Evidence expired at 2026-08-13T04:30:05.965Z.",
+        "A real HTTPS staged target with the active candidate identity is not proven. Evidence expired at 2026-08-15T09:16:39.489Z.",
+        "Docker image proof is missing or does not match the active candidate tag and commit. Evidence expired at 2026-08-15T09:16:55.853Z.",
+        "read-only web staging assurance artifact is missing or unreadable. Evidence timestamp or freshness policy is missing.",
+        "protected action proof artifact is missing or unreadable. Evidence timestamp or freshness policy is missing.",
+        "platform rollback proof artifact is missing or unreadable. Evidence timestamp or freshness policy is missing."
+      ],
+      "strongestSafeNextAction": {
+        "id": "rerun-web-staging-assurance",
+        "label": "Rerun read-only web staging assurance",
+        "command": "npm run staging:assurance",
+        "requiresApproval": false,
+        "reason": "Refresh target evidence without deploying, restarting, or mutating it."
+      }
+    },
+    "desktop": {
+      "id": "desktop",
+      "label": "Desktop",
+      "status": "stale",
+      "ready": false,
+      "evidence": [
+        {
+          "id": "publication-safety",
+          "owner": "publication safety",
+          "file": null,
+          "appliesTo": [
+            "webCandidate",
+            "desktop",
+            "phonePwa"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-16T02:30:18.584Z",
+          "maxAgeMs": 3600000,
+          "expiresAt": "2026-08-16T03:30:18.584Z",
+          "freshnessStatus": "fresh",
+          "state": "ready",
+          "reason": "publication safety passed.",
+          "nextAction": {
+            "id": "rerun-publication-safety",
+            "label": "Rerun publication safety",
+            "command": "npm run publication:safety:check",
+            "requiresApproval": false,
+            "reason": "Resolve tracked privacy or publication findings first."
+          }
+        },
+        {
+          "id": "github-security-posture",
+          "owner": "GitHub security posture",
+          "file": "docs/metrics/github-security-posture-latest.json",
+          "appliesTo": [
+            "webCandidate",
+            "desktop",
+            "phonePwa"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-12T04:30:05.965Z",
+          "maxAgeMs": 86400000,
+          "expiresAt": "2026-08-13T04:30:05.965Z",
+          "freshnessStatus": "stale",
+          "state": "stale",
+          "reason": "Current Dependabot, code-scanning, and secret-scanning open counts are zero. Evidence expired at 2026-08-13T04:30:05.965Z.",
+          "nextAction": {
+            "id": "refresh-github-security-posture",
+            "label": "Refresh current GitHub security evidence",
+            "command": null,
+            "requiresApproval": false,
+            "reason": "Capture current zero/open counts without inventing per-alert metadata."
+          }
+        },
+        {
+          "id": "dependency-risk",
+          "owner": "dependency risk posture",
+          "file": "docs/metrics/dependency-risk-posture-latest.json",
+          "appliesTo": [
+            "webCandidate",
+            "desktop",
+            "phonePwa"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-12T06:03:09.116Z",
+          "maxAgeMs": 604800000,
+          "expiresAt": "2026-08-19T06:03:09.116Z",
+          "freshnessStatus": "fresh",
+          "state": "ready",
+          "reason": "Dependency graph and lifecycle posture pass.",
+          "nextAction": {
+            "id": "refresh-dependency-risk",
+            "label": "Refresh dependency risk posture",
+            "command": "npm run dependency:risk:posture",
+            "requiresApproval": false,
+            "reason": "Re-evaluate the installed and locked dependency graph."
+          }
+        },
+        {
+          "id": "infra-hardening",
+          "owner": "infrastructure hardening",
+          "file": "docs/metrics/infra-hardening-latest.json",
+          "appliesTo": [
+            "webCandidate",
+            "desktop",
+            "phonePwa"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-12T06:03:06.848Z",
+          "maxAgeMs": 604800000,
+          "expiresAt": "2026-08-19T06:03:06.848Z",
+          "freshnessStatus": "fresh",
+          "state": "ready",
+          "reason": "Critical infrastructure hardening checks pass.",
+          "nextAction": {
+            "id": "refresh-infra-hardening",
+            "label": "Refresh infrastructure hardening",
+            "command": "npm run infra:hardening:audit",
+            "requiresApproval": false,
+            "reason": "Recapture current infrastructure checks and prerequisites."
+          }
+        },
+        {
+          "id": "desktop-trust-chain",
+          "owner": "desktop trust chain",
+          "file": "docs/metrics/desktop-trust-chain-latest.json",
+          "appliesTo": [
+            "desktop"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-02T08:28:14.106Z",
+          "maxAgeMs": 604800000,
+          "expiresAt": "2026-08-09T08:28:14.106Z",
+          "freshnessStatus": "stale",
+          "state": "stale",
+          "reason": "desktop trust chain artifact schema or declared expiry is invalid. Evidence expired at 2026-08-09T08:28:14.106Z.",
+          "nextAction": {
+            "id": "inspect-desktop-trust-chain",
+            "label": "Inspect desktop trust-chain blockers",
+            "command": "npm run desktop:trust-chain",
+            "requiresApproval": false,
+            "reason": "Desktop release work remains independent from web staging."
+          }
+        },
+        {
+          "id": "desktop-signing",
+          "owner": "desktop signing preflight",
+          "file": "docs/metrics/desktop-signing-preflight-latest.json",
+          "appliesTo": [
+            "desktop"
+          ],
+          "required": true,
+          "capturedAt": "2026-06-20T19:29:36.463Z",
+          "maxAgeMs": 604800000,
+          "expiresAt": "2026-06-27T19:29:36.463Z",
+          "freshnessStatus": "stale",
+          "state": "stale",
+          "reason": "desktop signing preflight artifact schema or declared expiry is invalid. Evidence expired at 2026-06-27T19:29:36.463Z.",
+          "nextAction": {
+            "id": "refresh-stale-desktop-signing",
+            "label": "Refresh stale desktop-signing evidence",
+            "command": "npm run readiness:rollup",
+            "requiresApproval": false,
+            "reason": "Expired evidence must be recaptured before promotion."
+          }
+        }
+      ],
+      "blockers": [
+        "Current Dependabot, code-scanning, and secret-scanning open counts are zero. Evidence expired at 2026-08-13T04:30:05.965Z.",
+        "desktop trust chain artifact schema or declared expiry is invalid. Evidence expired at 2026-08-09T08:28:14.106Z.",
+        "desktop signing preflight artifact schema or declared expiry is invalid. Evidence expired at 2026-06-27T19:29:36.463Z."
+      ],
+      "strongestSafeNextAction": {
+        "id": "refresh-github-security-posture",
+        "label": "Refresh current GitHub security evidence",
+        "command": null,
+        "requiresApproval": false,
+        "reason": "Capture current zero/open counts without inventing per-alert metadata."
+      }
+    },
+    "phonePwa": {
+      "id": "phonePwa",
+      "label": "Phone/PWA",
+      "status": "stale",
+      "ready": false,
+      "evidence": [
+        {
+          "id": "publication-safety",
+          "owner": "publication safety",
+          "file": null,
+          "appliesTo": [
+            "webCandidate",
+            "desktop",
+            "phonePwa"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-16T02:30:18.584Z",
+          "maxAgeMs": 3600000,
+          "expiresAt": "2026-08-16T03:30:18.584Z",
+          "freshnessStatus": "fresh",
+          "state": "ready",
+          "reason": "publication safety passed.",
+          "nextAction": {
+            "id": "rerun-publication-safety",
+            "label": "Rerun publication safety",
+            "command": "npm run publication:safety:check",
+            "requiresApproval": false,
+            "reason": "Resolve tracked privacy or publication findings first."
+          }
+        },
+        {
+          "id": "github-security-posture",
+          "owner": "GitHub security posture",
+          "file": "docs/metrics/github-security-posture-latest.json",
+          "appliesTo": [
+            "webCandidate",
+            "desktop",
+            "phonePwa"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-12T04:30:05.965Z",
+          "maxAgeMs": 86400000,
+          "expiresAt": "2026-08-13T04:30:05.965Z",
+          "freshnessStatus": "stale",
+          "state": "stale",
+          "reason": "Current Dependabot, code-scanning, and secret-scanning open counts are zero. Evidence expired at 2026-08-13T04:30:05.965Z.",
+          "nextAction": {
+            "id": "refresh-github-security-posture",
+            "label": "Refresh current GitHub security evidence",
+            "command": null,
+            "requiresApproval": false,
+            "reason": "Capture current zero/open counts without inventing per-alert metadata."
+          }
+        },
+        {
+          "id": "dependency-risk",
+          "owner": "dependency risk posture",
+          "file": "docs/metrics/dependency-risk-posture-latest.json",
+          "appliesTo": [
+            "webCandidate",
+            "desktop",
+            "phonePwa"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-12T06:03:09.116Z",
+          "maxAgeMs": 604800000,
+          "expiresAt": "2026-08-19T06:03:09.116Z",
+          "freshnessStatus": "fresh",
+          "state": "ready",
+          "reason": "Dependency graph and lifecycle posture pass.",
+          "nextAction": {
+            "id": "refresh-dependency-risk",
+            "label": "Refresh dependency risk posture",
+            "command": "npm run dependency:risk:posture",
+            "requiresApproval": false,
+            "reason": "Re-evaluate the installed and locked dependency graph."
+          }
+        },
+        {
+          "id": "infra-hardening",
+          "owner": "infrastructure hardening",
+          "file": "docs/metrics/infra-hardening-latest.json",
+          "appliesTo": [
+            "webCandidate",
+            "desktop",
+            "phonePwa"
+          ],
+          "required": true,
+          "capturedAt": "2026-08-12T06:03:06.848Z",
+          "maxAgeMs": 604800000,
+          "expiresAt": "2026-08-19T06:03:06.848Z",
+          "freshnessStatus": "fresh",
+          "state": "ready",
+          "reason": "Critical infrastructure hardening checks pass.",
+          "nextAction": {
+            "id": "refresh-infra-hardening",
+            "label": "Refresh infrastructure hardening",
+            "command": "npm run infra:hardening:audit",
+            "requiresApproval": false,
+            "reason": "Recapture current infrastructure checks and prerequisites."
+          }
+        },
+        {
+          "id": "phone-pwa-acceptance",
+          "owner": "phone/PWA acceptance",
+          "file": "docs/metrics/phone-local-acceptance-latest.json",
+          "appliesTo": [
+            "phonePwa"
+          ],
+          "required": true,
+          "capturedAt": "2026-06-22T10:50:05.065Z",
+          "maxAgeMs": 604800000,
+          "expiresAt": "2026-06-29T10:50:05.065Z",
+          "freshnessStatus": "stale",
+          "state": "stale",
+          "reason": "Phone/PWA acceptance is intentionally deferred until Mario resumes it. Evidence expired at 2026-06-29T10:50:05.065Z.",
+          "nextAction": {
+            "id": "resume-phone-acceptance-when-approved",
+            "label": "Keep phone/PWA deferred",
+            "command": null,
+            "requiresApproval": true,
+            "reason": "Do not reopen phone/PWA work without Mario's explicit direction."
+          }
+        }
+      ],
+      "blockers": [
+        "Current Dependabot, code-scanning, and secret-scanning open counts are zero. Evidence expired at 2026-08-13T04:30:05.965Z.",
+        "Phone/PWA acceptance is intentionally deferred until Mario resumes it. Evidence expired at 2026-06-29T10:50:05.065Z."
+      ],
+      "strongestSafeNextAction": {
+        "id": "refresh-github-security-posture",
+        "label": "Refresh current GitHub security evidence",
+        "command": null,
+        "requiresApproval": false,
+        "reason": "Capture current zero/open counts without inventing per-alert metadata."
+      }
+    }
+  },
+  "candidateIdentity": {
+    "tag": "v1.0.0-rc.2",
+    "sourceCommit": null,
+    "diagnosticsMatches": false,
+    "dockerMatches": false,
+    "ready": false
+  },
+  "strongestSafeNextAction": {
+    "id": "rerun-web-staging-assurance",
+    "label": "Rerun read-only web staging assurance",
+    "command": "npm run staging:assurance",
+    "requiresApproval": false,
+    "reason": "Refresh target evidence without deploying, restarting, or mutating it."
   },
   "posture": {
     "publicationSafety": {
-      "command": "node scripts/validate-publication-safety.mjs",
+      "command": "npm run publication:safety:check",
       "ok": true,
       "exitCode": 0,
       "summary": "Publication safety OK (tracked files respect cloud/local boundary and contain no private LAN IPs, local home paths, env files, key material, or raw proof metadata)."
     },
+    "webCandidateReady": false,
+    "desktopReady": false,
+    "phonePwaReady": false,
+    "githubSecurityReady": true,
     "phoneAcceptanceReady": false,
     "localAiOfflineReady": false,
     "releaseDiagnosticsReady": false,
+    "candidateIdentityReady": false,
+    "protectedActionReady": false,
     "dependencyAuditReady": false,
     "dependencyRiskReady": true,
     "infraHardeningReady": true
@@ -147,8 +793,8 @@
           "enabled": true,
           "tokenRequired": true,
           "pwaReady": true,
-          "preferredLanUrl": "http://100.116.64.77:3100",
-          "preferredHqLanUrl": "http://100.116.64.77:3100/hq?focus=hq-chronicle",
+          "preferredLanUrl": "http://<release-target>",
+          "preferredHqLanUrl": "http://<release-target>/hq?focus=hq-chronicle",
           "lanUrlCount": 2,
           "hqLanUrlCount": 2,
           "firewallStatus": "Allow Node/Next on this port through Windows Firewall before using phone LAN access.",
@@ -249,96 +895,41 @@
       "acceptanceReady": false
     },
     "releaseDiagnostics": {
-      "baseUrl": "http://127.0.0.1:3100",
-      "routes": [
-        {
-          "route": "/api/health",
-          "ok": false,
-          "status": 0,
-          "redirected": false,
-          "contentType": null,
-          "durationMs": 25,
-          "error": "fetch failed"
-        },
-        {
-          "route": "/",
-          "ok": false,
-          "status": 0,
-          "redirected": false,
-          "contentType": null,
-          "durationMs": 1,
-          "error": "fetch failed"
-        },
-        {
-          "route": "/hq?focus=hq-chronicle",
-          "ok": false,
-          "status": 0,
-          "redirected": false,
-          "contentType": null,
-          "durationMs": 1,
-          "error": "fetch failed"
-        },
-        {
-          "route": "/command",
-          "ok": false,
-          "status": 0,
-          "redirected": false,
-          "contentType": null,
-          "durationMs": 1,
-          "error": "fetch failed"
-        },
-        {
-          "route": "/resources",
-          "ok": false,
-          "status": 0,
-          "redirected": false,
-          "contentType": null,
-          "durationMs": 1,
-          "error": "fetch failed"
-        },
-        {
-          "route": "/vehicle",
-          "ok": false,
-          "status": 0,
-          "redirected": false,
-          "contentType": null,
-          "durationMs": 0,
-          "error": "fetch failed"
-        },
-        {
-          "route": "/internal/vehicle",
-          "ok": false,
-          "status": 0,
-          "redirected": false,
-          "contentType": null,
-          "durationMs": 1,
-          "error": "fetch failed"
-        },
-        {
-          "route": "/api/status",
-          "ok": false,
-          "status": 0,
-          "redirected": false,
-          "contentType": null,
-          "durationMs": 1,
-          "error": "fetch failed"
-        },
-        {
-          "route": "/api/diagnostics",
-          "ok": false,
-          "status": 0,
-          "redirected": false,
-          "contentType": null,
-          "durationMs": 0,
-          "error": "fetch failed"
-        }
-      ],
+      "targetId": null,
+      "baseUrl": null,
+      "routes": [],
       "docker": null,
       "blocked": [
-        "NEXUS_RELEASE_BASE_URL is missing; capture used local fallback.",
-        "Docker CLI is unavailable; local container proof remains blocked."
+        "Local annotated tag v1.0.0-rc.2 is missing or incomplete; no HEAD, environment, or artifact fallback is allowed."
       ],
       "releaseProofReady": false
+    },
+    "protectedActionProof": null,
+    "githubSecurity": {
+      "source": {
+        "kind": "operator-confirmed-github-ui",
+        "perAlertMetadataAvailable": false,
+        "limitations": [
+          "The connected GitHub tools available to this run do not expose Dependabot, code-scanning, or secret-scanning alert-list endpoints.",
+          "This record preserves the operator-confirmed current open counts without inventing alert identifiers, package metadata, or dismissal history."
+        ]
+      },
+      "surfaces": {
+        "dependabot": {
+          "openCount": 0,
+          "status": "clear"
+        },
+        "codeScanning": {
+          "openCount": 0,
+          "status": "clear"
+        },
+        "secretScanning": {
+          "openCount": 0,
+          "status": "clear"
+        }
+      },
+      "zeroOpen": true,
+      "ready": true
     },
     "dependencyAudit": {
       "knownWarning": {
@@ -397,44 +988,11 @@
           ]
         }
       },
-      "upgradePolicy": {
-        "order": [
-          "Classify runtime-critical alerts first.",
-          "Patch one minimal dependency batch at a time.",
-          "Prefer patched minor/patch ranges before major-version sweeps.",
-          "Run npm run dependency:risk:posture and npm run verify after each batch.",
-          "Regenerate sanitized audit artifacts before committing."
-        ],
-        "blockedUntil": [
-          "GitHub Dependabot metadata identifies package names and patched ranges.",
-          "A rollback point is visible in git status/log.",
-          "Publication safety and security scan pass on the staged state."
-        ],
-        "forbiddenInAuditOnlyPass": [
-          "Package upgrades",
-          "Auth loosening",
-          "Provider bypass",
-          "Public route widening",
-          "Committing private proof values"
-        ]
-      },
       "metadataSource": {
         "githubReachable": false,
         "importedAlertMetadata": false,
         "alertImportArtifact": null,
-        "localGraphAvailable": true,
-        "manualMetadataRequired": true,
-        "dependencyPostureArtifact": "docs/metrics/dependency-risk-posture-latest.json",
-        "requiredFields": [
-          "package name",
-          "manifest path",
-          "ecosystem",
-          "severity",
-          "vulnerable range",
-          "patched range",
-          "direct or transitive ownership",
-          "runtime or dev-only impact"
-        ]
+        "manualMetadataRequired": true
       },
       "blocked": [
         "GitHub Dependabot alert details are not reachable from this Codex shell.",
@@ -463,90 +1021,45 @@
       "checks": [
         {
           "id": "publication-safety",
-          "command": "npm run publication:safety:check",
-          "delegatedCommand": "node scripts/validate-publication-safety.mjs",
           "critical": true,
           "ok": true,
-          "exitCode": 0,
-          "durationMs": 575,
-          "summary": [
-            "Publication safety OK (tracked files respect cloud/local boundary and contain no private LAN IPs, local home paths, env files, key material, or raw proof metadata)."
-          ]
+          "exitCode": 0
         },
         {
           "id": "security-scan",
-          "command": "npm run security-scan",
-          "delegatedCommand": "node scripts/security-scan.js",
           "critical": true,
           "ok": true,
-          "exitCode": 0,
-          "durationMs": 120,
-          "summary": [
-            "✅ security-scan: clean"
-          ]
+          "exitCode": 0
         },
         {
           "id": "tauri-security",
-          "command": "npm run security:tauri",
-          "delegatedCommand": "node scripts/check-tauri-security.mjs",
           "critical": false,
           "ok": true,
-          "exitCode": 0,
-          "durationMs": 112,
-          "summary": [
-            "✅ tauri-security: capability + CSP + Windows/macOS release-scope checks passed"
-          ]
+          "exitCode": 0
         },
         {
           "id": "security-boundaries",
-          "command": "npm run security:boundaries",
-          "delegatedCommand": "node scripts/validate-security-boundaries.mjs",
           "critical": false,
           "ok": true,
-          "exitCode": 0,
-          "durationMs": 322,
-          "summary": [
-            "Security boundary OK (middleware, route policy, signed session tiers, protected helpers, high-risk routes, and protected 401/403 posture are wired)."
-          ]
+          "exitCode": 0
         },
         {
           "id": "dependency-risk-posture",
-          "command": "npm run dependency:risk:posture",
-          "delegatedCommand": "node scripts/dependency-risk-posture.mjs",
           "critical": false,
           "ok": true,
-          "exitCode": 0,
-          "durationMs": 239,
-          "summary": [
-            "Dependency risk posture written: docs/metrics/dependency-risk-posture-latest.json",
-            "Package graph: 39 runtime direct, 22 dev direct, 1042 transitive lockfile packages.",
-            "Install-script review: 3 consumer package(s), 3 reviewed, 0 unreviewed, 363 publisher-only metadata package(s)."
-          ]
+          "exitCode": 0
         },
         {
           "id": "dependabot-audit",
-          "command": "npm run dependabot:audit:classify",
-          "delegatedCommand": "node scripts/dependabot-security-audit.mjs",
           "critical": false,
           "ok": true,
-          "exitCode": 0,
-          "durationMs": 66,
-          "summary": [
-            "Dependabot security audit starter written: docs/metrics/dependabot-security-audit-latest.json",
-            "Historical warning retained: 75 alerts (3 critical, 23 high, 39 moderate, 10 low); current open-alert count remains unknown without an import."
-          ]
+          "exitCode": 0
         },
         {
           "id": "phone-lan-static",
-          "command": "npm run phone:lan:check",
-          "delegatedCommand": "node scripts/validate-phone-lan-readiness.mjs",
           "critical": false,
           "ok": true,
-          "exitCode": 0,
-          "durationMs": 53,
-          "summary": [
-            "Phone LAN readiness OK (free local runbook, opt-in LAN launcher, env defaults, and readiness surfacing wired)."
-          ]
+          "exitCode": 0
         }
       ],
       "releasePrerequisites": {
@@ -566,21 +1079,32 @@
       "hardeningReady": true
     }
   },
+  "legacyCompatibility": {
+    "deprecated": true,
+    "releaseCandidateReadyMapsTo": "lanes.webCandidate.ready",
+    "blockedMapsTo": "lanes.webCandidate.blockers",
+    "phoneLocalAiProjectionRetained": true
+  },
+  "blockedScope": "webCandidate",
   "blocked": [
-    "Phone/PWA acceptance is still open because the latest sanitized phone artifact is not acceptanceReady.",
-    "Release diagnostics are still blocked by staged-host or Docker proof gaps.",
-    "Dependabot audit is started but detailed GitHub alert metadata is still pending."
+    "Current Dependabot, code-scanning, and secret-scanning open counts are zero. Evidence expired at 2026-08-13T04:30:05.965Z.",
+    "A real HTTPS staged target with the active candidate identity is not proven. Evidence expired at 2026-08-15T09:16:39.489Z.",
+    "Docker image proof is missing or does not match the active candidate tag and commit. Evidence expired at 2026-08-15T09:16:55.853Z.",
+    "read-only web staging assurance artifact is missing or unreadable. Evidence timestamp or freshness policy is missing.",
+    "protected action proof artifact is missing or unreadable. Evidence timestamp or freshness policy is missing.",
+    "platform rollback proof artifact is missing or unreadable. Evidence timestamp or freshness policy is missing."
   ],
+  "releaseCandidateReadyScope": "webCandidate",
   "releaseCandidateReady": false,
   "nextCommands": [
-    "npm run git:safe -- push",
-    "npm run phone:lan:start",
-    "npm run phone:acceptance:capture -- --phone-opened --phone-login --ping-receipt --local-ai-receipt --pwa-installed",
+    "npm run readiness:rollup",
     "npm run release:diagnostics:capture",
-    "npm run dependabot:audit:classify",
     "npm run dependency:risk:posture",
     "npm run infra:hardening:audit",
-    "npm run readiness:rollup",
+    "npm run capability:assurance:check",
+    "npm run live-feed:reliability:check",
+    "npm run staging:protected-action:proof -- --run-id=<approved-run-id>",
+    "npm run staging:assurance",
     "npm run verify"
   ]
 }

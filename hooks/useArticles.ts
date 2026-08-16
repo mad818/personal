@@ -6,7 +6,10 @@
 import { useCallback, useRef, useState } from "react";
 import { useStore, Article } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
-import { readJsonFeedResponse } from "@/lib/liveFeedReliability";
+import {
+  combineFeedAbortSignals,
+  readJsonFeedResponse,
+} from "@/lib/liveFeedReliability";
 
 // Bias detection — mirrors nexus-final.html logic
 const BIAS_KW: Record<string, string[]> = {
@@ -116,8 +119,12 @@ export function useArticles() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const requestIdRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchArticles = useCallback(async () => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     const requestId = ++requestIdRef.current;
     setLoading(true);
     setError("");
@@ -129,7 +136,7 @@ export function useArticles() {
       // ── 1. Server-side RSS + CryptoCompare + GDELT fallback (see app/api/news/route.ts) ─
       try {
         const response = await apiFetch("/api/news", {
-          signal: AbortSignal.timeout(15000),
+          signal: combineFeedAbortSignals(controller.signal, 15000),
         });
         const raw = await readJsonFeedResponse(
           response,
@@ -158,7 +165,7 @@ export function useArticles() {
         try {
           const response = await apiFetch(
             "/api/gdelt?query=cryptocurrency+OR+cybersecurity+OR+markets+OR+geopolitics&timespan=24H&maxrecords=35",
-            { signal: AbortSignal.timeout(12000) },
+            { signal: combineFeedAbortSignals(controller.signal, 12000) },
           );
           const payload = await readJsonFeedResponse(
             response,
@@ -205,6 +212,9 @@ export function useArticles() {
       });
     } finally {
       if (requestId === requestIdRef.current) {
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+        }
         setArticlesLoaded(true);
         setLoading(false);
       }
@@ -213,6 +223,8 @@ export function useArticles() {
 
   const cancelArticles = useCallback(() => {
     requestIdRef.current += 1;
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
   }, []);
 
   return { fetchArticles, cancelArticles, loading, error };

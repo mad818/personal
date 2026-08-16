@@ -2,6 +2,7 @@
 // Threat intelligence API: OTX, CVE, and CISA KEV feeds aggregated.
 
 import { NextRequest, NextResponse } from "next/server";
+import { readBoundedUpstreamJson } from "@/lib/liveFeedReliability";
 //
 // Sources:
 //   1. abuse.ch ThreatFox (no key required) — recent IOCs
@@ -74,7 +75,7 @@ async function fetchThreatFoxIOCs(days = 1): Promise<ThreatFoxIOC[]> {
     signal: AbortSignal.timeout(8000),
   });
   if (!r.ok) throw new Error(`ThreatFox ${r.status}`);
-  const data = (await r.json()) as ThreatFoxResponse;
+  const data = await readBoundedUpstreamJson<ThreatFoxResponse>(r);
   if (data.query_status === "no_result") return [];
   if (data.query_status !== "ok" || !Array.isArray(data.data)) {
     throw new Error("ThreatFox returned an invalid payload.");
@@ -102,7 +103,7 @@ async function fetchShodanInternetDB(
   if (r.status === 404)
     return { ip, ports: [], hostnames: [], tags: [], vulns: [], cpes: [] };
   if (!r.ok) throw new Error(`Shodan InternetDB ${r.status}`);
-  return (await r.json()) as ShodanInternetDB;
+  return readBoundedUpstreamJson<ShodanInternetDB>(r);
 }
 
 async function fetchOTXPulses(): Promise<OTXPulse[]> {
@@ -120,7 +121,7 @@ async function fetchOTXPulses(): Promise<OTXPulse[]> {
     },
   );
   if (!r.ok) throw new Error(`OTX ${r.status}`);
-  const data = (await r.json()) as OTXResponse;
+  const data = await readBoundedUpstreamJson<OTXResponse>(r);
   if (!Array.isArray(data.results)) {
     throw new Error("OTX returned an invalid payload.");
   }

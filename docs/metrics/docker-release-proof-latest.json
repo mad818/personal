@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "nexus-docker-release-proof.v1",
+  "generatedAt": "2026-08-14T09:16:55.853Z",
+  "proofReady": false,
+  "status": "blocked",
+  "blockers": [
+    "Local annotated tag v1.0.0-rc.2 is missing or incomplete; no HEAD, environment, or artifact fallback is allowed."
+  ],
+  "source": {
+    "tag": "v1.0.0-rc.2",
+    "tagObject": null,
+    "peeledCommit": null,
+    "objectType": null,
+    "state": "missing",
+    "ready": false,
+    "blocker": "Local annotated tag v1.0.0-rc.2 is missing or incomplete; no HEAD, environment, or artifact fallback is allowed."
+  },
+  "docker": {
+    "cliAvailable": false,
+    "engineAvailable": false,
+    "localEndpoint": false
+  },
+  "archive": {
+    "created": false,
+    "contained": false,
+    "ignored": false,
+    "dockerfileFromTag": false
+  },
+  "build": {
+    "attempted": false,
+    "passed": false
+  },
+  "runtime": {
+    "attempted": false,
+    "started": false,
+    "loopbackOnly": false,
+    "healthPassed": false,
+    "identityMatches": false,
+    "healthPollAttempts": 0,
+    "policy": {
+      "deploymentProfile": "web-self-hosted",
+      "networkMode": "isolated",
+      "toolPolicyMode": "strict",
+      "highRiskToolsEnabled": false,
+      "writesRequireApproval": true,
+      "paidApisAllowed": false
+    }
+  },
+  "smoke": {
+    "attempted": false,
+    "passed": false
+  },
+  "image": {
+    "inspected": false,
+    "imageId": null,
+    "contentAddressed": false,
+    "configuredUser": null,
+    "runtimeUid": null,
+    "nonRoot": false,
+    "containerImageMatches": false,
+    "labelsMatch": false
+  },
+  "cleanup": {
+    "containerRemoved": null,
+    "imageRemoved": null,
+    "tempRemoved": null,
+    "passed": true
+  },
+  "failureStage": null
+}

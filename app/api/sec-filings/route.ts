@@ -7,6 +7,7 @@ import {
   findSecCompanyIdentity,
   type SecCompanyFactsSummary,
 } from "@/lib/secCompanyFacts";
+import { readBoundedUpstreamJson } from "@/lib/liveFeedReliability";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +65,7 @@ async function searchEFTS(query: string): Promise<Filing[]> {
 
   if (!r.ok) throw new Error(`SEC EFTS error: ${r.status}`);
 
-  const data = (await r.json()) as EFTSResponse;
+  const data = await readBoundedUpstreamJson<EFTSResponse>(r);
   const hits = data.hits?.hits ?? [];
 
   return hits.map((hit) => {
@@ -113,7 +114,7 @@ async function searchEDGAR(query: string): Promise<Filing[]> {
 
   if (!r.ok) throw new Error(`SEC EDGAR search error: ${r.status}`);
 
-  const data = (await r.json()) as EFTSResponse;
+  const data = await readBoundedUpstreamJson<EFTSResponse>(r);
   const hits = data.hits?.hits ?? [];
 
   return hits.map((hit) => {
@@ -158,7 +159,10 @@ async function fetchCompanyFacts(
       },
     );
     if (!tickerResponse.ok) return null;
-    const company = findSecCompanyIdentity(await tickerResponse.json(), ticker);
+    const company = findSecCompanyIdentity(
+      await readBoundedUpstreamJson<unknown>(tickerResponse),
+      ticker,
+    );
     if (!company) return null;
 
     const factsResponse = await fetch(
@@ -170,7 +174,10 @@ async function fetchCompanyFacts(
       },
     );
     if (!factsResponse.ok) return null;
-    return extractSecCompanyFacts(await factsResponse.json(), company);
+    return extractSecCompanyFacts(
+      await readBoundedUpstreamJson<unknown>(factsResponse),
+      company,
+    );
   } catch {
     return null;
   }

@@ -7,7 +7,10 @@ import { useCallback, useRef, useState } from "react";
 import { useStore } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
 import { buildDeltaSweep } from "@/lib/liveContext";
-import { readJsonFeedResponse } from "@/lib/liveFeedReliability";
+import {
+  combineFeedAbortSignals,
+  readJsonFeedResponse,
+} from "@/lib/liveFeedReliability";
 
 export interface CVE {
   id: string;
@@ -99,8 +102,12 @@ export function useCVEs() {
   const [cves, setLocalCves] = useState<CVE[]>([]);
   const prevCves = useRef<CVE[]>([]);
   const requestIdRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchCVEs = useCallback(async () => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     const requestId = ++requestIdRef.current;
     setLoading(true);
     setError("");
@@ -109,7 +116,7 @@ export function useCVEs() {
     try {
       // Proxied through Next.js server route — NVD blocks direct browser fetches (CORS)
       const response = await apiFetch("/api/cves", {
-        signal: AbortSignal.timeout(55000),
+        signal: combineFeedAbortSignals(controller.signal, 55000),
       });
       const payload = await readJsonFeedResponse(
         response,
@@ -172,6 +179,9 @@ export function useCVEs() {
       });
     } finally {
       if (requestId === requestIdRef.current) {
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+        }
         setLoading(false);
         setCvesLoaded(true); // mark done regardless of outcome
       }
@@ -186,6 +196,8 @@ export function useCVEs() {
 
   const cancelCVEs = useCallback(() => {
     requestIdRef.current += 1;
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
   }, []);
 
   return { fetchCVEs, cancelCVEs, cves, loading, error };

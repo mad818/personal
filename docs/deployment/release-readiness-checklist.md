@@ -2,6 +2,13 @@
 
 Use this checklist for both deployment lanes before promoting a release.
 
+Readiness is wave-specific: deferred Phone/PWA and Desktop evidence cannot
+block the active web candidate. The stable lane key is `webCandidate`; its
+current label is `Web candidate (v1.0.0-rc.2)`. Stop for explicit approval before provisioning, DNS/TLS or
+secret changes, the first external deployment, production promotion, tagging,
+or release publication. Current evidence overwrites stable `*-latest.json`
+paths; missing or expired proof is never green.
+
 ## One-command CP2.4 gate
 
 - `npm run cp2:launch:gate` runs the complete local release gate plus the agent-runtime evaluation without calling a target.
@@ -18,7 +25,9 @@ Use this checklist for both deployment lanes before promoting a release.
 - [ ] `npm run security:tauri`
 - [ ] `npm run eval:agent-runtime:ci`
 - [ ] `npm run release:smoke` against the target runtime
-- [ ] `npm run release:diagnostics:capture` records route status and prerequisite posture
+- [ ] `NEXUS_EVIDENCE_KEY` is private, at least 128 bits, distinct from the rotatable auth token, and understood as shared operator/runtime HMAC trust rather than independent server provenance
+- [ ] `npm run release:diagnostics:capture -- --require-staged` records bounded route, HTTPS/header, immutable identity, and prerequisite posture without persisting the hostname or trusting editable JSON/runtime strings as independent provenance
+- [ ] `npm run readiness:rollup` reports independent `webCandidate`, Desktop, and Phone/PWA lanes
 - [ ] `npm run runtime:consistency` reports one coherent runtime boot identity
 - [ ] `npm run runtime:fresh-proof` passes on an isolated clean runtime
 - [ ] Build, Playwright, and fresh-runtime lanes are run serially when they share the same local `.next` workspace
@@ -60,6 +69,8 @@ Use this checklist for both deployment lanes before promoting a release.
 
 ## Web lane
 
+- [ ] published `v1.0.0-rc.1` remains unchanged at `5160ac9863725a10230a51c4d45c4cb0be218540`
+- [ ] the exact verified RC2 candidate commit is recorded; candidate naming is not represented as tag, release, merge, or deployment approval
 - [ ] [`fd2-release-runbook.md`](./fd2-release-runbook.md) has been followed for local proof, staged proof, and rollback prep
 - [ ] Docker build succeeds
 - [ ] Coolify/VPS deploy succeeds
@@ -82,6 +93,13 @@ Use this checklist for both deployment lanes before promoting a release.
 ## Rollback
 
 - [ ] previous known-good artifact or image tag is available
-- [ ] diagnostics snapshot captured before promotion
-- [ ] timestamped `docs/metrics/release-diagnostics-*.json` artifact is attached to the release record
-- [ ] rollback steps tested and documented for the target lane
+- [ ] stable `docs/metrics/release-diagnostics-latest.json` captured before promotion
+- [ ] one temporary QA receipt exists for the exact run ID used by the approved cleanup action
+- [ ] cleanup completed after diagnostics with desktop step-up, explicit `REMOVE_TEMPORARY_QA_RECEIPTS` confirmation, and separate approval
+- [ ] `npm run staging:protected-action:proof -- --run-id=<approved-run-id>` captured the signed receipt before final assurance
+- [ ] stable `docs/metrics/web-staging-assurance-latest.json` is fresh and ready
+- [ ] stable `docs/metrics/known-good-deployment-latest.json` is HMAC-authenticated, non-overwriteable without separate approved rotation, and records the exact source, image digest, sanitized deployment id, schema, boot identity, and bound source evidence
+- [ ] known-good and rollback-chain inputs are no more than 24 hours old and declare expiry horizons no longer than 24 hours after capture
+- [ ] real platform rollback restored the recorded full commit or image digest, with the action explicitly operator-confirmed rather than represented as direct provider API attestation
+- [ ] post-rollback health, auth, routes, feeds, Capability Assurance, and protected-action checks pass
+- [ ] stable `docs/metrics/rollback-proof-latest.json` records restoration truth and recovery duration

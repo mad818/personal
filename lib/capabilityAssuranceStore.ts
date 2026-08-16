@@ -1,11 +1,13 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { signCapabilityProtectedActionReceipt } from "./capabilityProtectedActionReceipt.mjs";
 import {
   CAPABILITY_ASSURANCE_CONTRACTS,
   CAPABILITY_ASSURANCE_SCHEMA_VERSION,
   CAPABILITY_PROPOSAL_LIMIT,
   CAPABILITY_RECEIPT_LIMIT,
   buildCapabilityLearningProposals,
+  createClientReportedCapabilityOutcomeReceipt,
   createCapabilityOutcomeReceipt,
   emptyCapabilityAssuranceState,
   reviewCapabilityLearningProposal,
@@ -29,6 +31,8 @@ const FAILURE_CODES = new Set([
 const DATA_ROOT = path.resolve(process.cwd(), "data", "capability-assurance");
 const STATE_PATH = path.resolve(DATA_ROOT, "state.json");
 const TEMP_PATH = path.resolve(DATA_ROOT, `.state-${process.pid}.tmp`);
+
+export const CAPABILITY_QA_CLEANUP_RECEIPT_LIMIT = 8;
 
 let writeQueue = Promise.resolve();
 
@@ -180,6 +184,43 @@ function withWriteLock<T>(operation: () => Promise<T>): Promise<T> {
   return result;
 }
 
+export function parseTemporaryQaRunId(value: unknown): string | null {
+  if (typeof value !== "string" || value !== value.trim()) return null;
+  return /^qa-[a-zA-Z0-9._:-]{1,92}$/.test(value) ? value : null;
+}
+
+export function removeTemporaryQaReceiptsFromState(
+  state: CapabilityAssuranceState,
+  runIdInput: unknown,
+) {
+  const runId = parseTemporaryQaRunId(runIdInput);
+  if (!runId) {
+    throw new Error("Invalid temporary QA run identifier.");
+  }
+  const removedReceiptCount = state.receipts.filter(
+    (entry) => entry.runId === runId && entry.provenance === "client_reported",
+  ).length;
+  if (removedReceiptCount === 0) {
+    throw new Error("Temporary client-reported QA run receipt not found.");
+  }
+  if (removedReceiptCount > CAPABILITY_QA_CLEANUP_RECEIPT_LIMIT) {
+    throw new Error("Temporary QA run exceeds the bounded cleanup limit.");
+  }
+  const receipts = state.receipts.filter(
+    (entry) => entry.runId !== runId || entry.provenance !== "client_reported",
+  );
+  return {
+    runId,
+    removedReceiptCount,
+    remainingReceiptCount: receipts.length,
+    state: {
+      ...state,
+      receipts,
+      proposals: state.proposals,
+    } satisfies CapabilityAssuranceState,
+  };
+}
+
 export function appendCapabilityOutcomeReceipt(
   input: Partial<CapabilityOutcomeReceipt> & {
     capabilityId: CapabilityOutcomeReceipt["capabilityId"];
@@ -192,7 +233,7 @@ export function appendCapabilityOutcomeReceipt(
         current.error ?? "Capability assurance evidence unavailable.",
       );
     }
-    const receipt = createCapabilityOutcomeReceipt(input);
+    const receipt = createClientReportedCapabilityOutcomeReceipt(input);
     const receipts = [
       receipt,
       ...current.state.receipts.filter((entry) => entry.id !== receipt.id),
@@ -243,6 +284,99 @@ export function reviewStoredCapabilityLearning(
     };
     await writeState(next);
     return { proposal: reviewed, state: next };
+  });
+}
+
+export function removeTemporaryQaCapabilityReceipts(runId: unknown) {
+  return withWriteLock(async () => {
+    const current = await readCapabilityAssuranceState();
+    if (!current.available) {
+      throw new Error(
+        current.error ?? "Capability assurance evidence unavailable.",
+      );
+    }
+    const result = removeTemporaryQaReceiptsFromState(current.state, runId);
+    await writeState(result.state);
+    return {
+      runId: result.runId,
+      removedReceiptCount: result.removedReceiptCount,
+      remainingReceiptCount: result.remainingReceiptCount,
+      preservedProposalCount: result.state.proposals.length,
+    };
+  });
+}
+
+export function removeTemporaryQaCapabilityReceiptsWithProof(
+  runId: unknown,
+  evidenceKey: string,
+) {
+  return withWriteLock(async () => {
+    if (typeof evidenceKey !== "string" || evidenceKey.length < 16) {
+      throw new Error(
+        "A private evidence key is required for protected-action proof.",
+      );
+    }
+    const current = await readCapabilityAssuranceState();
+    if (!current.available) {
+      throw new Error(
+        current.error ?? "Capability assurance evidence unavailable.",
+      );
+    }
+    const cleanup = removeTemporaryQaReceiptsFromState(current.state, runId);
+    const finishedAt = Date.now();
+    const unsignedReceipt = createCapabilityOutcomeReceipt(
+      {
+        capabilityId: "archive-continuity",
+        agent: "jansky",
+        runId: cleanup.runId,
+        route: "/resources?view=system",
+        mode: "action",
+        actionId: "remove-temporary-qa-evidence",
+        status: "verified",
+        dataState: "not_applicable",
+        startedAt: finishedAt,
+        finishedAt,
+        durationMs: 0,
+        contextChars: 0,
+        toolCount: 0,
+        riskTier: "tier1",
+        providerPosture: "local",
+        verificationRequired: true,
+        verificationPassed: true,
+        evidence: [
+          "protected-action:desktop-step-up",
+          "protected-action:explicit-confirmation",
+          "cleanup:exact-run",
+        ],
+        failureCode: null,
+        provenance: "server_protected_action",
+        approvalGranted: true,
+      },
+      finishedAt,
+    );
+    const proofReceipt: CapabilityOutcomeReceipt = {
+      ...unsignedReceipt,
+      proofSignature: signCapabilityProtectedActionReceipt(
+        unsignedReceipt,
+        evidenceKey,
+      ),
+    };
+    const next: CapabilityAssuranceState = {
+      schemaVersion: CAPABILITY_ASSURANCE_SCHEMA_VERSION,
+      receipts: [proofReceipt, ...cleanup.state.receipts].slice(
+        0,
+        CAPABILITY_RECEIPT_LIMIT,
+      ),
+      proposals: cleanup.state.proposals,
+    };
+    await writeState(next);
+    return {
+      runId: cleanup.runId,
+      removedReceiptCount: cleanup.removedReceiptCount,
+      remainingReceiptCount: next.receipts.length,
+      preservedProposalCount: next.proposals.length,
+      proofReceiptId: proofReceipt.id,
+    };
   });
 }
 

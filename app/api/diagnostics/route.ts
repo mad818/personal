@@ -23,6 +23,7 @@ import { summarizeSkillGovernance } from "@/lib/skillMetadata";
 import { protectedJson } from "@/lib/protectedApi";
 import { readRuntimeIdentity } from "@/lib/runtimeIdentity";
 import { isAzureOpenAIConfigured } from "@/lib/azureOpenAI";
+import { readReleaseIdentity } from "@/lib/releaseIdentity";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ function present(v: string | undefined) {
 
 export async function GET() {
   const runtimeIdentity = readRuntimeIdentity();
+  const releaseIdentity = readReleaseIdentity();
   const now = new Date().toISOString();
   const mode = readNetworkMode();
   const localData = readLocalDataPolicySummary();
@@ -128,6 +130,7 @@ export async function GET() {
       platform: runtimeIdentity.platform,
       arch: runtimeIdentity.arch,
     },
+    releaseIdentity,
     security,
     providers,
     dataSources,

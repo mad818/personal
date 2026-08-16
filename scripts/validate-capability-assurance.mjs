@@ -10,10 +10,20 @@ import {
   buildCapabilityAssuranceSnapshot,
   buildCapabilityLearningProposals,
   capabilityEvidenceWeight,
+  createClientReportedCapabilityOutcomeReceipt,
   createCapabilityOutcomeReceipt,
   reviewCapabilityLearningProposal,
   selectStrongestSafeCapabilityAction,
 } from "../lib/capabilityAssurance.ts";
+import {
+  CAPABILITY_QA_CLEANUP_RECEIPT_LIMIT,
+  parseTemporaryQaRunId,
+  removeTemporaryQaReceiptsFromState,
+} from "../lib/capabilityAssuranceStore.ts";
+import {
+  signCapabilityProtectedActionReceipt,
+  verifyCapabilityProtectedActionReceipt,
+} from "../lib/capabilityProtectedActionReceipt.mjs";
 
 const root = process.cwd();
 const now = Date.UTC(2026, 7, 3, 12, 0, 0);
@@ -205,6 +215,31 @@ assert.equal(
 );
 assert.ok(capabilityEvidenceWeight(now - 1_000, now) > 0.99);
 
+const expiredFinishedAt =
+  now - CAPABILITY_EVIDENCE_MAX_AGE_MS - 24 * 60 * 60 * 1000;
+const expiredVerified = {
+  ...receipt({ runId: "proof-expired-verified" }),
+  id: `receipt-proof-expired-verified-${expiredFinishedAt}`,
+  startedAt: expiredFinishedAt - 1_000,
+  finishedAt: expiredFinishedAt,
+};
+const expiredSnapshot = buildCapabilityAssuranceSnapshot(
+  general,
+  [expiredVerified],
+  [],
+  now,
+);
+assert.equal(
+  expiredSnapshot.readiness,
+  "degraded",
+  "expired evidence must remain visible as degraded instead of silently reverting to unverified",
+);
+assert.match(expiredSnapshot.readinessReason, /expired/i);
+assert.match(expiredSnapshot.readinessReason, /91 days old/i);
+assert.equal(expiredSnapshot.evidenceWeight, 0);
+assert.equal(expiredSnapshot.lastObservedAt, expiredVerified.finishedAt);
+assert.equal(expiredSnapshot.lastVerifiedAt, expiredVerified.finishedAt);
+
 const failureOne = receipt({
   runId: "repeat-one",
   status: "failed",
@@ -263,6 +298,157 @@ assert.equal(
   "rejected",
 );
 
+const temporaryQa = receipt({
+  runId: "qa-protected-action-proof",
+  finishedAt: now + 20,
+});
+const unrelatedReceipt = receipt({
+  runId: "operator-production-proof",
+  finishedAt: now + 21,
+});
+const unrelatedQaReceipt = receipt({
+  runId: "qa-unrelated-proof",
+  finishedAt: now + 22,
+});
+const signedServerProof = createCapabilityOutcomeReceipt(
+  {
+    capabilityId: "archive-continuity",
+    agent: "jansky",
+    runId: "qa-protected-action-proof",
+    route: "/resources?view=system",
+    mode: "action",
+    actionId: "remove-temporary-qa-evidence",
+    status: "verified",
+    dataState: "not_applicable",
+    startedAt: now + 23,
+    finishedAt: now + 23,
+    durationMs: 0,
+    contextChars: 0,
+    toolCount: 0,
+    riskTier: "tier1",
+    providerPosture: "local",
+    verificationRequired: true,
+    verificationPassed: true,
+    evidence: ["protected-action:explicit-confirmation"],
+    failureCode: null,
+    provenance: "server_protected_action",
+    approvalGranted: true,
+  },
+  now + 23,
+);
+signedServerProof.proofSignature = signCapabilityProtectedActionReceipt(
+  signedServerProof,
+  "fixture-private-evidence-key",
+);
+assert.equal(
+  verifyCapabilityProtectedActionReceipt(
+    signedServerProof,
+    "fixture-private-evidence-key",
+  ),
+  true,
+  "cleanup fixture must carry a valid server protected-action signature",
+);
+const cleanupState = {
+  schemaVersion: temporaryQa.schemaVersion,
+  receipts: [
+    temporaryQa,
+    signedServerProof,
+    unrelatedReceipt,
+    unrelatedQaReceipt,
+  ],
+  proposals,
+};
+const cleanup = removeTemporaryQaReceiptsFromState(
+  cleanupState,
+  "qa-protected-action-proof",
+);
+assert.equal(cleanup.removedReceiptCount, 1);
+assert.equal(cleanup.remainingReceiptCount, 3);
+assert.deepEqual(
+  cleanup.state.receipts.map((entry) => entry.runId),
+  [
+    "qa-protected-action-proof",
+    "operator-production-proof",
+    "qa-unrelated-proof",
+  ],
+  "cleanup must preserve unrelated receipts in their original order",
+);
+assert.strictEqual(
+  cleanup.state.receipts[0],
+  signedServerProof,
+  "cleanup must preserve the signed server protected-action proof for the same run",
+);
+assert.throws(
+  () =>
+    removeTemporaryQaReceiptsFromState(
+      cleanup.state,
+      "qa-protected-action-proof",
+    ),
+  /client-reported QA run receipt not found/,
+  "repeated cleanup must fail once no eligible temporary client evidence remains",
+);
+assert.deepEqual(
+  cleanup.state.proposals,
+  cleanupState.proposals,
+  "temporary receipt cleanup must not mutate learning proposals",
+);
+assert.strictEqual(
+  cleanup.state.proposals,
+  cleanupState.proposals,
+  "cleanup must preserve the proposal collection unchanged",
+);
+assert.equal(
+  cleanupState.receipts.length,
+  4,
+  "cleanup must not mutate the input evidence state",
+);
+assert.equal(
+  parseTemporaryQaRunId("qa-protected-action-proof"),
+  "qa-protected-action-proof",
+);
+for (const invalidRunId of [
+  "operator-production-proof",
+  "qa-*",
+  " qa-protected-action-proof",
+  "qa-protected-action-proof ",
+  "qa-proof?all=true",
+  "qa-",
+]) {
+  assert.equal(parseTemporaryQaRunId(invalidRunId), null);
+  assert.throws(
+    () => removeTemporaryQaReceiptsFromState(cleanupState, invalidRunId),
+    /Invalid temporary QA run identifier/,
+  );
+}
+assert.throws(
+  () => removeTemporaryQaReceiptsFromState(cleanupState, "qa-not-found"),
+  /not found/,
+);
+const overLimitState = {
+  ...cleanupState,
+  receipts: Array.from(
+    { length: CAPABILITY_QA_CLEANUP_RECEIPT_LIMIT + 1 },
+    (_, index) => ({
+      ...temporaryQa,
+      id: `receipt-qa-over-limit-${index}`,
+      runId: "qa-over-limit",
+      finishedAt: now + 30 + index,
+    }),
+  ),
+};
+assert.throws(
+  () => removeTemporaryQaReceiptsFromState(overLimitState, "qa-over-limit"),
+  /bounded cleanup limit/,
+);
+const serializedCleanup = JSON.stringify({
+  runId: cleanup.runId,
+  removedReceiptCount: cleanup.removedReceiptCount,
+  remainingReceiptCount: cleanup.remainingReceiptCount,
+  preservedProposalCount: cleanup.state.proposals.length,
+});
+assert.ok(!serializedCleanup.includes("prompt"));
+assert.ok(!serializedCleanup.includes("answer"));
+
 const selected = selectStrongestSafeCapabilityAction(general, "unverified");
 assert.equal(selected.approvalRequired, false);
 assert.equal(selected.riskTier, "tier0");
@@ -284,6 +470,58 @@ const serializedReceipt = JSON.stringify(
 assert.ok(
   !serializedReceipt.includes("prompt"),
   "receipts must not contain prompts",
+);
+
+const forgedClientReceipt = createClientReportedCapabilityOutcomeReceipt(
+  {
+    capabilityId: "archive-continuity",
+    runId: "qa-forged-client-proof",
+    mode: "action",
+    actionId: "remove-temporary-qa-evidence",
+    status: "verified",
+    verificationRequired: true,
+    verificationPassed: true,
+    provenance: "server_protected_action",
+    approvalGranted: true,
+    proofSignature: "a".repeat(64),
+  },
+  now,
+);
+assert.equal(forgedClientReceipt.provenance, "client_reported");
+assert.equal(forgedClientReceipt.approvalGranted, false);
+assert.equal(forgedClientReceipt.proofSignature, null);
+assert.equal(
+  verifyCapabilityProtectedActionReceipt(
+    forgedClientReceipt,
+    "fixture-private-evidence-key",
+  ),
+  false,
+);
+
+const serverReceipt = createCapabilityOutcomeReceipt(
+  {
+    capabilityId: "archive-continuity",
+    runId: "qa-server-proof",
+    mode: "action",
+    actionId: "remove-temporary-qa-evidence",
+    status: "verified",
+    verificationRequired: true,
+    verificationPassed: true,
+    provenance: "server_protected_action",
+    approvalGranted: true,
+  },
+  now,
+);
+serverReceipt.proofSignature = signCapabilityProtectedActionReceipt(
+  serverReceipt,
+  "fixture-private-evidence-key",
+);
+assert.equal(
+  verifyCapabilityProtectedActionReceipt(
+    serverReceipt,
+    "fixture-private-evidence-key",
+  ),
+  true,
 );
 assert.ok(
   !serializedReceipt.includes("answer"),
@@ -322,6 +560,21 @@ requireText(
   "learning review API",
 );
 requireText(
+  assuranceRoute,
+  'body.action === "remove_temporary_qa_receipts"',
+  "temporary QA cleanup API",
+);
+requireText(
+  assuranceRoute,
+  'body.confirmation !== "REMOVE_TEMPORARY_QA_RECEIPTS"',
+  "explicit QA cleanup confirmation",
+);
+requireText(
+  assuranceRoute,
+  'action: "settings_writes"',
+  "step-up protected QA cleanup",
+);
+requireText(
   compatibilityRoute,
   'entry.status === "approved"',
   "approved learning boundary",
@@ -332,6 +585,11 @@ requireText(
   "fixed local evidence root",
 );
 requireText(store, "assertContainedPath", "contained evidence storage");
+requireText(
+  store,
+  "removeTemporaryQaReceiptsFromState",
+  "exact-run temporary QA cleanup",
+);
 requireText(agent, 'action: "record_outcome"', "run receipt integration");
 requireText(
   panel,

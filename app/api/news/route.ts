@@ -3,6 +3,10 @@
 
 import { NextResponse } from "next/server";
 import { decodeBasicHtmlEntities } from "@/lib/security/textSafety";
+import {
+  readBoundedUpstreamJson,
+  readBoundedUpstreamText,
+} from "@/lib/liveFeedReliability";
 // Pulls from crypto, tech, finance, and world news for broad OSINT coverage.
 
 interface NewsItem {
@@ -38,7 +42,7 @@ async function fetchRSS(
       next: { revalidate: 300 },
     });
     if (!r.ok) return { items: [], available: false };
-    const xml = await r.text();
+    const xml = await readBoundedUpstreamText(r);
     if (!/<(?:rss|feed)\b/i.test(xml)) {
       return { items: [], available: false };
     }
@@ -99,9 +103,9 @@ async function fetchSingleGDELT(
       next: { revalidate: 300 },
     });
     if (!r.ok) return { items: [], available: false };
-    const d = (await r.json()) as {
+    const d = await readBoundedUpstreamJson<{
       articles?: Array<{ title?: string; url?: string; seendate?: string }>;
-    };
+    }>(r);
     const items: NewsItem[] = [];
     for (const a of d?.articles ?? []) {
       const title = clean(String(a.title ?? ""));
@@ -159,7 +163,7 @@ async function fetchCryptoCompare(): Promise<NewsFetchResult> {
       next: { revalidate: 300 },
     });
     if (!r.ok) return { items: [], available: false };
-    const d = (await r.json()) as any;
+    const d = await readBoundedUpstreamJson<any>(r);
     const raw = (d?.Data ?? []) as Array<{
       id: string;
       title: string;
@@ -206,7 +210,7 @@ async function fetchGuardian(): Promise<NewsFetchResult> {
       },
     );
     if (!response.ok) return { items: [], available: false };
-    const data = (await response.json()) as {
+    const data = await readBoundedUpstreamJson<{
       response?: {
         results?: Array<{
           webTitle?: string;
@@ -215,7 +219,7 @@ async function fetchGuardian(): Promise<NewsFetchResult> {
           fields?: { trailText?: string };
         }>;
       };
-    };
+    }>(response);
     return {
       available: true,
       items: (data.response?.results ?? [])

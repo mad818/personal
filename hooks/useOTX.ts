@@ -4,7 +4,10 @@ import { useCallback, useRef, useState } from "react";
 import { useStore } from "@/store/useStore";
 import type { OTXPulse } from "@/store/useStore";
 import { apiFetch } from "@/lib/apiFetch";
-import { readJsonFeedResponse } from "@/lib/liveFeedReliability";
+import {
+  combineFeedAbortSignals,
+  readJsonFeedResponse,
+} from "@/lib/liveFeedReliability";
 
 // ── Raw API shape ─────────────────────────────────────────────────────────────
 interface OTXRawPulse {
@@ -65,8 +68,12 @@ export function useOTX() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const requestIdRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchOTX = useCallback(async () => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     const requestId = ++requestIdRef.current;
     setLoading(true);
     setError("");
@@ -75,7 +82,7 @@ export function useOTX() {
     try {
       // Read through server route so OTX key stays server-side.
       const response = await apiFetch("/api/threat-intel", {
-        signal: AbortSignal.timeout(12_000),
+        signal: combineFeedAbortSignals(controller.signal, 12_000),
       });
       const payload = await readJsonFeedResponse(
         response,
@@ -110,12 +117,19 @@ export function useOTX() {
         lastError: failureMessage,
       });
     } finally {
-      if (requestId === requestIdRef.current) setLoading(false);
+      if (requestId === requestIdRef.current) {
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+        }
+        setLoading(false);
+      }
     }
   }, [setOtxPulses, updateFeedStatus]);
 
   const cancelOTX = useCallback(() => {
     requestIdRef.current += 1;
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
   }, []);
 
   return { fetchOTX, cancelOTX, loading, error };

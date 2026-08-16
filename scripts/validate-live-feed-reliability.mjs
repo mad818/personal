@@ -33,6 +33,7 @@ const packageJson = read("package.json");
 
 for (const source of Object.values(routes)) {
   assert.match(source, /status:[^\n]*(502|503)/);
+  assert.match(source, /readBoundedUpstream(?:Json|Text)/);
 }
 assert.match(routes.cves, /fallback\.length/);
 assert.match(routes.cves, /cache\.set/);
@@ -55,6 +56,11 @@ for (const source of [
 for (const source of [articlesHook, cvesHook, otxHook, globalHook]) {
   assert.match(source, /response\.ok|readJsonFeedResponse/);
   assert.match(source, /requestIds?Ref/);
+}
+for (const source of [articlesHook, cvesHook, otxHook]) {
+  assert.match(source, /abortControllerRef/);
+  assert.match(source, /abortControllerRef\.current\?\.abort\(\)/);
+  assert.match(source, /combineFeedAbortSignals\(controller\.signal/);
 }
 assert.doesNotMatch(articlesHook, /content\.guardianapis\.com/);
 assert.doesNotMatch(articlesHook, /guardianKey/);

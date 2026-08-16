@@ -2,26 +2,53 @@
 /* eslint-disable no-console */
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+import { parseReleaseTarget } from "./release-diagnostics-capture.mjs";
 
 const root = process.cwd();
 const matrixPath = path.join(root, "lib", "release-matrix.json");
 const matrix = JSON.parse(fs.readFileSync(matrixPath, "utf8"));
-const baseUrl = process.env.NEXUS_RELEASE_BASE_URL ?? "http://127.0.0.1:3000";
+const rawBaseUrl =
+  process.env.NEXUS_RELEASE_BASE_URL ?? "http://127.0.0.1:3000";
+export function normalizeReleaseSmokeTarget(value) {
+  const target = parseReleaseTarget(value);
+  return {
+    origin: target.origin,
+    display: target.local ? target.origin : "https://<staging-target>",
+  };
+}
+const releaseTarget = normalizeReleaseSmokeTarget(rawBaseUrl);
+const baseUrl = releaseTarget.origin;
 const token = process.env.NEXUS_TOKEN ?? "";
 const INTERNAL_AUTH_HEADER = "x-nexus-internal-auth";
+export const RELEASE_SMOKE_REQUEST_TIMEOUT_MS = 15_000;
+export const RELEASE_SMOKE_MAX_RESPONSE_BYTES = 256 * 1024;
 
 const gaSurfaces = matrix.surfaces.filter((surface) => surface.tier === "ga");
 const gaNavTabs = matrix.surfaces.filter(
   (surface) => surface.tier === "ga" && surface.kind === "tab",
 );
 
-async function check(url, opts = {}) {
+export async function check(url, opts = {}) {
   try {
+    const { signal: callerSignal, ...requestOptions } = opts;
+    const timeoutSignal = AbortSignal.timeout(RELEASE_SMOKE_REQUEST_TIMEOUT_MS);
+    const signal = callerSignal
+      ? AbortSignal.any([callerSignal, timeoutSignal])
+      : timeoutSignal;
     const res = await fetch(`${baseUrl}${url}`, {
       redirect: "manual",
-      ...opts,
+      ...requestOptions,
+      signal,
     });
-    return { ok: res.ok, status: res.status, json: await safeJson(res) };
+    const body = await readBoundedJsonResponse(res);
+    return {
+      ok: res.ok && body.withinLimit,
+      status: res.status,
+      json: body.json,
+      responseBytes: body.byteLength,
+      responseWithinLimit: body.withinLimit,
+    };
   } catch (error) {
     return {
       ok: false,
@@ -31,11 +58,57 @@ async function check(url, opts = {}) {
   }
 }
 
-async function safeJson(res) {
+export async function readBoundedJsonResponse(
+  response,
+  maxBytes = RELEASE_SMOKE_MAX_RESPONSE_BYTES,
+) {
+  const declaredLength = Number(response.headers.get("content-length"));
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+    await response.body?.cancel("release smoke response limit exceeded");
+    return {
+      withinLimit: false,
+      byteLength: declaredLength,
+      json: null,
+    };
+  }
+
+  if (!response.body) {
+    return { withinLimit: true, byteLength: 0, json: null };
+  }
+
+  const reader = response.body.getReader();
+  const chunks = [];
+  let byteLength = 0;
   try {
-    return await res.json();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      byteLength += value.byteLength;
+      if (byteLength > maxBytes) {
+        await reader.cancel("release smoke response limit exceeded");
+        return { withinLimit: false, byteLength, json: null };
+      }
+      chunks.push(value);
+    }
   } catch {
-    return null;
+    return { withinLimit: false, byteLength, json: null };
+  }
+
+  const body = new Uint8Array(byteLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  try {
+    return {
+      withinLimit: true,
+      byteLength,
+      json: JSON.parse(new TextDecoder().decode(body) || "null"),
+    };
+  } catch {
+    return { withinLimit: true, byteLength, json: null };
   }
 }
 
@@ -45,7 +118,7 @@ function fail(message) {
 }
 
 async function main() {
-  console.log(`release-smoke against ${baseUrl}`);
+  console.log(`release-smoke against ${releaseTarget.display}`);
 
   const health = await check("/api/health");
   if (!health.ok) fail(`/api/health returned ${health.status}`);
@@ -99,7 +172,9 @@ async function main() {
     if (!statusRes.ok) fail(`/api/status returned ${statusRes.status}`);
     const counts = statusRes.json?.readiness?.release?.surfaces?.counts;
     if (!counts || counts.gaNav !== gaNavTabs.length) {
-      fail(`/api/status release surface counts mismatch (expected gaNav=${gaNavTabs.length})`);
+      fail(
+        `/api/status release surface counts mismatch (expected gaNav=${gaNavTabs.length})`,
+      );
     }
     console.log(`✅ /api/status ${statusRes.status}`);
   }
@@ -113,11 +188,15 @@ async function main() {
     }
     console.log(`✅ /api/diagnostics auth gate ${diagnosticsRes.status}`);
   } else {
-    if (!diagnosticsRes.ok) fail(`/api/diagnostics returned ${diagnosticsRes.status}`);
+    if (!diagnosticsRes.ok)
+      fail(`/api/diagnostics returned ${diagnosticsRes.status}`);
     console.log(`✅ /api/diagnostics ${diagnosticsRes.status}`);
   }
 
   console.log("✅ release-smoke passed");
 }
 
-main();
+const isMain =
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) main();

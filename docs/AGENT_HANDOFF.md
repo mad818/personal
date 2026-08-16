@@ -35,7 +35,7 @@ Per-commit message / SHA / file lists are **omitted** here so this file stays st
 
 ### What’s next (from `tasks/todo.md`)
 
-- SECURITY-AND-GITHUB-TRIAGE-2026-07-29 — Reconcile Mario's eight-current-alert Dependabot screenshot with the active manifests, lockfiles, installed dependency tree, local security lanes, open GitHub work, and the branch/default-branch publication boundary.
+- WEB-CANDIDATE-STAGING-AND-ADAPTIVE-RELIABILITY-CLOSURE — Preserve the immutable published RC1 baseline and move the approved `v1.0.0-rc.2` candidate toward one real, recoverable HTTPS staging deployment with wave-specific readiness and a bounded evidence control plane. Spec:...
 - AURORA-WHOLE-PRODUCT-VISUAL-AND-FETCH-RELIABILITY — Sharpen the shared Homefront Aurora system across every GA route and make live-data loading truthful, retained, cancellable, and visible. Spec: `specs/features/aurora-whole-product-visual-and-fetch-reliability.md`.
 - Queue posture: 2 actionable and 7 blocked/manual tasks remain context-only.
 - Review the full classified queue only when prerequisites change: `npm run orbit:next -- --all`.

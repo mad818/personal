@@ -1,10 +1,11 @@
 {
-  "generatedAt": "2026-06-20T19:29:38.772Z",
+  "schemaVersion": "nexus-cp2-staged-rehearsal.v1",
+  "generatedAt": "2026-08-12T05:25:47.291Z",
   "slice": "CP2.1-STAGED-REHEARSAL",
-  "envLocalPresent": true,
-  "baseUrl": null,
-  "stagedHostDetected": false,
-  "tokenConfigured": true,
+  "envLocalPresent": false,
+  "target": null,
+  "tokenConfigured": false,
+  "evidenceKeyConfigured": false,
   "smoke": {
     "attempted": false,
     "passed": false,
@@ -16,16 +17,11 @@
     "exitCode": null
   },
   "rollbackProof": {
-    "checklist": [
-      "Record Coolify deployment ID and image digest before promote.",
-      "Export current env vars from Coolify UI.",
-      "Redeploy previous known-good commit on rollback.",
-      "Run npm run release:smoke against restored host.",
-      "Run npm run release:diagnostics:capture and archive artifact."
-    ],
-    "captured": false
+    "required": true,
+    "verified": false,
+    "source": null,
+    "reason": "Diagnostics are not rollback proof; a separate platform rollback proof is required."
   },
-  "blocked": [
-    "Set NEXUS_RELEASE_BASE_URL to real Coolify/staged hostname in repo-root .env.local"
-  ]
+  "blocked": ["NEXUS_TOKEN is required for staged smoke and diagnostics."],
+  "remaining": ["Real platform rollback proof remains separate."]
 }
